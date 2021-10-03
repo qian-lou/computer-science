@@ -1,4 +1,4 @@
-package com.leetcode.problem0002;
+package com.leetcode.problem0002_两数相加;
 
 public class Solution {
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {

@@ -1,4 +1,4 @@
-package com.leetcode.problem0070;
+package com.leetcode.problem0070_爬楼梯;
 
 class Solution {
     public int climbStairs(int n) {

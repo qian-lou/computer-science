@@ -1,4 +1,4 @@
-package com.leetcode.problem0007;
+package com.leetcode.problem0007_整数反转;
 
 class Solution {
     public int reverse(int x) {

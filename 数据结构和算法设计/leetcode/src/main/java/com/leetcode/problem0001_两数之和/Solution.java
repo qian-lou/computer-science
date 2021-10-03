@@ -1,4 +1,4 @@
-package com.leetcode.problem0001;
+package com.leetcode.problem0001_两数之和;
 
 import java.util.HashMap;
 import java.util.Map;
