@@ -1,6 +1,6 @@
 # 计算机科学学习
 
-#### 介绍
+#### 介绍:分享成长之路的点点滴滴
 
 # 1.[中间件](https://gitee.com/JKcoding/computer-science/tree/master/%E4%B8%AD%E9%97%B4%E4%BB%B6)
 
