@@ -12,7 +12,7 @@
 
 # 5.[计算机组成原理](https://github.com/qian-lou/computer-science/tree/master/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90%E5%8E%9F%E7%90%86)
 
-# 6.[计算机网络](https://gitee.com/JKcoding/computer-science/tree/master/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C)
+# 6.[计算机网络](https://github.com/qian-lou/computer-science/tree/master/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C)
 
 # 7.[设计模式](https://github.com/qian-lou/computer-science/tree/master/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F)
 
