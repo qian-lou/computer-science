@@ -1,6 +1,6 @@
 # 计算机科学学习
 
-#### 介绍:分享成长之路的点点滴滴.
+#### 介绍:分享成长之路的点点滴滴,内容有个人见解也有收集到的资料。
 
 # 1.[中间件](https://github.com/qian-lou/computer-science/tree/master/%E4%B8%AD%E9%97%B4%E4%BB%B6)
 
