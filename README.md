@@ -1,4 +1,5 @@
 # ![添加计算机](https://gitee.com/JKcoding/imgs/raw/master/img/202111010232483.png) 计算机科学学习
+<div align="left"><img src="https://camo.githubusercontent.com/0f9c322c979e15506c1d9a06f922b6952e1123030d8d60ede2693e977ffd2357/68747470733a2f2f67697465652e636f6d2f4a4b636f64696e672f696d67732f7261772f6d61737465722f696d672f3230323131313031303233323438332e706e67" /> 计算机科学学习</div>
 
 ####  ![项目](https://gitee.com/JKcoding/imgs/raw/master/img/202111010233933.png) 分享成长之路的点点滴滴,内容有个人见解也有收集到的资料。
 
