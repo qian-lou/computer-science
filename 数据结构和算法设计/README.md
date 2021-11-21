@@ -12,6 +12,7 @@
 9. [0049-字母异位词分组](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0049_%E5%AD%97%E6%AF%8D%E5%BC%82%E4%BD%8D%E8%AF%8D%E5%88%86%E7%BB%84/0049-%E5%AD%97%E6%AF%8D%E5%BC%82%E4%BD%8D%E8%AF%8D%E5%88%86%E7%BB%84.md)
 9. [0050-Pow(x, n)](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0050_Pow(x%2C%20n)/0050-Pow(x%2C%20n).md)
 9. [0051-N皇后](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0051_N%E7%9A%87%E5%90%8E/0051-N%E7%9A%87%E5%90%8E.md)
+9. [0053-最大子序和](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0053_%E6%9C%80%E5%A4%A7%E5%AD%90%E5%BA%8F%E5%92%8C/0053-%E6%9C%80%E5%A4%A7%E5%AD%90%E5%BA%8F%E5%92%8C.md)
 9. [0069-Sqrt(x)](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0069_Sqrt(x)/0069-Sqrt(x).md)
 11. [0070-爬楼梯](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0070_%E7%88%AC%E6%A5%BC%E6%A2%AF/0070-%E7%88%AC%E6%A5%BC%E6%A2%AF.md)
 11. [0078-子集](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/leetcode/problem0078_%E5%AD%90%E9%9B%86/0078-%E5%AD%90%E9%9B%86.md)
@@ -49,6 +50,7 @@
 1. [06_从尾到头打印链表](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/%E5%89%91%E6%8C%87offer/06_%E4%BB%8E%E5%B0%BE%E5%88%B0%E5%A4%B4%E6%89%93%E5%8D%B0%E9%93%BE%E8%A1%A8.md)
 1. [10-I.斐波那契数列](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/%E5%89%91%E6%8C%87offer/10-I.%E6%96%90%E6%B3%A2%E9%82%A3%E5%A5%91%E6%95%B0%E5%88%97.md)
 2. [21_调整数组顺序使奇数位于偶数前面](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/%E5%89%91%E6%8C%87offer/21_%E8%B0%83%E6%95%B4%E6%95%B0%E7%BB%84%E9%A1%BA%E5%BA%8F%E4%BD%BF%E5%A5%87%E6%95%B0%E4%BD%8D%E4%BA%8E%E5%81%B6%E6%95%B0%E5%89%8D%E9%9D%A2.md)
+2. [42_连续子数组的最大和](https://github.com/qian-lou/computer-science/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/%E5%89%91%E6%8C%87offer/42_%E8%BF%9E%E7%BB%AD%E5%AD%90%E6%95%B0%E7%BB%84%E7%9A%84%E6%9C%80%E5%A4%A7%E5%92%8C.md)
 
 ### 剑指offer2
 
