@@ -149,3 +149,340 @@ class B {
 前面介绍了多种回收算法，每一种算法都有自己的优点也有缺点，谁都不能替代谁，所以根据垃圾回收对象的特点进行选择，才是明智的选择。 
 
 分代算法其实就是这样的，根据回收对象的特点进行选择，在`jvm`中，**年轻代适合使用复制算法**，**老年代适合使用标记清除或标记压缩算法**。
+
+
+
+## 3、垃圾收集器以及内存分配
+
+前面我们讲了垃圾回收的算法，还需要有具体的实现，在`jvm`中，实现了多种垃圾收集器，包括：串行垃圾收集器、并行垃圾收集器、`CMS`（并发）垃圾收集器、`G1`垃圾收集器，接下来，我们一个个的了解学习。
+
+### 3.1、串行垃圾收集器
+
+**串行垃圾收集器**，是指使用单线程进行垃圾回收，垃圾回收时，只有一个线程在工作，并且`java`应用中的所有线程都要暂停，等待垃圾回收的完成。这种现象称之为 `STW(Stop-The-World)`。对于交互性较强的应用而言，这种垃圾收集器是不能够接受的。 一般在`Javaweb`应用中是不会采用该收集器的。
+
+#### 3.1.1、编写测试代码
+
+```java
+public class TestGC {
+    public static void main(String[] args) throws InterruptedException {
+        List<Object> list = new ArrayList<>();
+        while (true) {
+            int sleeps = new Random().nextInt(100);
+            if (System.currentTimeMillis() % 2 == 0) {
+                list.clear();
+            } else {
+                for (int i = 0; i < 10000; i++) {
+                    Properties props = new Properties();
+                    props.put("key_" + i, "value_" + System.currentTimeMillis());
+                    list.add(props);
+                }
+            }
+            Thread.sleep(sleeps);
+        }
+    }
+}
+```
+
+#### 3.1.2、设置垃圾回收为串行收集器
+
+在程序运行参数中添加2个参数，如下：
+
+`-XX:+UseSerialGC`：指定年轻代和老年代都使用串行垃圾收集器
+
+`-XX:+PrintGCDetails`：打印垃圾回收的详细信息
+
+![image-20211122205543956](https://gitee.com/JKcoding/imgs/raw/master/img/202111222055057.png)
+
+启动程序，可以看到下面信息：
+
+```shell
+[0.004s][warning][gc] -XX:+PrintGCDetails is deprecated. Will use -Xlog:gc* instead.
+[0.011s][info   ][gc] Using Serial
+[0.011s][info   ][gc,heap,coops] Heap address: 0x00000000ff000000, size: 16 MB, Compressed Oops mode: 32-bit
+[0.162s][info   ][gc,start     ] GC(0) Pause Young (Allocation Failure)
+[0.168s][info   ][gc,heap      ] GC(0) DefNew: 4416K->511K(4928K)
+[0.168s][info   ][gc,heap      ] GC(0) Tenured: 0K->2503K(10944K)
+[0.168s][info   ][gc,metaspace ] GC(0) Metaspace: 6761K->6761K(1056768K)
+[0.168s][info   ][gc           ] GC(0) Pause Young (Allocation Failure) 4M->2M(15M) 5.262ms
+[0.168s][info   ][gc,cpu       ] GC(0) User=0.00s Sys=0.00s Real=0.01s
+[0.312s][info   ][gc,start     ] GC(1) Pause Young (Allocation Failure)
+[0.316s][info   ][gc,heap      ] GC(1) DefNew: 4927K->511K(4928K)
+[0.316s][info   ][gc,heap      ] GC(1) Tenured: 2503K->5352K(10944K)
+[0.316s][info   ][gc,metaspace ] GC(1) Metaspace: 6761K->6761K(1056768K)
+[0.316s][info   ][gc           ] GC(1) Pause Young (Allocation Failure) 7M->5M(15M) 4.595ms
+```
+
+GC日志信息解读：
+
+年轻代的内存GC前后的大小：
+
+`DefNew`：表示使用的是串行垃圾收集器。
+
+`4416K->511K(4928K)`：表示，年轻代`GC`前，占有`4416K`内存，`GC`后，占有`512K`内存，总大小`4928K`
+
+### 3.2、并行垃圾收集器
+
+并行垃圾收集器在串行垃圾收集器的基础之上做了改进，将单线程改为了多线程进行垃圾回收，这样可以缩短垃圾回收的时间。（这里是指，并行能力较强的机器） 当然了，并行垃圾收集器在收集的过程中也会暂停应用程序，这个和串行垃圾回收器是一样的，只是并行执行，速度更快些，暂停的时间更短一些。
+
+#### 3.2.1、**ParNew**垃圾收集器
+
+`ParNew`垃圾收集器是工作在年轻代上的，只是将串行的垃圾收集器改为了并行。
+
+通过`-XX:+UseParNewGC`参数设置年轻代使用`ParNew`回收器，老年代使用的依然是串行收集器。
+
+#### 3.2.2、**ParallelGC**垃圾收集器 
+
+ParallelGC收集器工作机制和ParNewGC收集器一样，只是在此基础之上，新增了两个和系统吞吐量相关的参数，使得其使用起来更加的灵活和高效。 
+
+相关参数如下： 
+
+`-XX:+UseParallelGC` ：年轻代使用`ParallelGC`垃圾回收器，老年代使用串行回收器。
+
+`-XX:+UseParallelOldGC`：年轻代使用`ParallelGC`垃圾回收器，老年代使用`ParallelOldGC`垃圾回收器。
+
+`-XX:MaxGCPauseMillis`：
+
+- 设置最大的垃圾收集时的停顿时间，单位为毫秒
+- 需要注意的时，ParallelGC为了达到设置的停顿时间，可能会调整堆大小或其他的参数，如果堆的大小设置的较小，就会导致GC工作变得很频繁，反而可能会影响到性能。 
+- 该参数使用需谨慎。
+
+`-XX:GCTimeRatio` ：
+
+- 设置垃圾回收时间占程序运行时间的百分比，公式为`1/(1+n)`
+- 它的值为`0~100`之间的数字，默认值为`99`，也就是垃圾回收时间不能超过`1%`
+
+ `-XX:UseAdaptiveSizePolicy`：
+
+- 自适应`GC`模式，垃圾回收器将自动调整年轻代、老年代等参数，达到吞吐量、堆大小、停顿时间之间的平衡
+- 一般用于，手动调整参数比较困难的场景，让收集器自动进行调整
+
+```shell
+-XX:+UseParallelGC
+-XX:+UseParallelOldGC
+-XX:MaxGCPauseMillis=100
+-XX:+PrintGCDetails
+-Xms16m
+-Xmx16m
+```
+
+![image-20211122213956451](https://gitee.com/JKcoding/imgs/raw/master/img/202111222139271.png)
+
+```shell
+[0.003s][warning][gc] -XX:+PrintGCDetails is deprecated. Will use -Xlog:gc* instead.
+[0.012s][info   ][gc] Using Parallel
+[0.012s][info   ][gc,heap,coops] Heap address: 0x00000000ff000000, size: 16 MB, Compressed Oops mode: 32-bit
+[0.185s][info   ][gc,start     ] GC(0) Pause Young (Allocation Failure)
+[0.190s][info   ][gc,heap      ] GC(0) PSYoungGen: 4096K->504K(4608K)
+[0.190s][info   ][gc,heap      ] GC(0) ParOldGen: 0K->2220K(11264K)
+[0.190s][info   ][gc,metaspace ] GC(0) Metaspace: 6762K->6762K(1056768K)
+[0.190s][info   ][gc           ] GC(0) Pause Young (Allocation Failure) 4M->2M(15M) 5.126ms
+[0.190s][info   ][gc,cpu       ] GC(0) User=0.00s Sys=0.00s Real=0.00s
+[0.317s][info   ][gc,start     ] GC(1) Pause Young (Allocation Failure)
+[0.322s][info   ][gc,heap      ] GC(1) PSYoungGen: 4600K->504K(4608K)
+[0.322s][info   ][gc,heap      ] GC(1) ParOldGen: 2220K->5011K(11264K)
+[0.322s][info   ][gc,metaspace ] GC(1) Metaspace: 6762K->6762K(1056768K)
+[0.322s][info   ][gc           ] GC(1) Pause Young (Allocation Failure) 6M->5M(15M) 5.109ms
+[0.322s][info   ][gc,cpu       ] GC(1) User=0.02s Sys=0.02s Real=0.01s
+[0.409s][info   ][gc,start     ] GC(2) Pause Young (Allocation Failure)
+[0.413s][info   ][gc,heap      ] GC(2) PSYoungGen: 4600K->512K(4608K)
+[0.413s][info   ][gc,heap      ] GC(2) ParOldGen: 5011K->9101K(11264K)
+[0.413s][info   ][gc,metaspace ] GC(2) Metaspace: 6762K->6762K(1056768K)
+[0.413s][info   ][gc           ] GC(2) Pause Young (Allocation Failure) 9M->9M(15M) 4.873ms
+[0.413s][info   ][gc,cpu       ] GC(2) User=0.00s Sys=0.03s Real=0.01s
+[0.413s][info   ][gc,start     ] GC(3) Pause Full (Ergonomics)
+[0.414s][info   ][gc,phases,start] GC(3) Marking Phase
+[0.419s][info   ][gc,phases      ] GC(3) Marking Phase 5.855ms
+[0.419s][info   ][gc,phases,start] GC(3) Summary Phase
+[0.419s][info   ][gc,phases      ] GC(3) Summary Phase 0.010ms
+[0.419s][info   ][gc,phases,start] GC(3) Adjust Roots
+[0.420s][info   ][gc,phases      ] GC(3) Adjust Roots 1.105ms
+[0.421s][info   ][gc,phases,start] GC(3) Compaction Phase
+[0.430s][info   ][gc,phases      ] GC(3) Compaction Phase 9.803ms
+```
+
+以上信息可以看出，年轻代和老年代都使用了`ParallelGC`垃圾回收器
+
+### 3.3、CMS垃圾收集器
+
+`CMS`全称 `Concurrent Mark Sweep`，是一款并发的、使用标记-清除算法的垃圾回收器， 该回收器是针对老年代垃圾回收的，通过参数-`XX:+UseConcMarkSweepGC`进行设置。 
+
+`CMS`垃圾回收器的执行过程如下： 
+
+![image-20211122220218602](https://gitee.com/JKcoding/imgs/raw/master/img/202111222202685.png)
+
+- 初始化标记(`CMS-initial-mark`) ,标记`root`，会导致`stw`； 
+- 并发标记(`CMS-concurrent-mark`)，与用户线程同时运行； 
+- 预清理（`CMS-concurrent-preclean`），与用户线程同时运行； 
+- 重新标记(`CMS-remark`) ，会导致`stw`； 
+- 并发清除(`CMS-concurrent-sweep`)，与用户线程同时运行； 
+- 调整堆大小，设置`CMS`在清理之后进行内存压缩，目的是清理内存中的碎片； 
+- 并发重置状态等待下次`CMS`的触发(`CMS-concurrent-reset`)，与用户线程同时运行
+
+
+
+### 3.4、G1垃圾收集器（重点）
+
+`G1`垃圾收集器是在`jdk1.7`中正式使用的全新的垃圾收集器，`oracle`官方计划在`jdk9`中将`G1`变成默认的垃圾收集器，以替代`CMS`
+
+`G1`的设计原则就是简化`JVM`性能调优，开发人员只需要简单的三步即可完成调优： 
+
+1. 第一步，开启G1垃圾收集器 
+
+2. 第二步，设置堆的最大内存 
+
+3. 第三步，设置最大的停顿时间 
+
+`G1`中提供了三种模式垃圾回收模式，`Young GC`、`Mixed GC` 和 `Full GC`，在不同的条件下被触发。
+
+#### 3.4.1、原理
+
+`G1`垃圾收集器相对比其他收集器而言，最大的区别在于它取消了年轻代、老年代的物理划分，取而代之的是将堆划分为若干个区域（`Region`），这些区域中包含了有逻辑上的年轻代、老年代区域。 这样做的好处就是，我们再也不用单独的空间对每个代进行设置了，不用担心每个代内存是否足够。
+
+![image-20211122230758846](https://gitee.com/JKcoding/imgs/raw/master/img/202111222308122.png)
+
+![image-20211122230820576](https://gitee.com/JKcoding/imgs/raw/master/img/202111222308823.png)
+
+在`G1`划分的区域中，年轻代的垃圾收集依然采用暂停所有应用线程的方式，将存活对象拷贝到老年代或者`Survivor`空间，`G1`收集器通过将对象从一个区域复制到另外一个区域，完成了清理工作。 这就意味着，在正常的处理过程中，`G1`完成了堆的压缩（至少是部分堆的压缩），这样也就不会有`cms`内存碎片问题的存在了。 在`G1`中，有一种特殊的区域，叫`Humongous`区域。
+
+- 如果一个对象占用的空间超过了分区容量`50%`以上，`G1`收集器就认为这是一个巨型对象。 
+- 这些巨型对象，默认直接会被分配在老年代，但是如果它是一个短期存在的巨型对象，就会对垃圾收集器造成负面影响。 
+- 为了解决这个问题，`G1`划分了一个`Humongous`区，它用来专门存放巨型对象。如果一个H区装不下一个巨型对象，那么`G1`会寻找连续的H分区来存储。为了能找到连续的H区，有时候不得不启动`Full GC`
+
+#### 3.4.2、Young GC
+
+`Young GC`主要是对`Eden`区进行`GC`，它在`Eden`空间耗尽时会被触发。
+
+- `Eden`空间的数据移动到`Survivor`空间中，如果`Survivor`空间不够，`Eden`空间的部分数据会直接晋升到年老代空间。 
+- `Survivor`区的数据移动到新的`Survivor`区中，也有部分数据晋升到老年代空间中。 
+- 最终`Eden`空间的数据为空，`GC`停止工作，应用线程继续执行。
+
+![image-20211122232404534](https://gitee.com/JKcoding/imgs/raw/master/img/202111222324845.png)
+
+
+
+##### 3.4.2.1、**Remembered Set**（已记忆集合）
+
+在GC年轻代的对象时，我们如何找到年轻代中对象的根对象呢？ 
+
+根对象可能是在年轻代中，也可以在老年代中，那么老年代中的所有对象都是根么？ 
+
+如果全量扫描老年代，那么这样扫描下来会耗费大量的时间。 
+
+于是，G1引进了RSet的概念。它的全称是Remembered Set，其作用是跟踪指向某个堆内的对象引用。
+
+![image-20211122232537233](https://gitee.com/JKcoding/imgs/raw/master/img/202111222325371.png)
+
+每个`Region`初始化时，会初始化一个`RSet`，该集合用来记录并跟踪其它`Region`指向该`Region`中对象的引用，每个`Region`默认按照`512Kb`划分成多个`Card`，所以`RSet`需要记录的东西应该是 `xx Region`的 `xx Card`。
+
+#### 3.4.3、**Mixed GC** 
+
+当越来越多的对象晋升到老年代`old region`时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即`Mixed GC`，该算法并不是一个`Old GC`，除了回收整个`Young Region`，还会回收一部分的`Old Region`，这里需要注意：是一部分老年代，而不是全部老年代，可以选择哪些`old region`进行收集，从而可以对垃圾回收的耗时时间进行控制。 也要注意的是Mixed GC 并不是FULL GC
+
+**`MixedGC`什么时候触发？** 由参数 **-XX:InitiatingHeapOccupancyPercent=n** 决定。默认：**45%**，该参数的意思是：**当老年代大小占整个堆大小百分比达到该阀值时触发**
+
+它的GC步骤分2步：
+
+1. 全局并发标记（`global concurrent marking`） 
+
+2. 拷贝存活对象（`evacuation`）
+
+##### 3.4.3.1、全局并发标记
+
+全局并发标记，执行过程分为五个步骤：
+
+- 初始标记（initial mark，STW） 
+
+​		标记从根节点直接可达的对象，这个阶段会执行一次年轻代GC，会产生全局停顿。
+
+- 根区域扫描（root region scan）
+
+​		`G1 GC` 在初始标记的存活区扫描对老年代的引用，并标记被引用的对象。 
+
+​		该阶段与应用程序（非 `STW`）同时运行，并且只有完成该阶段后，才能开始下一次 `STW` 年轻代垃圾回收。 
+
+- 并发标记（Concurrent Marking） 
+
+  `G1 GC` 在整个堆中查找可访问的（存活的）对象。该阶段与应用程序同时运行，可以被 `STW` 年轻代垃圾回收中断。 
+
+- 重新标记（Remark，STW）
+
+  该阶段是 `STW` 回收，因为程序在运行，针对上一次的标记进行修正
+
+- 清除垃圾（Cleanup，STW） 
+
+​		清点和重置标记状态，该阶段会`STW`，这个阶段并不会实际上去做垃圾的收集， 等待`evacuation`阶段来回收。 
+
+3.4.3.2、拷贝存活对象
+
+`Evacuation`阶段是全暂停的。该阶段把一部分`Region`里的活对象拷贝到另一部分`Region` 中，从而实现垃圾的回收清理
+
+#### 3.4.4、G1收集器相关参数
+
+- XX:+UseG1GC
+
+  使用 G1 垃圾收集器
+
+- -XX:MaxGCPauseMillis
+
+  设置期望达到的最大GC停顿时间指标（JVM会尽力实现，但不保证达到），默认值是 200 毫秒
+
+- -XX:G1HeapRegionSize=n
+
+  设置的 G1 区域的大小。值是 2 的幂，范围是 1 MB 到 32 MB 之间。目标是根据最小的 Java 堆大小划分出约 2048 个区域。 默认是堆内存的1/2000。 
+
+- -XX:ParallelGCThreads=n
+
+  设置 STW 工作线程数的值。将 n 的值设置为逻辑处理器的数量。n 的值与逻辑处理器的数量相同，最多为 8
+
+- -XX:ConcGCThreads=n
+
+  设置并行标记的线程数。将 n 设置为并行垃圾回收线程数 (ParallelGCThreads) 的 1/4 左右。 
+
+- -XX:InitiatingHeapOccupancyPercent=n
+
+​		设置触发标记周期的 Java 堆占用率阈值。默认占用率是整个 Java 堆的 45%
+
+#### 3.4.5、对于**G1**垃圾收集器优化建议
+
+- 年轻代大小 
+
+  避免使用 -Xmn 选项或 -XX:NewRatio 等其他相关选项显式设置年轻代大小。 
+
+  固定年轻代的大小会覆盖暂停时间目标。
+
+- 暂停时间目标不要太过严苛 
+
+​		G1 GC 的吞吐量目标是 90% 的应用程序时间和 10%的垃圾回收时间。 
+
+​		评估 G1 GC 的吞吐量时，暂停时间目标不要太严苛。目标太过严苛表示您愿意承受更多的垃圾回收开销，而这会直接影响到吞吐量
+
+​	
+
+### 4、可视化**GC**日志分析工具
+
+#### 4.1、**GC**日志输出参数
+
+前面通过`-XX:+PrintGCDetails`可以对`GC`日志进行打印，我们就可以在控制台查看，这样虽然可以查看GC的信息，但是并不直观，可以借助于第三方的GC日志分析工具进行查看。
+
+在日志打印输出涉及到的参数如下：
+
+```shell
+‐XX:+PrintGC 输出GC日志 
+‐XX:+PrintGCDetails 输出GC的详细日志 
+‐XX:+PrintGCTimeStamps 输出GC的时间戳（以基准时间的形式） 
+‐XX:+PrintGCDateStamps 输出GC的时间戳（以日期的形式，如 2013‐05‐ 04T21:53:59.234+0800） 
+‐XX:+PrintHeapAtGC 在进行GC的前后打印出堆的信息 
+‐Xloggc:../logs/gc.log 日志文件的输出路径
+```
+
+测试：
+
+```shell
+‐XX:+UseG1GC ‐XX:MaxGCPauseMillis=100 ‐Xmx256m ‐XX:+PrintGCDetails ‐ XX:+PrintGCTimeStamps ‐XX:+PrintGCDateStamps ‐XX:+PrintHeapAtGC ‐ Xloggc:F://test//gc.log
+```
+
+运行后就可以在F盘下生成gc.log文件。
+
+#### 4.2、**GC Easy** 可视化工具
+
+GC Easy是一款在线的可视化工具，易用、功能强大，网站：http://gceasy.io/ 
