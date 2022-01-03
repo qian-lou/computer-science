@@ -306,3 +306,413 @@ public void addCourse() {
 
 ![image-20220103163121247](https://gitee.com/JKcoding/imgs/raw/master/img/202201031631766.png)
 
+
+
+##### 垂直切分实现：
+
+1. 在上面的`springboot`项目中，修改配置文件`application.properties`
+
+   ```yaml
+   #一个实体类对应两张表，覆盖
+   spring.main.allow-bean-definition-overriding=true
+   #配置数据源，给数据源起名称
+   spring.shardingsphere.datasource.names=m0
+   #配置数据源具体内容，包含连接池，驱动，地址，用户名和密码
+   spring.shardingsphere.datasource.m0.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m0.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m0.url=jdbc:mysql://192.168.1.101:3306/user_db?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m0.username=root
+   spring.shardingsphere.datasource.m0.password=123456
+   #配置user_db数据库里面t_user专库专表
+   spring.shardingsphere.sharding.tables.t_user.actual-data-nodes=m$->{0}.t_user
+   #指定t_user表里面主键生成策略，snowflake
+   spring.shardingsphere.sharding.tables.t_user.key-generator.column=user_id
+   spring.shardingsphere.sharding.tables.t_user.key-generator.type=SNOWFLAKE
+   spring.shardingsphere.sharding.tables.t_user.table-strategy.inline.sharding-column=user_id
+   spring.shardingsphere.sharding.tables.t_user.table-strategy.inline.algorithm-expression=t_user
+   #打开sql输出日志
+   spring.shardingsphere.props.sql.show=true
+   ```
+
+2. 创建实体类`User`
+
+   ```java
+   @TableName("t_user")
+   @Data
+   public class User {
+       private Long userId;
+       private String username;
+       private String ustatus;
+   }
+   ```
+
+3. 创建数据库`user_db`和表`t_user`
+
+   ```sql
+   CREATE TABLE `t_user` (
+     `user_id` bigint NOT NULL,
+     `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+     `ustatus` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+     PRIMARY KEY (`user_id`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   ```
+
+4. 测试
+
+   ```java
+   @Test
+   public void addUser() {
+       User user = new User();
+       user.setUsername("lzj");
+       user.setUstatus("a");
+       useMapper.insert(user);
+   }
+   ```
+
+```java
+2022-01-03 17:44:15.424  INFO 15740 --- [           main] ShardingSphere-SQL                       : Actual SQL: m0 ::: INSERT INTO t_user   (username, ustatus, user_id) VALUES (?, ?, ?) ::: [lzj, a, 684818507082235905]
+```
+
+可以看到插入到了指定的`m0（user_db）`库的`t_user`表中
+
+```java
+@Test
+public void findUser() {
+    QueryWrapper queryWrapper = new QueryWrapper<>();
+    queryWrapper.eq("user_id", 684812758394339329L);
+    User user = useMapper.selectOne(queryWrapper);
+    System.out.println(user);
+}
+```
+
+```java
+2022-01-03 17:46:50.857  INFO 27560 --- [           main] ShardingSphere-SQL                       : Actual SQL: m0 ::: SELECT  user_id,username,ustatus  FROM t_user  
+ WHERE  user_id = ? ::: [684812758394339329]
+User(userId=684812758394339329, username=lzj, ustatus=a)
+```
+
+可以看到，从指定的数据库`m0（user_db）`库的`t_user`表中查询到数据
+
+
+
+##### 公共表操作：
+
+1. 在上面`springboot`项目的基础上，修改`application.properties`
+
+   ```yaml
+   #一个实体类对应两张表，覆盖
+   spring.main.allow-bean-definition-overriding=true
+   #配置数据源，给数据源起名称
+   spring.shardingsphere.datasource.names=m0,m1,m2
+   #配置数据源具体内容，包含连接池，驱动，地址，用户名和密码
+   spring.shardingsphere.datasource.m0.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m0.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m0.url=jdbc:mysql://192.168.1.101:3306/user_db?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m0.username=root
+   spring.shardingsphere.datasource.m0.password=123456
+   
+   spring.shardingsphere.datasource.m1.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m1.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m1.url=jdbc:mysql://192.168.1.101:3306/edu_db_1?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m1.username=root
+   spring.shardingsphere.datasource.m1.password=123456
+   
+   spring.shardingsphere.datasource.m2.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m2.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m2.url=jdbc:mysql://192.168.1.101:3306/edu_db_2?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m2.username=root
+   spring.shardingsphere.datasource.m2.password=123456
+   #配置公共表
+   spring.shardingsphere.sharding.broadcast-tables=t_udict
+   spring.shardingsphere.sharding.tables.t_udict.key-generator.column=dictid
+   spring.shardingsphere.sharding.tables.t_udict.key-generator.type=SNOWFLAKE
+   #打开sql输出日志
+   spring.shardingsphere.props.sql.show=true
+   ```
+
+2. 新增实体类`Udict`
+
+   ```java
+   @Data
+   @TableName("t_udict")
+   public class Udict {
+       private Long dictid;
+       private String ustatus;
+       private String uvalue;
+   }
+   ```
+
+   ```java
+   @Repository
+   public interface UdictMapper extends BaseMapper<Udict> {
+   }
+   ```
+
+3. 在三个数据库`user_db`、`edu_db_1`、`edu_db_2`中创建表`t_udict`
+
+   ```sql
+   CREATE TABLE `t_udict` (
+     `dictid` bigint NOT NULL,
+     `ustatus` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+     `uvalue` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+     PRIMARY KEY (`dictid`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   ```
+
+4. 测试
+
+   ```java
+   @Test
+   public void addUdict() {
+       Udict udict = new Udict();
+       udict.setUstatus("a");
+       udict.setUvalue("已启动");
+       udictMapper.insert(udict);
+   }
+   
+   @Test
+   public void deleteUdict() {
+       QueryWrapper<Udict> queryWrapper = new QueryWrapper<>();
+       queryWrapper.eq("dictid", 684882142416601089L);
+       udictMapper.delete(queryWrapper);
+   }
+   ```
+
+
+
+##### 读写分离：
+
+![image-20220103220725391](https://gitee.com/JKcoding/imgs/raw/master/img/202201032207180.png)
+
+![image-20220103220803722](https://gitee.com/JKcoding/imgs/raw/master/img/202201032208775.png)
+
+之前写的文章：[基于docker环境的mysql主从复制](https://blog.csdn.net/qq_36609994/article/details/105172446?spm=1001.2014.3001.5502)
+
+1. 在开始之前，参考上面提供的文章，先实现MySQL的主从复制配置
+
+2. 在上面的`springboot`项目修改`application.properties`
+
+   ```yaml
+   #一个实体类对应两张表，覆盖
+   spring.main.allow-bean-definition-overriding=true
+   #配置数据源，给数据源起名称
+   spring.shardingsphere.datasource.names=m0,s0
+   
+   #配置数据源具体内容，包含连接池，驱动，地址，用户名和密码
+   #主数据库
+   spring.shardingsphere.datasource.m0.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m0.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m0.url=jdbc:mysql://192.168.1.101:3307/user_db?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m0.username=root
+   spring.shardingsphere.datasource.m0.password=123456
+   #从数据库
+   spring.shardingsphere.datasource.s0.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.s0.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.s0.url=jdbc:mysql://192.168.1.101:3308/user_db?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.s0.username=root
+   spring.shardingsphere.datasource.s0.password=123456
+   #主数据库
+   spring.shardingsphere.sharding.master-slave-rules.ds0.master-data-source-name=m0
+   #从数据库
+   spring.shardingsphere.sharding.master-slave-rules.ds0.slave-data-source-names=s0
+   spring.shardingsphere.sharding.tables.t_user.actual-data-nodes=ds0.t_user
+   #打开sql输出日志
+   spring.shardingsphere.props.sql.show=true
+   ```
+
+3. 数据库创建`user_db`数据库和表`t_user`
+
+   ```sql
+   CREATE TABLE `t_user` (
+     `user_id` bigint NOT NULL,
+     `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+     `ustatus` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+     PRIMARY KEY (`user_id`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   ```
+
+4. 测试
+
+   ```java
+   @Test
+   public void addUser() {
+       User user = new User();
+       user.setUsername("lzj");
+       user.setUstatus("a");
+       user.setUserId(123456216L);
+       useMapper.insert(user);
+   }
+   ```
+
+   ```shell
+   2022-01-04 01:27:40.982  INFO 31584 --- [           main] ShardingSphere-SQL                       : Actual SQL: m0 ::: INSERT INTO t_user   (user_id, username, ustatus) VALUES (?, ?, ?) ::: [123456216, lzj, a]
+   ```
+
+   可以看到数据新增到主数据库`m0`中
+
+   ```java
+   @Test
+   public void findUser() {
+       QueryWrapper queryWrapper = new QueryWrapper<>();
+       queryWrapper.eq("user_id", 684812758394339329L);
+       User user = useMapper.selectOne(queryWrapper);
+       System.out.println(user);
+   }
+   ```
+
+   ```shell
+   2022-01-04 01:28:38.715  INFO 28272 --- [           main] ShardingSphere-SQL                       : Actual SQL: s0 ::: SELECT  user_id,username,ustatus  FROM t_user  
+    WHERE  user_id = ? ::: [684812758394339329]
+   ```
+
+   可以看到查询数据是在从数据库`s0`中读取的
+
+   
+
+#### `shardingsphere-proxy`
+
+**代码**：
+
+entity：
+
+```java
+@Data
+public class Course {
+    private Long cid;
+    private String cname;
+    private Long userId;
+    private String cstatus;
+}
+```
+
+```java
+@Data
+@TableName("t_udict")
+public class Udict {
+
+    private Long dictid;
+    private String ustatus;
+    private String uvalue;
+}
+```
+
+```java
+@TableName("t_user")
+@Data
+public class User {
+    private Long userId;
+    private String username;
+    private String ustatus;
+}
+```
+
+mapper:
+
+```java
+@Repository
+public interface CourseMapper extends BaseMapper<Course> {
+}
+```
+
+```java
+@Repository
+public interface UdictMapper extends BaseMapper<Udict> {
+}
+```
+
+```java
+@Repository
+public interface UseMapper extends BaseMapper<User> {
+}
+```
+
+pom.xml:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.1.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.shardingjdbc</groupId>
+    <artifactId>shardingjdbcdemo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>shardingjdbcdemo</name>
+    <description>shardingjdbcdemo</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.20</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
+            <version>4.0.0-RC1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0-b170201.1204</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/javax.activation/activation -->
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.0-b170127.1453</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
