@@ -197,3 +197,112 @@
 
 ##### 水平分库实现：
 
+1. 在上面的`springboot`项目基础上修改，修改`application.properties`
+
+   ```yaml
+   #一个实体类对应两张表，覆盖
+   spring.main.allow-bean-definition-overriding=true
+   #配置数据源，给数据源起名称
+   spring.shardingsphere.datasource.names=m1,m2
+   #配置数据源具体内容，包含连接池，驱动，地址，用户名和密码
+   spring.shardingsphere.datasource.m1.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m1.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m1.url=jdbc:mysql://192.168.1.101:3306/edu_db_1?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m1.username=root
+   spring.shardingsphere.datasource.m1.password=123456
+   
+   spring.shardingsphere.datasource.m2.type=com.alibaba.druid.pool.DruidDataSource
+   spring.shardingsphere.datasource.m2.driver-class-name=com.mysql.cj.jdbc.Driver
+   spring.shardingsphere.datasource.m2.url=jdbc:mysql://192.168.1.101:3306/edu_db_2?serverTimezone=GMT%2B8
+   spring.shardingsphere.datasource.m2.username=root
+   spring.shardingsphere.datasource.m2.password=123456
+   
+   #指定数据库分库情况，数据库里面表分布情况
+   #m1 m2 course_1 course_2
+   spring.shardingsphere.sharding.tables.course.actual-data-nodes=m$->{1..2}.course_$->{1..2}
+   
+   #指定course表里面主键生成策略，snowflake
+   spring.shardingsphere.sharding.tables.course.key-generator.column=cid
+   spring.shardingsphere.sharding.tables.course.key-generator.type=SNOWFLAKE
+   
+   #指定分表的分片策略，约定cid值偶数添加到course_1表，如果cid是奇数添加到course_2表
+   spring.shardingsphere.sharding.tables.course.table-strategy.inline.sharding-column=cid
+   spring.shardingsphere.sharding.tables.course.table-strategy.inline.algorithm-expression=course_$->{cid % 2 + 1}
+   
+   #指定数据库分片策略 约定user_id是偶数添加m1， 是奇数添加到m2
+   #spring.shardingsphere.sharding.default-database-strategy.inline.sharding-column=user_id
+   #spring.shardingsphere.sharding.default-database-strategy.inline.algorithm-expression=m$->{user_id%2+1}
+   spring.shardingsphere.sharding.tables.course.database-strategy.inline.sharding-column=user_id
+   spring.shardingsphere.sharding.tables.course.database-strategy.inline.algorithm-expression=m$->{user_id % 2 + 1}
+   #打开sql输出日志
+   spring.shardingsphere.props.sql.show=true
+   ```
+
+2. 创建两个数据库`edu_db_1`和`edu_db_2`
+
+   `edu_db_1`中创建两张表：`course_1`和`course_2`
+
+   ```sql
+   CREATE TABLE `course_1` (
+     `cid` bigint NOT NULL,
+     `cname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+     `user_id` bigint NOT NULL,
+     `cstatus` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+     PRIMARY KEY (`cid`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   ```
+
+   ```sql
+   CREATE TABLE `course_2` (
+     `cid` bigint NOT NULL,
+     `cname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+     `user_id` bigint NOT NULL,
+     `cstatus` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+     PRIMARY KEY (`cid`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+   ```
+
+   `edu_db_2`同理创建两张表：`course_1`和`course_2`
+
+3. 测试
+
+   ```java
+   @Test
+   public void addCourse() {
+       for (int i = 0; i < 10; i++) {
+           Course course = new Course();
+           course.setCname("java");
+           course.setUserId(101L);
+           course.setCstatus(UUID.randomUUID().toString().substring(0, 5));
+           courseMapper.insert(course);
+       }
+   }
+   ```
+
+   根据规则，`user_id`为奇数，则插入`edu_db_2`数据库中， 奇数`cid`插入`course_2`中，偶数cid插入`course_1`中
+
+   ![image-20220103162842350](https://gitee.com/JKcoding/imgs/raw/master/img/202201031628437.png)
+
+​	![image-20220103162932273](https://gitee.com/JKcoding/imgs/raw/master/img/202201031629782.png)
+
+​	
+
+```java
+@Test
+public void addCourse() {
+    for (int i = 0; i < 10; i++) {
+        Course course = new Course();
+        course.setCname("java");
+        course.setUserId(100L);
+        course.setCstatus(UUID.randomUUID().toString().substring(0, 5));
+        courseMapper.insert(course);
+    }
+}
+```
+
+根据规则，`user_id`为偶数，则插入`edu_db_1`数据库中， 奇数`cid`插入`course_2`中，偶数cid插入`course_1`中
+
+![image-20220103163102466](https://gitee.com/JKcoding/imgs/raw/master/img/202201031631276.png)
+
+![image-20220103163121247](https://gitee.com/JKcoding/imgs/raw/master/img/202201031631766.png)
+
