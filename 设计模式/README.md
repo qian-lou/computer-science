@@ -134,7 +134,7 @@ of Reusable object- Oriented software。他们所提出的设计模式主要是�
 - 比如`Hibernate`的`SessionFactory`，它充当数据存储源的代理，并负责创建`Session`对象。`SessionFactory`并不是轻量级的，一般情况下，一个项目通常只需要一个`SessionFactory`就够，这是就会使用到单例模式。
 - 业务系统全局只需要一个对象实例，比如发号器`redis`连接对象等
 - `SpringIOC`容器中的`bean`默认就是单例
-- `springboot`中的`controller`、`service`、`dao`层中通过`＠autowi`re的依赖注入对象默认都是单例的
+- `springboot`中的`controller`、`service`、`dao`层中通过`＠autowire`的依赖注入对象默认都是单例的
 
 **分类**：
 
@@ -143,11 +143,110 @@ of Reusable object- Oriented software。他们所提出的设计模式主要是�
 
 **八种实现方式**：
 
-1. 饿汉式(静态常量
+1. 饿汉式(静态常量)
+
+   **步骤如下**：
+
+   1) 构造器私有化 (防止 new )
+
+   2) 类的内部创建对象
+
+   3) 向外暴露一个静态的公共方法。`getInstance`
+
+   4) 代码实现
+
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+       
+       private SingleTon01(){}
+       
+       private static SingleTon01 instance = new SingleTon01();
+       
+       public static SingleTon01 getInstance() {
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点**：
+
+   1) 优点：这种写法比较简单，就是在类装载的时候就完成实例化。避免了线程同步问题。
+
+   2) 缺点：在类装载的时候就完成实例化，没有达到`LazyLoading`的效果。如果从始至终从未使用过这个实例，则会造成内存的浪费
+
+   3) 这种方式基于`classloder`机制避免了多线程的同步问题，不过，`instance`在类装载时就实例化，在单例模式中大多数都是调用`getInstance`方法， 但是导致类装载的原因有很多种，因此不能确定有其他的方式（或者其他的静态方法）导致类装载，这时候初始化`instance`就没有达到`lazyloading`的效果
+
+   4) 结论：这种单例模式**可用**，**可能**造成内存浪费
+
+      
+
 2. 饿汉式（静态代码块）
+
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+       static {
+           instance = new SingleTon01();
+       }
+   
+       public static SingleTon01 getInstance() {
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 这种方式和上面的方式其实类似，只不过将类实例化的过程放在了静态代码块中，也是在类装载的时候，就执行静态代码块中的代码，初始化类的实例。优缺点和上面是一样的。
+
+   2) 结论：这种单例模式可用，但是可能造成内存浪费
+
+   
+
 3. 懒汉式(线程不安全)
+
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+   
+       public static SingleTon01 getInstance() {
+           if (instance == null) {
+               instance = new SingleTon01();
+           }
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 起到了Lazy Loading的效果，但是只能在单线程下使用。
+
+   2) 如果在多线程下，一个线程进入了if (singleton == null)判断语句块，还未来得及往下执行，另一个线程也通过了这个判断语句，这时便会产生多个实例。所以在多线程环境下不可使用这种方式
+
+   3) 结论：在实际开发中，不要使用这种方式.
+
+   
+
 4. 懒汉式(线程安全，同步方法)
+
 5.  懒汉式(线程安全，同步代码块)
+
 6. 双重检查
+
 7. 静态内部类
+
 8. 枚举
+
