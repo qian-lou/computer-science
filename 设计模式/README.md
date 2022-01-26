@@ -242,11 +242,176 @@ of Reusable object- Oriented software。他们所提出的设计模式主要是�
 
 4. 懒汉式(线程安全，同步方法)
 
-5.  懒汉式(线程安全，同步代码块)
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+       //加入了同步代码 解决了线程不安全问题
+       public static synchronized SingleTon01 getInstance() {
+           if (instance == null) {
+               instance = new SingleTon01();
+           }
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 解决了线程不安全问题
+
+   2) 效率太低了，每个线程在想获得类的实例时候，执行`getInstance()`方法都要进行同步。而其实这个方法只执行一次实例化代码就够了，后面的想获得该类实例，直接return就行了。方法进行同步效率太低
+
+   3) 结论：在实际开发中，不推荐使用这种方式
+
+   
+
+5. 懒汉式(线程安全，同步代码块)
+
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+      
+       public static SingleTon01 getInstance() {
+           if (instance == null) {
+               //多个线程同时到达这里
+               synchronized (SingleTon01.class) {
+                   instance = new SingleTon01();
+               }
+           }
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 这种方式，本意是想对第四种实现方式的改进，因为前面同步方法效率太低，改为同步产生实例化的的代码块
+
+   2) **但是这种同步并不能起到线程同步的作用**。跟第3种实现方式遇到的情形一致，假如一个线程进入了`if (singleton == null)`判断语句块，还未来得及往下执行，另一个线程也通过了这个判断语句，这时便会产生多个实例
+
+   3) 结论：在**实际开发中，不能使用这种方**式
+
+   
 
 6. 双重检查
 
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+   
+       public static SingleTon01 getInstance() {
+           if (instance == null) {
+               synchronized (SingleTon01.class) {
+                   if (instance == null) {
+                       instance = new SingleTon01();
+                   }
+               }
+           }
+           return instance;
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) Double-Check概念是多线程开发中常使用到的，如代码中所示，我们进行了两次`if (singleton == null)`检查，这样就可以保证线程安全了。
+
+   2) 这样，实例化代码只用执行一次，后面再次访问时，判断`if (singleton == null)`，直接return实例化对象，也避免的反复进行方法同步.
+
+   3) 线程安全；延迟加载；效率较高
+
+   4) 结论：在实际开发中，推荐使用这种单例设计模式
+
+   
+
 7. 静态内部类
+
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01(){}
+   
+       private static SingleTon01 instance;
+       
+       public static SingleTon01 getInstance() {
+           return SingleTonInstance.INSTANCE;
+       }
+       
+       private static class SingleTonInstance{
+           private static final SingleTon01 INSTANCE = new SingleTon01();
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 这种方式采用了类装载的机制来保证初始化实例时只有一个线程。
+
+   2) 静态内部类方式在`Singleton01`类被装载时并不会立即实例化，而是在需要实例化时，调用`getInstance`方法，才会装载`SingletonInstance`类，从而完成`Singleton01`的实例化。
+
+   3) 类的静态属性只会在第一次加载类的时候初始化，所以在这里，`JVM`帮助我们保证了线程的安全性，在类进行初始化时，别的线程是无法进入的。
+
+   4) 优点：避免了**线程不安全**，利用静态内部类特点实现延迟加载，效率高
+
+   5) 结论：推荐使用.
+
+   
 
 8. 枚举
 
+   **代码实现**：
+
+   ```java
+   public class SingleTon01 {
+   
+       private SingleTon01() {
+       }
+   
+       private static SingleTon01 instance;
+   
+       public static SingleTon getInstance() {
+           return SingleTon.INSTANCE;
+       }
+   }   
+   enum SingleTon {
+       INSTANCE;
+       public void method() {
+           
+       }
+   }
+   ```
+
+   **优缺点说明**：
+
+   1) 这借助`JDK1.5`中添加的枚举来实现单例模式。不仅能避免多线程同步问题，而且还能防止反序列化重新创建新的对象。
+
+   2) 这种方式是Effective Java作者Josh Bloch 提倡的方式
+
+   3) 结论：推荐使用
+
+   
+
+   **单例模式注意事项和细节说明**
+
+1) 单例模式保证了 系统内存中该类只存在一个对象，节省了系统资源，对于一些需要频繁创建销毁的对象，使用单例模式可以提高系统性能
+
+2) 当想实例化一个单例类的时候，必须要记住使用相应的获取对象的方法，而不是使用new
+
+3) 单例模式使用的场景：需要频繁的进行创建和销毁的对象、创建对象时耗时过多或耗费资源过多(即：重量级对象)，但又经常用到的对象、工具类对象、频繁访问数据库或文件的对象(比如数据源、session工厂等)
