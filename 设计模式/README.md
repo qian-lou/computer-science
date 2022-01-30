@@ -415,3 +415,269 @@ of Reusable object- Oriented software。他们所提出的设计模式主要是�
 2) 当想实例化一个单例类的时候，必须要记住使用相应的获取对象的方法，而不是使用new
 
 3) 单例模式使用的场景：需要频繁的进行创建和销毁的对象、创建对象时耗时过多或耗费资源过多(即：重量级对象)，但又经常用到的对象、工具类对象、频繁访问数据库或文件的对象(比如数据源、session工厂等)
+
+
+
+#### 工厂模式
+
+##### **简单工厂模式**
+
+1）简单工厂模式是属于**创建型模式**，是工厂模式的一种。简单工厂模式是由一个工厂对象决定创建岀哪一种产品
+
+类的实例。简单工厂模式是工厂模式家族中最简单实用的模式
+
+2）简单工厂模式:定义了一个创建对象的类，由这个类来封装实例化对象的行为代码
+
+3）在软件开发中，当我们会用到大量的创建某种、某类或者某批对象时，就会使用到工厂模式.
+
+
+
+**使用**：
+
+![image-20220130181825116](https://gitee.com/JKcoding/imgs/raw/master/img/202201301818372.png)
+
+1）简单工厂模式的设计方案：定义一个可以实例化`Pizaa`对象的类，封装创建对象的代码
+
+2）代码实现(pizza工厂一共生产三种类型的pizza：chesse,pepper,greak。通过工厂类（SimplePizzaFactory）实例化这三种类型的对象)
+
+```java
+public class SimpleFactory {
+
+    public Pizza createPizza(String orderType) {
+        Pizza pizza = null;
+        System.out.println("使用简单工厂模式");
+        if (orderType.equals("greek")) {
+            pizza = new GreekPizza();
+            pizza.setName("希腊披萨");
+        } else if (orderType.equals("奶酪披萨")) {
+            pizza = new CheesePizza();
+            pizza.setName("奶酪披萨");
+        } else if (orderType.equals("pepper")) {
+            pizza = new PepperPizza();
+            pizza.setName("胡椒披萨");
+        }
+        return pizza;
+    }
+}
+```
+
+**优点**
+
+1. 将对象的创建和对象本身业务处理分离可以降低系统的耦合度，使得两者修改起来都相对容易
+
+**缺点**
+
+1. 工厂类的职责相对过重，增加新的产品需要修改工厂类的判断逻辑，这一点与开闭原则是相违背
+2. 即开闭原则（ （Open Close Principle）对扩展开放，对修改关闭，程序需要进行拓展的时候，不能去修改原有的代码，实现一个热插拔的效果
+3. 将会增加系统中类的个数，在一定程度上增加了系统的复杂度和理解难度，不利于系统的扩展和维护，创建简单对象就不用模式
+
+
+
+##### 工厂方法模式
+
+- 又称工厂模式，是对简单工厂模式的进一步抽象化，其好处是可以使系统在不修改原来代码的情况下引进新的产品，即满足开闭原则
+- 通过工厂父类定义负责创建产品的公共接口，通过子类来确定所需要创建的类型
+- 相比简单工厂而言，此种方法具有更多的可扩展性和复用性，同时也增强了代码的可读性
+- 将类的实例化（具体产品的创建）延迟到工厂类的子类（具体工厂）中完成，即由子类来决定应该实例化哪一个类。
+
+**核心组成**
+
+- `IProduct`:抽象产品类，描述所有实例所共有的公共接
+- `Product`:具体产品类，实现抽象产品类的接口，工厂类创建对象，如果有多个需要定义多个
+- `IFactory`:抽象工厂类，描述具体工厂的公共接口
+- `Factory`:具体工场类，实现创建产品类对象，实现抽象工厂类的接口，如果有多个需要定义多个
+
+![image-20220130184952137](https://gitee.com/JKcoding/imgs/raw/master/img/202201301849138.png)
+
+**编码实践**
+
+```java
+public interface Pay {
+    void unifiedorder();
+}
+```
+
+```java
+public interface PayFactory {
+    Pay getPay();
+}
+```
+
+```java
+public class AliPay implements Pay{
+    @Override
+    public void unifiedorder() {
+        System.out.println("支付宝支付，统一下单接口");
+    }
+}
+```
+
+```java
+public class WeichatPay implements Pay{
+    @Override
+    public void unifiedorder() {
+        System.out.println("微信支付，统一下单接口");
+    }
+}
+```
+
+**优点**:
+
+o符合开闭原则，增加一个产品类，只需要实现其他具体的产品类和具体的工厂类
+
+o符合单一职责原则，每个工厂只负责生产对应的产品
+
+o使用者只需要知道产品的抽象类，无须关心其他实现类，满足迪米特法则、依赖倒置原则和里氏替换原则
+
+​	■迪米特法则:最少知道原则，实体应当尽量少地与其他实体之间发生相互作用
+
+​	■依赖倒置原则:针对接口编程，依赖于抽象而不依赖于具体
+
+​	■里氏替换原则:俗称`LSP`，任何基类可以出现的地方，子类一定可以出现，对实现抽象化的具体步骤的规范
+
+**缺点**
+
+o增加一个产品，需要实现对应的具体工厂类和具体产品
+
+o每个产品需要有对应的具体工厂和具体产品类
+
+
+
+##### 抽象工厂方法模式
+
+**工厂模式有3种不同的实现方式**
+
+o **简单工厂模式**:通过传入相关的类型来返回相应的类这种方式比较单一，可扩展性相对较差
+
+σ **工厂方法模式**:通过实现类实现相应的方法来决定相应的返回结果，这种方式的可扩展性比较强
+
+σ **抽象工厂模式**:基于上述两种模式的拓展，是工厂方法模式的升级版，当需要创建的产品有多个产品线时使用抽象工厂模式是比较好的选择
+
+σ抽象工厂模式在 Spring中应用得最为广泛的一种设计模式
+
+
+
+**背景**
+
+o 工厂方法模式引入工厂等级结构，解决了简单工厂模式中工厂类职责过重的问题
+
+o 但工厂方法模式中每个工厂只创建一类具体类的对象，后续发展可能会导致工厂类过多，因此将一些相关的具体类组成一个“具体类族“，由同一个工厂来统一生产，强调的是一系列相关的产品对象！！！
+
+
+
+![image-20220130210200889](https://gitee.com/JKcoding/imgs/raw/master/img/202201302102868.png)
+
+**实现步骤**
+
+1、定义两个接口`Pay`、 `Refund`
+
+2、创建具体的`Pay`产品、创建具体的 `Refund`产品
+
+3、创建抽象工厂 `OrderFactory`接口，里面两个方法 createPay/ createRefund
+
+4、创建支付宝产品族`AliOrderFactory`，实现 `OrderFactory`抽象工厂
+
+5、创建微信支付产品族 `WechatOrderFactory`，实现`OrderFactory`抽象工厂
+
+6、定义一个超级工厂创造器，通过传递参数获取对应的工厂
+
+![image-20220130214041062](https://gitee.com/JKcoding/imgs/raw/master/img/202201302140082.png)
+
+**代码实现**
+
+```java
+public interface Pay {
+}
+```
+
+```java
+public interface Refund {
+}
+```
+
+```java
+public interface OrderFactory {
+    Pay createPay();
+    Refund createRefund();
+}
+```
+
+```java
+public class AliPay implements Pay{
+}
+```
+
+```java
+public class AliRefund implements Refund{
+}
+```
+
+```java
+public class AliOrderFactroy implements OrderFactory{
+    @Override
+    public Pay createPay() {
+        return new AliPay();
+    }
+
+    @Override
+    public Refund createRefund() {
+        return new AliRefund();
+    }
+}
+```
+
+```java
+public class WechatPay implements Pay{
+}
+```
+
+```java
+public class WechatRefund implements Refund{
+}
+```
+
+```java
+public class WechatOrderFactory implements OrderFactory{
+    @Override
+    public Pay createPay() {
+        return new WechatPay();
+    }
+
+    @Override
+    public Refund createRefund() {
+        return new WechatRefund();
+    }
+}
+```
+
+```java
+public class FactoryProducer {
+    
+    public static OrderFactory getFactory(String type) {
+        if (type.equals("wechat")) {
+            return new WechatOrderFactory();
+        }
+        if (type.equals("ali")) {
+            return new AliOrderFactroy();
+        }
+        return null;
+    }
+}
+```
+
+**工厂方法模式和抽象工厂方法模式**
+
+o 当抽象工厂模式中每一个具体工厂类只创建一个产品对象，抽象工厂模式退化成工厂方法模式
+
+**优点**
+
+o 当一个产品族中的多个对象被设计成一起工作时，它能保证使用方始终只使用同一个产品族中的对象
+
+o 产品等级结构扩展容易，如果需要增加多一个产品等级，只需要增加新的工厂类和产品类即可，比如增加银行支付、退款
+
+**缺点**
+
+o 产品族扩展困难，要增加一个系列的某一产品，既要在抽象的工厂和抽象产品里修改代码，不是很符合开闭原则
+
+σ 增加了系统的抽象性和理解难度
+
