@@ -707,3 +707,89 @@ o 产品族扩展困难，要增加一个系列的某一产品，既要在抽象
 - 通过对一个类进行实例化来构造新对象不同的是，原型模式是通过拷贝一个现有对象生成新对象的
 - 浅拷贝实现 `Cloneable`，深拷贝是通过实现`Serializable`读取二进制流
 
+**拓展**
+
+**浅拷贝**
+
+如果原型对象的成员变量是基本数据类型（int、double、byte、 boolean、char等），将复制一份给克隆对象，如果原型对象的成员变量是引用类型，则将引用对象的地址复制一份给克隆对象，也就是说原型对象和克隆对象的成员变量指向相同的内存地址
+
+**通过覆盖 `Object`类的`clone()`方法可以实现浅克隆**
+
+**深拷贝**
+
+无论原型对象的成员变量是基本数据类型还是引用类型，都将复制一份给克隆对象，如果需要实现深克隆，可以通过序列化（ `Serializable`）等方式来实现
+
+**原型模式是内存二进制流的拷贝，比new对象性能高很多，使用的时候记得注意是选择浅拷贝还是深拷贝**
+
+**优点**
+
+- 当创建新的对象实例较为复杂时，使用原型模式可以简化对象的创建过程，可以提高新实例的创建效率
+- 可辅助实现撤销操作，使用深克隆的方式保存对象的状态，使用原型模式将对象复制一份并将其状态保存起来，以便在需要的时候使用恢复到历史状态
+
+**缺点**
+
+- 需要为每一个类配备一个克隆方法，对已有的类进行改造时，需要修改源代码，违背了“开闭原则"
+- 在实现深克隆时需要编写较为复杂的代码，且当对象之间存在多重的嵌套引用时，需要对每一层对象对应的类都必须支持深克隆
+
+```java
+public class Person implements Cloneable, Serializable {
+
+    private String name;
+    private int age;
+    private List<String> list = new ArrayList<>();
+
+    public Person() {
+        System.out.println("构造函数调用");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public List<String> getList() {
+        return list;
+    }
+
+    public void setList(List<String> list) {
+        this.list = list;
+    }
+
+    @Override
+    protected Person clone() throws CloneNotSupportedException {
+        return (Person) super.clone();
+    }
+
+    /**
+     * 深拷贝
+     */
+    public Object deepClone() {
+        try {
+            //输出 序列化
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(this);
+            //输入 反序列化
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new java.io.ObjectInputStream(bais);
+            Person copyObject = (Person) ois.readObject();
+            return copyObject;
+        } catch (Exception e) {
+            
+        }
+        return null;
+    }
+}
+```
+
