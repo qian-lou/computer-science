@@ -793,3 +793,114 @@ public class Person implements Cloneable, Serializable {
 }
 ```
 
+
+
+#### 建造者模式
+
+- 使用多个简单的对象一步一步构建成一个复杂的对象，将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示
+- 允许用户只通过指定复杂对象的类型和内容就可以构建它们，不需要知道内部的具体构建细节
+
+**场景举例**
+
+- `KFC`创建套餐:套餐是一个复杂对象，它一般包含主食如汉堡、烤翅等和饮料如果汁、可乐等组成部分，不同的套餐有不同的组合，而`KFC`的服务员可以根据顾客的要求，一步一步装配这些组成部分，构造一份完整的套餐
+- 电脑有低配、高配，组装需要`CPU`、内存、电源、硬盘、主板等
+
+![image-20220201145249525](https://gitee.com/JKcoding/imgs/raw/master/img/202202011452881.png)
+
+**核心组成**
+
+- `Builder`:抽象建造者，定义多个通用方法和构建方法
+- `ConcreteBuilder`:具体建造者，可以有多个
+- `Director`:指挥者，控制整个组合过程，将需求交给建造者，由建造者去创建对象
+- `Product`:产品角色
+
+**编码实践**
+
+```java
+public interface Builder {
+    void buildCpu();
+    void buildMainboard();
+    void buildDisk();
+    void buildPower();
+    void buildMemory();
+    Computer createComputer();
+}
+```
+
+```java
+public class Computer {
+    private String cpu;
+    private String mainboard;
+    private String disk;
+    private String power;
+    private String memory;
+
+	//set、get方法
+}
+```
+
+```java
+public class HighComputerBuilder implements Builder{
+
+    private Computer computer = new Computer();
+
+    @Override
+    public void buildCpu() {
+        computer.setCpu("高配cpu");
+    }
+
+    @Override
+    public void buildMainboard() {
+        computer.setMainboard("高配mainboard");
+    }
+
+    @Override
+    public void buildDisk() {
+        computer.setDisk("高配disk");
+    }
+
+    @Override
+    public void buildPower() {
+        computer.setPower("高配power");
+    }
+
+    @Override
+    public void buildMemory() {
+        computer.setMemory("高配memory");
+    }
+
+    @Override
+    public Computer createComputer() {
+        return computer;
+    }
+}
+```
+
+```java
+public class Director {
+
+    public Computer create(Builder builder) {
+        builder.buildCpu();
+        builder.buildDisk();
+        builder.buildMemory();
+        builder.buildMainboard();
+        builder.buildPower();
+        return builder.createComputer();
+    }
+}
+```
+
+**优点**
+
+- 客户端不必知道产品内部组成的细节，将产品本身与产品的创建过程解耦
+- 每一个具体建造者都相对独立，而与其他的具体建造者无关，更加精细地控制产品的创建过程
+- 增加新的具体建造者无须修改原有类库的代码，符合开闭原则
+- 建造者模式结合链式编程来使用，代码上更加美观
+
+**缺点**
+
+- 建造者模式所创建的产品一般具有较多的共同点，如果产品差异大则不建议使用
+
+**建造者模式与抽象工厂模式的比较**:
+
+​	建造者模式返回一个组装好的完整产品，抽象工厂模式返回一系列相关的产品，这些产品位于不同的产品等级结构，构成了一个产品族
