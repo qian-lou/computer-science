@@ -1003,3 +1003,130 @@ public class Adapter extends OldModule implements TargetModule{
 }
 ```
 
+
+
+#### 桥接设计模式
+
+- 适配器模式类似，包括以后经常会遇到意思接近一样的设计模式，因为大神往往就是多个模式混用，且根据不同的场景进行搭配，桥接设计模式也是结构型模式
+- 将抽象部分与实现部分分离，使它们都可以独立的变化
+- 通俗来说，是通过组合来桥接其它的行为/维度
+
+
+
+**应用场景**
+
+- 系统需要在构件的抽象化角色和具体化角色之间增加更多的灵活性
+- 不想使用继承导致系统类的个数急剧增加的系统
+- 有时候一个类，可能会拥有多个变化维度，比如啤酒，有不同的容量和品牌，可以使用继承组合的方式进行开发，假如维度很多，就容易岀现类的膨胀，使用桥接模式就可以解决这个问题，且解耦
+
+**业务场景**
+
+我们需要构建一个手机类，我们知道手机有很多品牌，苹果、华为等，从另外一个颜色维度，又有多种颜色，红、黄、蓝等，那如果描述这些类的话，传统方式就直接通过继承，就需要特别多的类，品牌2，颜色3，就是6个类了，如果后续再增加品牌就更多了，类数目将会激增，即所谓的类爆炸，使用桥接模式就可以解决这个问题，且灵活度大大提高
+
+![image-20220203021400295](https://gitee.com/JKcoding/imgs/raw/master/img/202202030214631.png)
+
+![image-20220203021425136](https://gitee.com/JKcoding/imgs/raw/master/img/202202030214055.png)
+
+​	**编码实战**
+
+```java
+public interface Color {
+    void useColor();
+}
+```
+
+```java
+public class BlueColor implements Color{
+    @Override
+    public void useColor() {
+        System.out.println("蓝色");
+    }
+}
+```
+
+```java
+public class RedColor implements Color{
+    @Override
+    public void useColor() {
+        System.out.println("红色");
+    }
+}
+```
+
+```java
+public abstract class Phone {
+
+    protected Color color;
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    abstract public void run();
+}
+```
+
+```java
+public class HWPhone extends Phone{
+
+    public HWPhone(Color color) {
+        super.setColor(color);
+    }
+
+    @Override
+    public void run() {
+        color.useColor();
+        System.out.println("华为手机");
+    }
+}
+```
+
+```java
+public class ApplePhone extends Phone{
+
+    public ApplePhone(Color color) {
+        super.setColor(color);
+    }
+
+    @Override
+    public void run() {
+        color.useColor();
+        System.out.println("苹果手机");
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    HWPhone blueHwPhone = new HWPhone(new BlueColor());
+    blueHwPhone.run();
+    HWPhone redHwPhone = new HWPhone(new RedColor());
+    redHwPhone.run();
+    ApplePhone blueApplePhone = new ApplePhone(new BlueColor());
+    blueApplePhone.run();
+    ApplePhone redApplePhone = new ApplePhone(new RedColor());
+    redApplePhone.run();
+}
+```
+
+![image-20220203024234927](https://gitee.com/JKcoding/imgs/raw/master/img/202202030242840.png)
+
+**优点**
+
+- 抽象和实现的分离。
+- 优秀的扩展能力，符合开闭原则
+
+**缺点**
+
+- 增加系统的理解与设计难度
+- 使用聚合关联关系建立在抽象层，要求开发者针对抽象进行设计与编程，比如抽象类汽车，里面聚合了颜色类，有点像对象适配器
+
+**总结和对比**
+
+1、按`GOF`的说法，桥接模式和适配器模式用于设计的不同阶段，
+
+- ​	桥接模式用于设计的前期，精细化的设计，让系统更加灵活
+- ​	适配器模式用于设计完成之后，发现类、接口之间无法一起工作，需要进行填坑
+
+2、适配器模式经常用在第三方AP协同工作的场合，在功能集成需求越来越多的今天，这种模式的使用频度越来越高，包括有些同学听过外观设计模式，这个也是某些场景和适配器模式一样
+
