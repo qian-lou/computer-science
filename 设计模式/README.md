@@ -1130,3 +1130,141 @@ public static void main(String[] args) {
 
 2、适配器模式经常用在第三方AP协同工作的场合，在功能集成需求越来越多的今天，这种模式的使用频度越来越高，包括有些同学听过外观设计模式，这个也是某些场景和适配器模式一样
 
+
+
+#### 组合设计模式
+
+- 又叫部分整体模式，将对象组合成树形结构以表示“部分-整体“的层次结构，可以更好的实现管理操作
+- 组合模式使得用户可以使用一致的方法操作单个对象和组合对象
+- 部分-整体对象的基本操作多数是一样的，但是应该还会有不一样的地方
+- 核心:组合模式可以使用一棵树来表示
+
+**应用场景**
+
+- 银行总行，总行有前台、后勤、网络部门等，辖区下还有地方分行，也有前台、后勤、网络部门，最小的分行就没有子分行了
+- 公司也是，总公司下有子公司，每个公司大部分的部门都类似文件夹和文件，都有增加、删除等api，也有层级管理关系
+- 当想表达对象的部分-整体的层次结构
+- 当我们的要处理的对象可以生成一颗树形结构，我们要对树上的节点和叶子进行操作时，它能够提供一致的方式，而不用考虑它是节点还是叶子
+
+**角色**
+
+- 组合部件（ Component）:它是一个抽象接口，表示树根，例子:总行
+- 合成部件（ Composite）:和组合部件类似，也有自己的子节点，例子:总行下的分行
+- 叶子（Leaf）:在组合中表示子节点对象，注意是没有子节点，例子:最小地方的分行
+
+ **编码实战**
+
+```java
+public abstract class Root {
+
+    private String name;
+
+    public Root(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public abstract void addFile(Root root);
+    public abstract void removeFile(Root root);
+    public abstract void display(int depth);
+}
+```
+
+```java
+public class Folder extends Root{
+
+    private List<Root> folders = new ArrayList<>();
+
+    public List<Root> getFolders() {
+        return folders;
+    }
+
+    public void setFolders(List<Root> folders) {
+        this.folders = folders;
+    }
+
+    public Folder(String name) {
+        super(name);
+    }
+
+    @Override
+    public void addFile(Root root) {
+        folders.add(root);
+    }
+
+    @Override
+    public void removeFile(Root root) {
+        folders.remove(root);
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb.toString() + this.getName());
+        for (Root r : folders) {
+            r.display(depth + 2);
+        }
+    }
+}
+```
+
+```java 
+public class File extends Root{
+
+    public File(String name) {
+        super(name);
+    }
+
+    @Override
+    public void addFile(Root root) {
+
+    }
+
+    @Override
+    public void removeFile(Root root) {
+
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb + this.getName());
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    Root root = new Folder("c://");
+    Root desktop = new Folder("桌面");
+    Root myComputer = new Folder("我的电脑");
+    Root javaFile = new File("HelloWorld.java");
+    root.addFile(desktop);
+    root.addFile(myComputer);
+    myComputer.addFile(javaFile);
+    root.display(0);
+}
+```
+
+**缺点**
+
+- 客户端需要花更多时间理清类之间的层次关系
+
+**优点**
+
+- 客户端只需要面对一致的对象而不用考虑整体部分或者节点叶子的问题
+- 方便创建出复杂的层次结构
+
