@@ -102,7 +102,7 @@ public void setBitNToOne(int n) {
 
  
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317402283.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061546385.png)
 
  
 
@@ -134,47 +134,47 @@ k 和 m 相同，使用同一组 Hash 函数的两个布隆过滤器的交并差
 
 假设 Hash 函数以等概率条件选择并设置 Bit Array 中的某一位，m 是该位数组的大小，k 是 Hash 函数的个数，那么位数组中某一特定的位在进行元素插入时的 Hash 操作中没有被置位的概率是：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071316492245.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061546015.png)
 
 那么在所有 k 次 Hash 操作后该位都没有被置 "1" 的概率是：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071316510534.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547012.png)
 
 如果我们插入了 n 个元素，那么某一位仍然为 "0" 的概率是：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071316525966.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547508.png)
 
 因而该位为 "1"的概率是：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071316520528.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547874.png)
 
 现在检测某一元素是否在该集合中。标明某个元素是否在集合中所需的 k 个位置都按照如上的方法设置为 "1"，但是该方法可能会使算法错误的认为某一原本不在集合中的元素却被检测为在该集合中（False Positives），该概率由以下公式确定：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317030828.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547422.png)
 
 其实上述结果是在假定由每个 Hash 计算出需要设置的位（bit） 的位置是相互独立为前提计算出来的，不难看出，随着 m （位数组大小）的增加，假正例（False Positives）的概率会下降，同时随着插入元素个数 n 的增加，False Positives的概率又会上升，对于给定的m，n，如何选择Hash函数个数 k 由以下公式确定：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317175487.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547039.png)
 
 此时False Positives的概率为：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317184158.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547730.png)
 
 而对于给定的False Positives概率 p，如何选择最优的位数组大小 m 呢，
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317223869.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547386.png)
 
 上式表明，位数组的大小最好与插入元素的个数成线性关系，对于给定的 m，n，k，假正例概率最大为：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317253418.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547923.png)
 
 ###  
 
-下图是布隆过滤器假正例概率 p 与位数组大小 m 和集合中插入元素个数 n 的关系图，假定 Hash 函数个数选取最优数目：![img](https://pic002.cnblogs.com/images/2012/274814/2012071317394641.png)
+下图是布隆过滤器假正例概率 p 与位数组大小 m 和集合中插入元素个数 n 的关系图，假定 Hash 函数个数选取最优数目：![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547273.png)
 
  
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317362559.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547321.png)
 
 ### Bloom Filter 用例
 
@@ -190,7 +190,7 @@ Google Chrome浏览器使用了布隆过滤器加速安全浏览服务［7］。
 
 在很多Key-Value系统中也使用了布隆过滤器来加快查询过程，如 Hbase，Accumulo，Leveldb，一般而言，Value 保存在磁盘中，访问磁盘需要花费大量时间，然而使用布隆过滤器可以快速判断某个Key对应的Value是否存在，因此可以避免很多不必要的磁盘IO操作，只是引入布隆过滤器会带来一定的内存消耗，下图是在Key-Value系统中布隆过滤器的典型使用：
 
-![img](https://pic002.cnblogs.com/images/2012/274814/2012071317513278.png)
+![img](https://gitee.com/JKcoding/imgs/raw/master/img/202202061547259.png)
 
 ###  
 
