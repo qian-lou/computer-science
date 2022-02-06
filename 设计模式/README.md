@@ -1471,3 +1471,97 @@ public static void main(String[] args) {
 InputStream inputStream = new BufferedInputStream(new FileInputStream(""));
 ```
 
+
+
+#### 代理设计模式
+
+- 为其他对象提供一种代理以控制对这个对象的访问，属于结构型模式
+- 客户端并不直接调用实际的对象，而是通过调用代理来间接的调用实际的对象
+
+**应用场景**
+
+- 各大数码专营店，代理厂商进行销售对应的产品，代理商持有真正的授权代理书
+- 客户端不想直接访问实际的对象，或者访问实际的对象存在困难，通过一个代理对象来完成间接的访问
+- 想在访问一个类时做一些控制，或者增强功能
+
+角色
+
+- `Subject`: 抽象接口，真实对象和代理对象都要实现的一个抽象接口，好比销售数码产品
+- `Proxy`: 包含了对真实对象的引用，从而可以随意的操作真实对象的方法，好比代理加盟店
+-  `RealProject`: 真实对象，好比厂商销售数码产品
+
+**编码实战**
+
+> 老王想开个数码小卖部，为以后退休生活做准备代理各大厂商的手机和电脑，用代理设计模式帮他实现下
+>
+> Subject卖手机
+>
+> RealProject苹果、华为厂商，核心是卖手机，但是选址不熟悉
+>
+> Proxy老王数码专卖店:代理卖手机，附加选地址，增加广告等
+
+```java
+public interface DigitalSell {
+    void sell();
+}
+```
+
+```java
+public class DigitalSellReal implements DigitalSell{
+    @Override
+    public void sell() {
+        System.out.println("销售华为手机");
+    }
+}
+```
+
+```java
+public class DigitalSellProxy implements DigitalSell{
+
+    private DigitalSell realObj = new DigitalSellReal();
+
+    @Override
+    public void sell() {
+        makeAddress();
+        realObj.sell();
+        makeAD();
+    }
+    private void makeAddress() {
+        System.out.println("一个人流量很高的地址");
+    }
+    private void makeAD() {
+        System.out.println("投放广告");
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    DigitalSell realObj = new DigitalSellReal();
+    realObj.sell();
+    DigitalSell proxy = new DigitalSellProxy();
+    proxy.sell();
+}
+```
+
+**优点**
+
+- 可以在访问一个类时做一些控制，或增加功能
+- 操作代理类无须修改原本的源代码，符合开閉原则，系统具有较好的灵活性和可扩展性
+
+**缺点**
+
+- 增加系统复杂性和调用链路
+
+**有静态代理和动态代理两种**
+
+​	o动态代理也有多种方式，cgib、jdk，可以看看Springboot的 spring5模块
+
+**和装饰器模式的区别**
+
+​	o代理模式主要是两个功能
+
+​		1、保护目标对象
+
+​		2、增强目标对象，和装饰模式类似了
+
