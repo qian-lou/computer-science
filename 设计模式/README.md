@@ -1268,3 +1268,206 @@ public static void main(String[] args) {
 - 客户端只需要面对一致的对象而不用考虑整体部分或者节点叶子的问题
 - 方便创建出复杂的层次结构
 
+
+
+#### 装饰器设计模式
+
+- 也叫包装设计模式，属于结构型模式，它是作为现有的类的一个包装，允许向一个现有的对象添加新的功能，同时又不改变其结构
+- 给对象增加功能，一般两种方式继承或关联组合，将一个类的对象嵌入另一个对象中，由另一个对象来决定是否调用嵌入对象的行为来增强功能，这个就是装饰器模式，比继承模式更加灵活
+
+**应用场景**
+
+- 老王，本来计划买跑车撩妹的，结果口袋没钱，改买自行车，为了显得突出，店家提供多种改装方案，加个大的喇叭、加个防爆胎等，经过装饰之后成为目的更明确的自行车，更能解决问题。像这种不断为对象添加装饰的模式就叫 `Decorator`模式， `Decorator`指的是装饰物
+- 以动态、透明的方式给单个对象添加职责，但又能不改变其结构
+- `JDK`源码里面应用的最多的就是`IO`流，大量使用装饰设计模式
+
+![image-20220206163941230](https://gitee.com/JKcoding/imgs/raw/master/img/202202061639402.png)
+
+角色（装饰者和被装饰者有相同的超类（ `Component`）
+
+​	抽象组件（ `Component`）
+
+​		定义装饰方法的规范，最初的自行车，仅仅定义了自行车的AP
+
+​	被装饰者（ `ConcreteComponent`）
+
+​		■`Component`的具体实现，也就是我们要装饰的具体对象
+
+​		■实现了核心角色的具体自行车
+
+​	装饰者组件（ `Decorator`）
+
+​		■定义具体装饰者的行为规范，和 `Component`角色有相同的接口，持有组件（ `component`）对象的实例引用
+
+​		■自行车组件都有名称和价格
+
+​	具体装饰物（ `ConcreteDecorator`）
+
+​		■负责给构件对象装饰附加的功能
+
+​		■比如喇叭，防爆胎
+
+**编码实战**
+
+老王，由于公司发了项目奖金，不够买跑车，就先买自行车，店家里面有小号、中号、大号等规格的自行车。然后改造加一个喇叭，后来不够又要加多一个，一个防爆胎不够，又有两个，存在很多个随机组合的改装。店家就苦恼了，这样的结构难搞，价格也难算，而且需求再变动，就更麻烦了。使用装饰者就可以解决这个问题
+
+```java
+public interface Bike {
+    String getDescription();
+    int getPrice();
+}
+```
+
+```java
+public class SmallBike implements Bike{
+    private String description = "小号自行车";
+    @Override
+    public String getDescription() {
+        return description;
+    }
+    @Override
+    public int getPrice() {
+        return 100;
+    }
+}
+```
+
+```java
+public class BigBike implements Bike{
+    private String description = "大号自行车";
+    @Override
+    public String getDescription() {
+        return description;
+    }
+    @Override
+    public int getPrice() {
+        return 200;
+    }
+}
+```
+
+```java
+public class BikeDecorator implements Bike{
+    private String description = "我只是装饰器";
+    @Override
+    public String getDescription() {
+        return description;
+    }
+    @Override
+    public int getPrice() {
+        return 0;
+    }
+}
+```
+
+```java
+public class RSCBikeDecorator extends BikeDecorator{
+
+    private String description = "增加一个防爆胎";
+
+    private Bike bike;
+
+    public RSCBikeDecorator(Bike bike) {
+        this.bike = bike;
+    }
+
+    @Override
+    public String getDescription() {
+        return bike.getDescription() + ", " + this.description;
+    }
+
+    @Override
+    public int getPrice() {
+        return bike.getPrice() +  100;
+    }
+
+    @Override
+    public String toString() {
+        return "RSCBikeDecorator{" +
+                "description='" + this.getDescription() + '\'' +
+                ", price=" + this.getPrice() +
+                '}';
+    }
+}
+```
+
+```java
+public class SuonaBikeDecorator extends BikeDecorator{
+
+    private String description = "增加一个唢呐";
+
+    private Bike bike;
+
+    public SuonaBikeDecorator(Bike bike) {
+        this.bike = bike;
+    }
+
+    @Override
+    public String getDescription() {
+        return bike.getDescription() + ", " + this.description;
+    }
+
+    @Override
+    public int getPrice() {
+        return bike.getPrice() +  50;
+    }
+
+    @Override
+    public String toString() {
+        return "SuonaBikeDecorator{" +
+                "description='" + this.getDescription() + '\'' +
+                ", price=" + this.getPrice() +
+                '}';
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    Bike bike = new BigBike();
+    bike = new RSCBikeDecorator(bike);
+    System.out.println(bike);
+    bike = new  SuonaBikeDecorator(bike);
+    System.out.println(bike);
+    bike = new RSCBikeDecorator(bike);
+    System.out.println(bike);
+}
+```
+
+**优点**
+
+- 裝饰模式与继承关系的目的都是要扩展对象的功能，但装饰模式可以提供比继承更多的灵活性。
+- 使用不同的具体装饰类以及这些装饰类的排列组合，可以创造出很多不同行为的组合，原有代码无须改变，符合“开闭原则
+
+**缺点**
+
+- 装饰模式增加了许多子类，如果过度使用会使程序变得很复杂（多层包装
+- 增加系统的复杂度，加大学习与理解的难度
+
+**装饰器模式和桥接模式对比**
+
+- 相同点都是通过封装其他对象达到设计的目的，和对象适配器也类似，有时也叫半装饰设计模式，没有装饰者和被装饰者的主次区别，桥接和被桥接者是平等的，桥接可以互换，不用继承自同一个父类，比如例子里面的，可以是 Phone持有 Color，也可以是Color持有 Phone
+- 桥接模式不用使用同一个接口;装饰模式用同一个接口装饰，接口在父类中定义
+
+**`JDK`源码里面的 `Stream IO`流-装饰器设计模式应用**
+
+抽象组件（ `Component`）: `Inputstream`
+
+​	定义装饰方法的规范
+
+被装饰者（ `ConcreteComponent`）: `FileInputstream`、`ByteArrayInputstream`
+
+​	`Component`的具体实现，也就是我们要装饰的具体对象
+
+装饰者组件（ `Decorator`）: `FilterInputstream`
+
+​	定义具体装饰者的行为规范，和 `Component`角色有相同的接口，持有组件`Component`对象的实例引用
+
+​	自行车组件都有名称和价格
+
+具体装饰物（`ConcreteDecorator`）: `BufferedInputStream`、`DataInputstream`
+
+```java
+InputStream inputStream = new BufferedInputStream(new FileInputStream(""));
+```
+
