@@ -210,6 +210,82 @@ Chazelle 等人提出了一个通用的布隆过滤器，该布隆过滤器可�
 
 
 
+## 并查集
+
+```java
+public static class Element<V> {
+    public V value;
+    public Element(V value) {
+        this.value = value;
+    }
+}
+
+public static class UnionFindSet<V> {
+    public HashMap<V, Element<V>> elementMap;
+    public HashMap<Element<V>, Element<V>> fatherMap;
+    public HashMap<Element<V>, Integer> sizeMap;
+
+    public UnionFindSet(List<V> list) {
+        elementMap = new HashMap<>();
+        fatherMap = new HashMap<>();
+        sizeMap = new HashMap<>();
+        for (V value : list) {
+            Element<V> element = new Element<>(value);
+            elementMap.put(value, element);
+            fatherMap.put(element, element);
+            sizeMap.put(element, 1);
+        }
+    }
+
+    public boolean isSameSet(V a, V b) {
+        if (elementMap.containsKey(a) && elementMap.containsKey(b)) {
+            return findHead(elementMap.get(a)) == findHead(elementMap.get(b));
+        }
+        return false;
+    }
+
+    public void union(V a, V b) {
+        if (elementMap.containsKey(a) && elementMap.containsKey(b)) {
+            Element<V> aF = findHead(elementMap.get(a));
+            Element<V> bF = findHead(elementMap.get(b));
+            if (aF != bF) {
+                Element<V> big = sizeMap.get(aF) >= sizeMap.get(bF) ? aF : bF;
+                Element<V> small = big == aF ? bF : aF;
+                fatherMap.put(small, big);
+                sizeMap.put(big, sizeMap.get(aF) + sizeMap.get(bF));
+                sizeMap.remove(small);
+            }
+        }
+    }
+
+    private Element<V> findHead(Element<V> element) {
+        Element<V> cur = element;
+        Stack<Element<V>> path = new Stack<>();
+        while (cur != fatherMap.get(cur)) {
+            path.push(cur);
+            cur = fatherMap.get(cur);
+        }
+        //扁平化并查集
+        while (!path.isEmpty()) {
+            fatherMap.put(path.pop(), cur);
+        }
+        return cur;
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    Integer[] arr = {1,2,3,4,5,6,7,8,9};
+    UnionFindSet<Integer> unionFindSet = new UnionFindSet<Integer>(Arrays.asList(arr));
+    unionFindSet.union(1,2);
+    unionFindSet.union(1, 3);
+    unionFindSet.union(3, 9);
+    System.out.println(unionFindSet.isSameSet(2, 3));
+    System.out.println(unionFindSet.isSameSet(1, 9));
+}
+```
+
 
 
 ## 岛问题 
