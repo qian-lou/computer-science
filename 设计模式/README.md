@@ -1565,3 +1565,114 @@ public static void main(String[] args) {
 
 ​		2、增强目标对象，和装饰模式类似了
 
+
+
+#### 外观设计模式
+
+- 门面模式，隐藏系统的复杂性，并向客户端提供了一个客户端可以访问系统的接口
+- 定义了一个高层接口，这个接口使得这系统更加容易使用
+
+**应用场景**
+
+- 在外人看来，老王是负责消息推送这个工作，看起来很轻松，但他们不知道里面有多复杂，老王加班多久才输出一个统一的接口，只要轻松操作就可以完成复杂的事情
+- 开发里面`MVC`三层架构，在数据访问层和业务逻辑层、业务逻辑层和表示层的层与层之间使用 `interface`接口进行交互，不用担心内部逻辑，降低耦合性
+- 各种第三方`SDK`大多会使用外观模式，通过一个外观类，也就是整个系统的接口只有一个统一的高层接口，这对用户屏蔽很多实现细节，外观模式经常用在封裝AP的常用手段
+- 对于复杂难以维护的老系统进行拓展，可以使用外观设计模式
+- 需要对一个复杂的模块或子系统提供一个外界访问的接口，外界对子系统的访问只要黑盒操作
+
+**角色**
+
+- 外观角色`(Facade)`:客户端可以调用这个角色的方法，这个外观方法知道多个子系统的功能和实际调用
+- 子系统角色`(Sub System)`:每个子系统都可以被客户端直接调用，子系统并不知道门面的存在
+
+![image-20220208015851518](https://gitee.com/JKcoding/imgs/raw/master/img/202202080158577.png)
+
+**业务需求**
+
+> 在外人看来，老王是负责消息推送这个工作，看起来很轻松，但他们不知道里面有多复杂
+>
+> 需要对接微信消息、邮件消息、钉钉消息等，老王加班长期加班没有女友，才输出一个统一的接口，只要轻松操作就可以完成复杂的事情
+>
+> 用外观设计模式帮老王完成这个需求
+
+**编码实战**
+
+```java
+public interface ImessageManager {
+    void pushMessage();
+}
+```
+
+```java
+public class DingDingMessageManager implements ImessageManager{
+    @Override
+    public void pushMessage() {
+        System.out.println("推送钉钉消息");
+    }
+}
+```
+
+```java
+public class SmsMessageManager implements ImessageManager{
+    @Override
+    public void pushMessage() {
+        System.out.println("推送短信消息");
+    }
+}
+```
+
+```java
+public class WechatMessageManager implements ImessageManager{
+    @Override
+    public void pushMessage() {
+        System.out.println("推送微信消息");
+    }
+}
+```
+
+```java
+public class MailMessageManager implements ImessageManager {
+    @Override
+    public void pushMessage() {
+        System.out.println("推送邮件信息");
+    }
+}
+```
+
+```java
+public class MessageFacade implements ImessageManager{
+
+    private ImessageManager wechatMsgManager = new WechatMessageManager();
+    private ImessageManager smsMessageManager = new SmsMessageManager();
+    private ImessageManager mailMessageManager = new MailMessageManager();
+    private ImessageManager dingDingMessageManager = new DingDingMessageManager();
+
+
+    @Override
+    public void pushMessage() {
+        wechatMsgManager.pushMessage();
+        smsMessageManager.pushMessage();
+        mailMessageManager.pushMessage();
+        dingDingMessageManager.pushMessage();
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    ImessageManager imessageManager = new MessageFacade();
+    imessageManager.pushMessage();
+}
+```
+
+**优点**
+
+- 减少了系统的相互依赖，提高了灵活性
+- 符合依赖倒转原则，针对接口编程，依赖于抽象而不依赖于具体
+- 符合迪米特法则，最少知道原则，一个实体应当尽量少地与其他实体之间发生相互作用
+
+**缺点**
+
+- 增加了系统的类和链路
+- 不是很符合开闭原则，如果增加了新的逻辑，需要修改`facade`外观类
+
