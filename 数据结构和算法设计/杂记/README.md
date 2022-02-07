@@ -208,3 +208,68 @@ Byers等人提出了使用布隆过滤器近似数据同步［9］。
 
 Chazelle 等人提出了一个通用的布隆过滤器，该布隆过滤器可以将某一值与每个已经插入的元素关联起来，并实现了一个关联数组Map［10］。与普通的布隆过滤器一样，Chazelle实现的布隆过滤器也可以达到较低的空间消耗，但同时也会产生false positive，不过，在Bloomier filter中，某 key 如果不在 map 中，false positive在会返回时会被定义出的。该Map 结构不会返回与 key 相关的在 map 中的错误的值。
 
+
+
+
+
+## 岛问题 
+
+【题目】 
+
+一个矩阵中只有0和1两种值，每个位置都可以和自己的上、下、左、右 四个位置相连，如 
+
+果有一片1连在一起，这个部分叫做一个岛，求一个矩阵中有多少个岛? 
+
+【举例】 
+
+```
+001010 
+
+111010 
+
+100100 
+
+000000 
+```
+
+这个矩阵中有三个岛 
+
+思路：遍历每一个数，只要遇到1，就进行感染过程即调用`infect`方法
+
+`infect`方法会将连着的区域全部变成2
+
+时间复杂度：`O(N*M)`
+
+```java
+public static int countIslands(int[][] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int N = arr.length;
+    int M = arr[0].length;
+    int res = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            if (arr[i][j] == 1) {
+                res++;
+                infect(arr, i, j, N, M);
+            }
+        }
+    }
+    return res;
+}
+private static void infect(int[][] arr, int i, int j, int N, int M) {
+    if (i < 0 || i >= N || j < 0 || j >= M || arr[i][j] != 1) {
+        return;
+    }
+    arr[i][j] = 2;
+    infect(arr, i + 1, j, N, M);
+    infect(arr, i - 1, j, N, M);
+    infect(arr, i, j + 1, N, M);
+    infect(arr, i , j - 1, N, M);
+}
+```
+
+【进阶】 
+
+如何设计一个并行算法解决这个问题
