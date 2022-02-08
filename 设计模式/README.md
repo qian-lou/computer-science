@@ -1933,3 +1933,176 @@ public static void main(String[] args) {
 - 策略类数量会增多，每个策略都是一个类，复用的可能性很小
 - 对外暴露了类所有的行为和算法，行为过多导致策略类膨胀
 
+
+
+#### 模板方法设计模式
+
+定义一个操作中的算法骨架，将算法的一些步骤延迟到子类中，使得子类可以不改变该算法结构的情况下重定义该算法的某些特定步骤，属于行为型模式
+
+**应用场景**
+
+-  `javaweb`里面的 `Servlet`， `HttpService`类提供了`service()`方法
+- 有多个子类共有逻辑相同的方法，可以考虑作为模板方法
+- 设计一个系统时知道了算法所需的关键步骤，且确定了这些步骤的执行顺序，但某些步骤的具体实现还未知，可以延迟到子类进行完成
+
+**角色**
+
+**抽象模板**`(Abstract Template)`: 定义一个模板方法，这个模板方法一般是一个具体方法，给出一个顶级算法骨架，而逻辑骨架的组成步骤在相应的抽象操作中，推迟到子类实现
+
+​	■模板方法:定义了算法的骨架，按某种顺序调用其包含的基本方法
+
+​	■基本方法:是整个算法中的一个步骤，包括抽象方法和具体方
+
+​			■抽象方法:在抽象类中申明，由具体子类实现。
+
+​			■具体方法:在抽象类中已经实现，在具体子类中可以继承或重写它
+
+**具体模板**`(Concrete Template)`：实现父类所定义的一个或多个抽象方法，它们是一个顶级算法逻辑的组成步骤
+
+**需求**
+
+> 老王成功晋升为管理者，但是团队来了很多新兵，由于团队水平参差不齐，经常有新项目进来，但整体流程很不规
+>
+> 范
+>
+> 一个项目的生命周期:需求评审-设计-开发-测试-上线-运维。整个周期里面，需求评审-设计是固定的操作，而其他步骤则流程耗时等是根据项目来定的。
+>
+> 因此老王梳理了一个模板，来规范化项目，他只管核心步骤和项目里程碑产出的结果，具体的工时安排和开发就让团队成员去操作
+
+**编码实战**
+
+```java
+public abstract class AbstractClass {
+
+    public void templateMethod() {
+        specificMethod();
+        abstractMethod1();
+        abstractMethod2();
+    }
+
+    /**
+     * 具体方法
+     */
+    public void specificMethod() {
+        System.out.println("抽象类中的具体方法被调用");
+    }
+    //抽象方法1
+    public abstract void abstractMethod1();
+    //抽象方法2
+    public abstract void abstractMethod2();
+}
+```
+
+**优点**
+
+- 扩展性好，对不变的代码进行封装，对可变的进行扩展，符合开闭原则
+- 提高代码复用性将相同部分的代码放在抽象的父类中，将不同的代码放入不同的子类中，通过一个父类调用其子类的操作，通过对子类的具体实现扩展不同的行为，实现了反向控制
+
+**缺点**
+
+- 每一个不同的实现都需要一个子类来实现，导致类的个数增加，会使系统变得复杂
+
+**模板方法模式和建造者模式区别**
+
+两者很大的交集，建造者模式比模板方法模式多了一个指挥类，该类体现的是模板方法模式中抽象类的固定算法的功能，是一个创建对象的固定算法
+
+
+
+#### 观察者设计模式
+
+定义对象间一种一对多的依赖关系，使得每当一个对象改变状态，则所有依赖于它的对象都会得到通知并自动更新，也叫做发布订阅模式 `Publish/Subscribe`，属于行为型模式
+
+**应用场景**
+
+- 消息通知里面: 邮件通知、广播通知、微信朋友圈、微博私信等，就是监听观察事件
+- 当一个对象的改变需要同时改变其它对象，且它不知道具体有多少对象有待改变的时候，考虑使用观察者模式
+
+**角色**
+
+-  `Subject`主题: 持有多个观察者对象的引用，抽象主题提供了一个接口可以增加和删除观察者对象;有一个观察者数组，并实现增、删及通知操作
+- `Observer`抽象观察者: 为具体观察者定义一个接口，在得到主题的通知时更新自己
+-  `ConcreteSubject`具体主题: 将有关状态存入具体观察者对象，在具体主题内部状态改变时，给所有登记过的观察者发出通知
+- `ConcreteObserver`具体观察者: 实现抽象观察者角色所要求的更新接口，以便使本身的状态与主题的状态保持一致
+
+![image-20220209004616675](https://gitee.com/JKcoding/imgs/raw/master/img/202202090046807.png)
+
+**业务需求**
+
+> 老王，技术比较厉害，因此上班不想那么辛苦，领导又在周围，所以选了个好位置，方便监听老板的到来，当领导即将出现时老王可以立马观察到，赶紧工作。用观察者模式帮助老王实现这个需求
+
+**编码实战**
+
+```java
+public interface Observer {
+    void update();
+}
+```
+
+```java
+public class LWConcreteObserver implements Observer{
+    @Override
+    public void update() {
+        System.out.println("老王发现领导到来，暂停在线摸鱼，回归工作");
+    }
+}
+```
+
+```java
+public class AnnaConcreteObserver implements Observer{
+    @Override
+    public void update() {
+        System.out.println("Anna小姐姐发现领导到来，暂停在线摸鱼，回归工作");
+    }
+}
+```
+
+```java
+public class Subject {
+    private List<Observer> observerList = new ArrayList<>();
+    public void addObserver(Observer observer) {
+        this.observerList.add(observer);
+    }
+    public void deleteObserver(Observer observer) {
+        this.observerList.remove(observer);
+    }
+    public void notifyAllObservers() {
+        for (Observer observer : this.observerList) {
+            observer.update();
+        }
+    }
+}
+```
+
+```java
+public class BossConcreteSubject extends Subject{
+
+    public void doSomething() {
+        System.out.println("老板完成自己的工作");
+        //others
+        System.out.println("视察公司工作情况");
+        super.notifyAllObservers();
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    BossConcreteSubject subject = new BossConcreteSubject();
+    Observer lw = new LWConcreteObserver();
+    Observer anna = new AnnaConcreteObserver();
+    subject.addObserver(lw);
+    subject.addObserver(anna);
+    subject.doSomething();
+}
+```
+
+**优点**
+
+- 降低了目标与观察者之间的耦合关系，目标与观察者之间建立了一套触发机制
+- 观察者和被观察者是抽象耦合的
+
+**缺点**
+
+- 观察者和观察目标之间有循环依赖的话，会触发它们之间进行循环调用，可能导致系统崩溃
+- 一个被观察者对象有很多的直接和间接的观察者的话将所有的观察者都通知到会花费很多时间
+
