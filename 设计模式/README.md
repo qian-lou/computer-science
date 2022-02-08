@@ -1676,3 +1676,122 @@ public static void main(String[] args) {
 - 增加了系统的类和链路
 - 不是很符合开闭原则，如果增加了新的逻辑，需要修改`facade`外观类
 
+
+
+#### 享元设计模式
+
+- 属于结构型模式，主要用于减少创建对象的数量，以减少内存占用和提高性能，它提供了减少对象数量从而改善应用所需的对象结构的方式
+- 享元模式尝试重用现有的同类对象，如果未找到匹配的对象，则创建新对象
+
+**应用场景**
+
+- `JAVA`中的 `String`，如果字符串常量池里有则返回，如果没有则创建一个字符串保存在字符串常量池里面
+- 数据库连接池、线程池等
+- 如果系统有大量相似对象，或者需要用需要缓冲池的时候可以使用享元设计模式，也就是大家说的池化技术
+- 如果发现某个对象的生成了大量细粒度的实例，并且这些实例除了几个参数外基本是相同的，如果把那些共享参数移到类外面，在方法调用时将他们传递进来，就可以通过共享对象，减少实例的个数
+
+**内部状态**
+
+​	不会随环境的改变而有所不同，是可以共享的
+
+**外部状态**
+
+​	不可以共享的，它随环境的改变而改变的，因此外部状态是由客户端来保持（因为环境的变化一般是由客户端引起的）
+
+**角色**
+
+- 抽象享元角色: 为具体享元角色规定了必须实现的方法，而外部状态就是以参数的形式通过此方法传入
+- 具体享元角色: 实现抽象角色规定的方法。如果存在內部状态，就负责为内部状态提供存储空间
+- 享元工厂角色: 负责创建和管理享元角色。要想达到共享的目的，这个角色的实现是关键
+- 客户端角色: 维护对所有享元对象的引用，而且还需要存储对应的外部状态
+
+![image-20220208200519613](https://gitee.com/JKcoding/imgs/raw/master/img/202202082005886.png)
+
+**需求**：
+
+> 老王为了增加收入，开始接了外包项目，开发了一个AI网站模板，可以根据不同的客户需求自动生成不同类型的网站电商类、企业产品展示、信息流等；在部署的时候就麻烦了，是不是每个机器都用租用云服务器，购买独立域名呢，这些网站结构相似度很高，而且都不是高访问量网站，可以先公用服务器资源，減少服务器资源成本，类似虚拟机或者 Docker
+
+
+
+**编码实战**
+
+```java
+public class Company {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Company(String name) {
+        this.name = name;
+    }
+
+    public Company() {
+    }
+}
+```
+
+```java
+public abstract class CloudWebSite {
+
+    public abstract void run(Company company);
+}
+```
+
+```java
+public class ConcreteWebSite extends CloudWebSite{
+
+    private String category;
+
+    public ConcreteWebSite(String category) {
+        this.category = category;
+    }
+
+    @Override
+    public void run(Company company) {
+        System.out.println("网站分类: " + category + ", 公司: " + company.getName());
+    }
+}
+```
+
+```java
+public class WebSiteFactory {
+
+    private Map<String, ConcreteWebSite> map = new HashMap<>();
+
+    public CloudWebSite getWebSiteByCategory(String category) {
+        if (map.containsKey(category)) {
+            return map.get(category);
+        } else {
+            ConcreteWebSite site = new ConcreteWebSite(category);
+            map.put(category, site);
+            return site;
+        }
+    }
+
+    public int getWebSiteCategorySite() {
+        return map.size();
+    }
+}
+```
+
+**优点**
+
+- 大大減少了对象的创建，降低了程序内存的占用，提高效率
+
+**缺点**
+
+- 提高了系统的复杂度，需要分离出内部状态和外部状态
+
+**注意划分内部状态和外部状态，否则可能会引起线程安全问题，必须有一个工厂类加以控制**
+
+**享元设计模式和原型、单例模式的区别**
+
+- 原型设计模式是指定创建对象的种类，然后通过拷贝这些原型来创建新的对象
+- 单例设计模式保证一个类仅有一个实例
+
