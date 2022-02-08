@@ -1795,3 +1795,141 @@ public class WebSiteFactory {
 - 原型设计模式是指定创建对象的种类，然后通过拷贝这些原型来创建新的对象
 - 单例设计模式保证一个类仅有一个实例
 
+
+
+#### 策略模式
+
+- 定义一系列的算法把它们一个个封装起来，并且使它们可相互替换
+- 淘宝天猫双十一，正在搞活动有打折的、有满减的、有返利的等等，这些算法只是一种策略，并且是随时都可能互相替换的，我们就可以定义一组算法，将每个算法都封装起来，并且使它们之间可以互换
+
+**应用场景**
+
+- 老王计划外出旅游，选择骑自行车、坐汽车、飞机等，每一种旅行方式都是一个策略
+-  `Java AWT`中的 `LayoutManager`，即布局管理器
+- 如果在一个系统里面有许多类，它们之间的区别仅在于它们的行为，那么可以使用策略模式
+- 不希望暴露复杂的、与算法有关的数据结构，那么可以使用策略模式来封装算法
+
+**角色**
+
+-  `Context`上下文:屏蔽高层模块对策略、算法的直接访可，封装可能存在的变化
+-  `Strategy`策略角色∶抽象策略角色，是对策略、算法家族的抽象，定义每个策略或算法必须具有的方法和属性
+- `ConcreteStrategy`具体策略角色:用于实现抽象策略中的操作，即实现具体的算法
+
+![image-20220208215302434](https://gitee.com/JKcoding/imgs/raw/master/img/202202082153526.png)
+
+**业务需求**
+
+> 老王面试进了大厂，是电商项目的营销活动组，负责多个营销活动，有折扣、优惠券抵扣、满减等，项目上线后，产品经理找茬，经常新增营销活动，导致代码改动多，加班严重搞的老王很恼火。
+>
+> 他发现这些都是活动策略，商品的价格是根据不同的活动策略进行计算的，因此用策略设计模式进行了优化，后续新增策略后只要简单配置就行了，不用大动干戈
+
+**编码实战**
+
+```java
+public class ProductOrder {
+    private double oldPrice;
+    private int userId;
+    private int productId;
+
+    public ProductOrder(double oldPrice, int userId, int productId) {
+        this.oldPrice = oldPrice;
+        this.userId = userId;
+        this.productId = productId;
+    }
+//set get省略
+}
+```
+
+```java
+public abstract class Strategy {
+    public abstract double computePrice(ProductOrder productOrder);
+}
+```
+
+```java
+public class NormalActivity extends Strategy{
+    @Override
+    public double computePrice(ProductOrder productOrder) {
+        return productOrder.getOldPrice();
+    }
+}
+```
+
+```java
+public class DiscountActivity extends Strategy{
+
+    private double rate;
+
+    public DiscountActivity(double rate) {
+        this.rate = rate;
+    }
+
+    @Override
+    public double computePrice(ProductOrder productOrder) {
+        return productOrder.getOldPrice() * rate;
+    }
+}
+```
+
+```java
+public class VoucherActivity extends Strategy{
+
+    private double voucher;
+
+    public VoucherActivity(double voucher) {
+        this.voucher = voucher;
+    }
+
+    @Override
+    public double computePrice(ProductOrder productOrder) {
+        if (productOrder.getOldPrice() > voucher) {
+            return productOrder.getOldPrice() - voucher;
+        }
+        return 0;
+    }
+}
+```
+
+```java
+public class PromotionContext {
+    private Strategy strategy;
+
+    public PromotionContext(Strategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public double executeStrategy(ProductOrder productOrder) {
+        return strategy.computePrice(productOrder);
+    }
+
+}
+```
+
+```java
+public static void main(String[] args) {
+    ProductOrder productOrder = new ProductOrder(800,1,32);
+    //折扣
+    PromotionContext context = new PromotionContext(new DiscountActivity(0.5));
+    double price = context.executeStrategy(productOrder);
+    System.out.println(price);
+    //没活动
+    context = new PromotionContext(new NormalActivity());
+    price = context.executeStrategy(productOrder);
+    System.out.println(price);
+    //优惠券
+    context = new PromotionContext(new VoucherActivity(100));
+    price = context.executeStrategy(productOrder);
+    System.out.println(price);
+}
+```
+
+**优点**
+
+- 满足开闭原则，当增加新的具体策略时，不需要修改上下文类的代码，上下文就可以引用新的具体策略的实例
+- 避免使用多重条件判断，如果不用策略模式可能会使用多重条件语句不利于维护，和工厂模式的搭配使用可以很好地消除代码i-else的多层嵌套（工厂模式主要是根据参数，获取不同的策略）
+
+**缺点**
+
+- 策略类数量会增多，每个策略都是一个类，复用的可能性很小
+- 对外暴露了类所有的行为和算法，行为过多导致策略类膨胀
+
