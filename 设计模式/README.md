@@ -2259,3 +2259,188 @@ public static void main(String[] args) {
 
 **日志级别处理**：`dubug->info->warning->error`
 
+
+
+#### 命令模式
+
+- 请求以命令的形式包裏在对象中，并传给调用对象。调用对象寻找可以处理该命令的对象，并把该命令传给相应的对象执行命令，属于行为型模式
+- 命令模式是一种特殊的策略模式，体现的是多个策略执行的问题，而不是选择的问题
+
+**应用场景**
+
+- 只要是你认为是命令的地方，就可以采用命令模式
+- 日常每个界面、按钮、键盘事件操作都是命令设计模式
+
+**角色**
+
+- 抽象命令（ `Command`）:需要执行的所有命令都在这里声明
+- 具体命令（ `Concretecommand`）:定义一个接收者和行为之间的弱耦合，实现 executed方法，负责调用接收者的相应操作， `execute()`方法通常叫做执行方法。
+- 接受者（ `Receⅳer`）:负责具体实施和执行一个请求，干活的角色，命令传递到这里是应该被执行的，实施和执行请求的方法叫做行动方法
+- 请求者（ `Invoker`）:负责调用命令对象执行请求，相关的方法叫做行动方法
+- 客户端（`Client`）:创建一个具体命令（ `Concretecommand`）对象并确定其接收者。
+
+
+
+**业务需求**
+
+> 老王-搬新家了，他想实现智能家居，开发一个app，可以控制家里的家电，比如控制空调的开关、加热、制冷等功能利用命令设计模式，帮老王完成这个需求，注意:动作请求者就是手机app，动作的执行者是家电的不同功能
+
+**编码实战**
+
+```java
+public class ConditionReceiver {
+    public void on() {
+        System.out.println("空调开启了");
+    }
+    public void off() {
+        System.out.println("空调关闭了");
+    }
+    public void cool() {
+        System.out.println("空调开始制冷了");
+    }
+    public void warm() {
+        System.out.println("空调开始制暖了");
+    }
+}
+```
+
+```java
+public interface Command {
+    void execute();
+}
+```
+
+```java
+public class OnCommand implements Command{
+
+    private ConditionReceiver receiver;
+
+    public OnCommand(ConditionReceiver receiver) {
+        this.receiver = receiver;
+    }
+
+    @Override
+    public void execute() {
+        System.out.println("OnCommand->execute");
+        this.receiver.on();
+    }
+}
+```
+
+```java
+public class OffCommand implements Command{
+
+    private ConditionReceiver receiver;
+
+    public OffCommand(ConditionReceiver receiver) {
+        this.receiver = receiver;
+    }
+
+    @Override
+    public void execute() {
+        System.out.println("OffCommand->execute");
+        this.receiver.off();
+    }
+}
+```
+
+```java
+public class CoolCommand implements Command{
+
+    private ConditionReceiver receiver;
+
+    public CoolCommand(ConditionReceiver receiver) {
+        this.receiver = receiver;
+    }
+
+    @Override
+    public void execute() {
+        System.out.println("CoolCommand->execute");
+        this.receiver.cool();
+    }
+}
+```
+
+```java
+public class WarmCommand implements Command{
+
+    private ConditionReceiver receiver;
+
+    public WarmCommand(ConditionReceiver receiver) {
+        this.receiver = receiver;
+    }
+
+    @Override
+    public void execute() {
+        System.out.println("WarmCommand->execute");
+        this.receiver.warm();
+    }
+}
+```
+
+```java
+public class AppInvoker {
+
+    private Command onCommand;
+    private Command offCommand;
+    private Command coolCommand;
+    private Command warmCommand;
+
+    public void setOnCommand(Command onCommand) {
+        this.onCommand = onCommand;
+    }
+
+    public void setOffCommand(Command offCommand) {
+        this.offCommand = offCommand;
+    }
+
+    public void setCoolCommand(Command coolCommand) {
+        this.coolCommand = coolCommand;
+    }
+
+    public void setWarmCommand(Command warmCommand) {
+        this.warmCommand = warmCommand;
+    }
+
+    public void on() {
+        onCommand.execute();
+    }
+    public void off() {
+        offCommand.execute();
+    }
+    public void cool() {
+        coolCommand.execute();
+    }
+    public void warm() {
+        warmCommand.execute();
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    ConditionReceiver receiver = new ConditionReceiver();
+    Command onCommand = new OnCommand(receiver);
+    Command offCommand = new OffCommand(receiver);
+    Command coolCommand = new CoolCommand(receiver);
+    Command warmCommand = new WarmCommand(receiver);
+    AppInvoker invoker = new AppInvoker();
+    invoker.setOnCommand(onCommand);
+    invoker.setOffCommand(offCommand);
+    invoker.setCoolCommand(coolCommand);
+    invoker.setWarmCommand(warmCommand);
+    invoker.on();
+    invoker.cool();
+    invoker.warm();
+    invoker.off();
+}
+```
+
+**优点**
+
+- 调用者角色与接收者角色之间没有任何依赖关系，不需要了解到底是哪个接收者执行，降低了系统耦合度扩展性强，新的命令可以很容易添加到系统中去。
+
+**缺点**
+
+- 过多的命令模式会导致某些系统有过多的具体命令类
+
