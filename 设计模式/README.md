@@ -1581,6 +1581,12 @@ public static void main(String[] args) {
 - `JDK`动态代理是自带的，`CGib`需要引入第三方包
 - `CGLib`动态代理基于继承来实现代理，所以无法对 `final`类、 `private`方法和 `static`方法实现代理
 
+**`SpringAOP`中的代理使用的默认策略**
+
+- 如果目标对象实现了接口，则默认采用`JDK`动态代理
+- 如果目标对象没有实现接口，则采用`CGLib`进行动态代理
+- 如果目标对象实现了接口，程序里面依旧可以指定使用`CGib`动态代理
+
 
 
 #### 外观设计模式
@@ -2814,4 +2820,17 @@ public static void main(String[] args) {
 - 策略模式更侧重于根据具体情况选择策略，并不涉及切换
 - 状态模式不同状态下做的事情不同，而策略模式做的都是同一件事。例如，聚合支付平台，有支付宝、微信支付、银联支付，虽然策略不同，但最终做的事情都是支付
 - 状态模式，各个状态的同一方法做的是不同的事，不能互相替换
+
+
+
+#### **外传**
+
+- 迭代器设计模式： `Iterator`类
+- 装饰器模式：`BufferedInputstream`类
+- 单例设计模式：`JDK`中 `Runtime`类
+- 建造者模式： `StringBuilder`类
+- 适配器模式：`JDBC`数据库驱动
+- 享元模式：`JAVA`中的`String`
+- 策略设计模式： `Comparator`接口常用的 `compare`方法
+- 模板方法：类似XXXXTemplate
 
