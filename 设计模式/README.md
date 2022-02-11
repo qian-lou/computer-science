@@ -2564,3 +2564,129 @@ public static void main(String[] args) {
 - 对于比较简单的遍历（像数组或者有序列表），使用迭代器方式遍历较为繁琐
 - 迭代器模式在遍历的同时更改迭代器所在的集合结构会导致出现异常
 
+
+
+#### 备忘录设计模式
+
+- 在不破坏封闭的前提下，捕获一个对象的内部状态，保存对象的某个状态，以便在适当的时候恢复对象，又叫做快照模式，属于行为模式
+- 备忘录模式实现的方式需要保证被保存的对象状态不能被对象从外部访问
+
+**应用场景**
+
+- 玩游戏的时候肯定有存档功能，下一次登录游戏时可以从上次退出的地方继续游戏
+- 棋盘类游戏的悔棋、数据库事务回滚
+- 需要记录一个对象的内部状态时，为了允许用户取消不确定或者错误的操作，能够恢复到原先的状态
+- 提供一个可回滚的操作，如`ctrl+z`、浏览器回退按钮
+
+**角色**
+
+- `Originator`: 发起者，记录当前的内部状态，并负责创建和恢复备忘录数据，允许访问返回到先前状态所需的所有数据，可以根据需要决定 `Memento`存储自己的哪些内部状态
+- `Memento`: 备忘录，负责存储 `Originator`发起人对象的内部状态，在需要的时候提供发起人需要的内部状态
+- `Caretaker`:  管理者，对备忘录进行管理、保存和提供备忘录，只能将备忘录传递给其他角色
+- `Originator`和 `Memento`属性类似
+
+**需求**
+
+> 老王开发了一个游戏存档功能拳皇97，无限生命，每次快要死的的时候就恢复成刚开始的状态使用备忘录设计模式帮他完成
+
+**编码实战**
+
+```java
+public class RoleOriginator {
+    private int live = 100;
+    private int attack = 50;
+	//set get方法忽略
+
+    public void display() {
+        System.out.println("开始==========");
+        System.out.println("生命力: " + live);
+        System.out.println("攻击力: " + attack);
+        System.out.println("结束==========");
+    }
+    public void fight() {
+        this.attack = attack + 2;
+        this.live = this.live - 10;
+    }
+
+    public RoleStateMemento saveState() {
+        return new RoleStateMemento(live, attack);
+    }
+    public void recoveryState(RoleStateMemento memento) {
+        this.live = memento.getLive();
+        this.attack = memento.getAttack();
+    }
+}
+```
+
+```java
+public class RoleStateMemento {
+    private int live;
+    private int attack;
+
+    public RoleStateMemento(int live, int attack) {
+        this.live = live;
+        this.attack = attack;
+    }
+
+    public int getLive() {
+        return live;
+    }
+
+    public void setLive(int live) {
+        this.live = live;
+    }
+
+    public int getAttack() {
+        return attack;
+    }
+
+    public void setAttack(int attack) {
+        this.attack = attack;
+    }
+}
+```
+
+```java
+public class RoleStateCaretaker {
+    private RoleStateMemento memento;
+
+    public RoleStateMemento getMemento() {
+        return memento;
+    }
+
+    public void setMemento(RoleStateMemento memento) {
+        this.memento = memento;
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    RoleOriginator role = new RoleOriginator();
+    role.display();
+    role.fight();
+    role.display();
+    System.out.println("保存上面的快照");
+    RoleStateCaretaker caretaker = new RoleStateCaretaker();
+    caretaker.setMemento(role.saveState());
+    role.fight();
+    role.fight();
+    role.fight();
+    role.fight();
+    role.fight();
+    role.display();
+    System.out.println("准备恢复快照");
+    role.recoveryState(caretaker.getMemento());
+    role.display();
+}
+```
+
+**优点**
+
+- 给用户提供了一种可以恢复状态的机制
+- 实现了信息的封装，使得用户不需要关心状态的保存细
+
+**缺点**
+
+- 消耗更多的资源，而且每一次保存都会消耗一定的内存
+
