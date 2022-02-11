@@ -2690,3 +2690,112 @@ public static void main(String[] args) {
 
 - 消耗更多的资源，而且每一次保存都会消耗一定的内存
 
+
+
+
+
+#### 状态设计模式
+
+- 对象的行为依赖于它的状态（属性），并且可以根据它的状态改变而改变它的相关行为，属于行为型模式
+- 允许一个对象在其内部状态改变时改变它的行为
+- 状态模式是策略模式的孪生兄弟，它们的UM图是一样的，但实际上解决的是不同情况的两种场景问题
+- 工作中用的不多，基本策略模式比较多
+
+**应用场景**
+
+- 一个对象的行为取决于它的状态，并且它必须在运行时刻根据状态改变它的行为
+- 代码中包含大量与对象状态有关的条件语句，比如一个操作中含有庞大的多分支的条件else语句，且这些分支依赖于该对象的状态
+- 电商订单状态:未支付、已支付、派送中，收货完成等状态，各个状态下处理不同的事情
+
+**角色**
+
+- `Context`上下文: 定义了客户程序需要的接口并维护个具体状态角色的实例，将与状态相关的操作委托给当前的 `Concrete state`对象来处理
+- `State`抽象状态类: 定义一个接口以封装与 `Context`的个特定状态相关的行为。
+- `Concrete state`具体状态类:  实现抽象状态定义的接口。
+
+**业务需求**
+
+> 电商订单状态流转，每步都有不同的操作内容:新建订单/已支付/已发货/确认收货
+
+![image-20220211213715836](https://gitee.com/JKcoding/imgs/raw/master/img/202202112137006.png)
+
+**编码实战**
+
+```java
+public interface State {
+    void handle();
+}
+```
+
+```java 
+public class NewOrderState implements State{
+    @Override
+    public void handle() {
+        System.out.println("新订单，未支付");
+        System.out.println("调用商户客服服务，有新订单\n");
+    }
+}
+```
+
+```java
+public class PayOrderState implements State{
+    @Override
+    public void handle() {
+        System.out.println("新订单已经支付");
+        System.out.println("调用商户客服服务，订单已经支付");
+        System.out.println("调用物流服务，未发货\n");
+    }
+}
+```
+
+```java
+public class SendOrderState implements State{
+    @Override
+    public void handle() {
+        System.out.println("订单已经发货");
+        System.out.println("调用短信服务，告诉用户已经发货");
+        System.out.println("更新物流信息\n");
+    }
+}
+```
+
+```java
+public class OrderContext {
+    private State state;
+
+    public void setState(State state) {
+        this.state = state;
+        System.out.println("订单状态更新");
+        this.state.handle();
+    }
+}
+```
+
+```java
+public static void main(String[] args) {
+    OrderContext orderContext = new OrderContext();
+    orderContext.setState(new NewOrderState());
+    orderContext.setState(new PayOrderState());
+    orderContext.setState(new SendOrderState());
+}
+```
+
+**优点**
+
+- 只需要改变对象状态即可改变对象的行为
+- 可以让多个环境对象共享一个状态对象，从而减少系统中对象的个数
+
+**缺点**
+
+- 状态模式的使用会增加系统类和对象的个数
+- 状态模式的结构与实现都较为复杂，如果使用不当将导致程序结构和代码的混乱
+- 状态模式对“开闭原则“的支持并不太好，对于可以切换状态的状态模式，增加新的状态类需要修改那些负责状态转换的源代码
+
+**状态设计和策略模式的区别**
+
+- `UML`图一样，结构基本类似
+- 状态模式重点在各状态之间的切换，从而做不同的事情
+- 策略模式更侧重于根据具体情况选择策略，并不涉及切换
+- 状态模式不同状态下做的事情不同，而策略模式做的都是同一件事。例如，聚合支付平台，有支付宝、微信支付、银联支付，虽然策略不同，但最终做的事情都是支付
+- 状态模式，各个状态的同一方法做的是不同的事，不能互相替换
+
