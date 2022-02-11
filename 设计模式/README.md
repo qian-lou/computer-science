@@ -2444,3 +2444,123 @@ public static void main(String[] args) {
 
 - 过多的命令模式会导致某些系统有过多的具体命令类
 
+
+
+#### 迭代器模式
+
+提供一种方法顺序访问一个聚合对象中各个元素，而又无须暴露该对象的内部实现，属于行为型模式，应该是`java`中应用最多的设计模式之一
+
+提到迭代器，想到它是与集合相关的，集合也叫容器，可以将集合看成是一个可以包容对象的容器，例如List，set，Map，甚至数组都可以叫做集合，迭代器的作用就是把容器中的对象一个一个地遍历出来
+
+**应用场景**
+
+- 一般来说，迭代器模式是与集合是共存的，只要实现一个集合，就需要同时提供这个集合的迭代器，就像`java`中的 `Collection，List、Set、Map`等都有自己的迭代器
+
+- `JAVA`中的 `iterator`迭代器
+
+**角色**
+
+- 抽象容器（ `Aggregate`）:提供创建具体迭代器角色的接口，一般是接口，包括一个 `iterator`方法，例如`java`中的 `Collection`接口，`List`接口，`Set`接口等。
+- 具体容器角色（ `ConcreteAggregate`）:实现抽象容器的具体实现类，比如List接口的有序列表实现`ArrayList`，`List`接口的链表实现 `Linkedlist`，Set接口的哈希列表的实现 `HashSet`等。
+- 抽象迭代器角色（`Iterator`）: 负责定义访问和遍历元素的接口，包括几个核心方法，取得下一个元素的方法`next()`，判断是否遍历结束的方法 `isDone()`（或者叫`hasNext()`），移除当前对象的方法 `remove()`
+- 具体迭代器角色（ `Concretelterator`）:实现迭代器接口中定义的方法，并要记录遍历中的当前位置，完成集合的迭代
+
+**需求**
+
+自定义一个集合容器，并实现里面的迭代器功能，List集合容器的简化版本
+
+**编码实战**
+
+```java
+public interface Iterator {
+    Object next();
+    boolean hasNext();
+    Object remove(Object obj);
+}
+```
+
+```java 
+public class ConcreteIterator implements Iterator{
+    
+    private List list;
+    private int index = 0;
+    public ConcreteIterator(List list) {
+        this.list = list;
+    }
+
+    @Override
+    public Object next() {
+        Object obj = null;
+        if (this.hasNext()) {
+            obj = this.list.get(index++);
+        }
+        return obj;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return index != list.size();
+    }
+
+    @Override
+    public Object remove(Object obj) {
+        return list.remove(obj);
+    }
+}
+```
+
+```java
+public interface ICollection {
+    void add(Object obj);
+    void remove(Object obj);
+    Iterator iterator();
+}
+```
+
+```java
+public class MyCollection implements ICollection{
+
+    private List list = new ArrayList();
+
+    @Override
+    public void add(Object obj) {
+        list.add(obj);
+    }
+
+    @Override
+    public void remove(Object obj) {
+        list.remove(obj);
+    }
+
+    @Override
+    public Iterator iterator() {
+        return new ConcreteIterator(list);
+    }
+}
+```
+
+```java 
+public static void main(String[] args) {
+    ICollection collection = new MyCollection();
+    collection.add("老王1");
+    collection.add("老王2");
+    collection.add("老王3");
+    collection.add("老王4");
+    Iterator iterator = collection.iterator();
+    while (iterator.hasNext()) {
+        Object obj = iterator.next();
+        System.out.println(obj);
+    }
+}
+```
+
+**优点**
+
+- 可以做到不暴露集合的内部结构，又可让外部代码透明地访问集合內部的数据
+- 支持以不同的方式遍历一个聚合对象
+
+**缺点**
+
+- 对于比较简单的遍历（像数组或者有序列表），使用迭代器方式遍历较为繁琐
+- 迭代器模式在遍历的同时更改迭代器所在的集合结构会导致出现异常
+
