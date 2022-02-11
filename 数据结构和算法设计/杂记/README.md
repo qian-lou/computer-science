@@ -469,3 +469,69 @@ public static int[] getMaxWindow(int[] arr, int w) {
 }
 ```
 
+
+
+## 单调栈
+
+在数组中想找到一个数，左边和右边比这个数小、且离这个数最近的位置。 如果对每一个数都想求这样的信息，能不能整体代价达到O(N)？需要使用到单调栈结构，单调栈结构的原理和实现
+
+没重复值：
+
+```java
+public static int[][] getNearLessNoRepeat(int[] arr) {
+    int[][] res = new int[arr.length][2];
+    Stack<Integer> stack = new Stack<>();
+    for (int i = 0; i < arr.length; i++) {
+        while (!stack.isEmpty() && arr[stack.peek()] < arr[i]) {
+            int popIndex = stack.pop();
+            int leftLessIndex = stack.isEmpty() ? -1 : stack.peek();
+            res[popIndex][0] = leftLessIndex;
+            res[popIndex][1] = i;
+        }
+        stack.push(i);
+    }
+    while (!stack.isEmpty()) {
+        int popIndex = stack.pop();
+        int leftLessIndex = stack.isEmpty() ? -1 : stack.peek();
+        res[popIndex][0] = leftLessIndex;
+        res[popIndex][1] = -1;
+    }
+    return res;
+}
+```
+
+有重复值：
+
+```java
+public static int[][] getNearLess(int[] arr) {
+    int[][] res = new int[arr.length][2];
+    Stack<List<Integer>> stack = new Stack<>();
+    for (int i = 0; i < arr.length; i++) {
+        while (!stack.isEmpty() && arr[stack.peek().get(0)] < arr[i]) {
+            List<Integer> pops = stack.pop();
+            int leftLessIndex = stack.isEmpty() ? -1 : stack.peek().get(stack.peek().size() - 1);
+            for (Integer pop : pops) {
+                res[pop][0] = leftLessIndex;
+                res[pop][1] = i;
+            }
+        }
+        if (!stack.isEmpty() && arr[stack.peek().get(0)] == arr[i]) {
+            stack.peek().add(i);
+        } else {
+            ArrayList<Integer> list = new ArrayList<>();
+            list.add(i);
+            stack.push(list);
+        }
+    }
+    while (!stack.isEmpty()) {
+        List<Integer> pops = stack.pop();
+        int leftLessIndex = stack.isEmpty() ? -1 : stack.peek().get(stack.peek().size() - 1);
+        for (Integer pop : pops) {
+            res[pop][0] = leftLessIndex;
+            res[pop][1] = -1;
+        }
+    }
+    return res;
+}
+```
+
