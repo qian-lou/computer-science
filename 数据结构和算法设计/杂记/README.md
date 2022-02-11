@@ -349,3 +349,123 @@ private static void infect(int[][] arr, int i, int j, int N, int M) {
 【进阶】 
 
 如何设计一个并行算法解决这个问题
+
+将矩阵拆分成若干份，每一份使用一个cpu进行处理，统计当前的岛屿数量和边界信息，然后合并各个份的时候，如果相邻的两个点是岛屿连接点，则岛屿总数量减一，直到所有边界合并完成（合并使用并查集）
+
+
+
+## KMP
+
+```java 
+public class Code {
+
+    public static int getIndexOf(String s, String m) {
+        if (s == null || m == null || m.length() < 1 || s.length() < m.length()) {
+            return -1;
+        }
+        char[] str1 = s.toCharArray();
+        char[] str2 = m.toCharArray();
+        int i1 = 0;
+        int i2 = 0;
+        //O(M)
+        int[] next = getNextArray(str2);
+        //O(N)
+        while (i1 < str1.length && i2 < str2.length) {
+            if (str1[i1] == str2[i2]) {
+                i1++;
+                i2++;
+            } else if (next[i2] == -1) {
+                i1++;
+            } else {
+                i2 = next[i2];
+            }
+        }
+        return i2 == str2.length ? i1 - i2 : -1;
+    }
+
+    public static int[] getNextArray(char[] ms) {
+        if (ms.length == 1) {
+            return new int[] {-1};
+        }
+        int[] next = new int[ms.length];
+        next[0] = -1;
+        next[1] = 0;
+        int i = 2;
+        int cn = 0;
+        while (i < next.length) {
+            if (ms[i - 1] == ms[cn]) {
+                next[i++] = ++cn;
+            } else if (cn > 0) {
+                cn = next[cn];
+            } else {
+                next[i++] = 0;
+            }
+        }
+        return next;
+    }
+
+    public static void main(String[] args) {
+        String s = "abcabcababaccc";
+        String m = "cab";
+        int index = getIndexOf(s, m);
+        System.out.println(index);
+    }
+}
+```
+
+
+
+## 由一个代表题目，引出一种结构 
+
+【题目】 
+
+有一个整型数组arr和一个大小为w的窗口从数组的最左边滑到最右边，窗口每次 向右边滑 
+
+一个位置。 
+
+例如，数组为[4,3,5,4,3,3,6,7]，窗口大小为3时: 
+
+```
+[4 3 5]4 3 3 6 7 
+4[3 5 4]3 3 6 7 
+4 3[5 4 3]3 6 7 
+4 3 5[4 3 3]6 7 
+4 3 5 4[3 3 6]7 
+4 3 5 4 3[3 6 7] 
+```
+
+窗口中最大值为5 窗口中最大值为5 窗口中最大值为5 窗口中最大值为4 窗口中最大值为6  窗口中最大值为7 
+
+如果数组长度为n，窗口大小为w，则一共产生n-w+1个窗口的最大值。 
+
+请实现一个函数。 输入:整型数组arr，窗口大小为w。 
+
+输出:一个长度为n-w+1的数组res，res[i]表示每一种窗口状态下的 以本题为例，结果应该返回{5,5,5,4,6,7}。
+
+```java
+public static int[] getMaxWindow(int[] arr, int w) {
+    if (arr == null || w < 1 || arr.length < w) {
+        return null;
+    }
+    LinkedList<Integer> qmax = new LinkedList<>();
+    int[] res = new int[arr.length - w + 1];
+    int index = 0;
+    for (int i = 0; i < arr.length; i++) {
+        while (!qmax.isEmpty() && arr[qmax.peekLast()] <= arr[i]) {
+            //将队列里面比i位置小的全部弹出
+            qmax.pollLast();
+        }
+        qmax.addLast(i);
+        //过期的丢弃
+        if (qmax.peekFirst() == i - w) {
+            qmax.pollFirst();
+        }
+        //形成窗口
+        if (i >= w - 1) {
+            res[index++] = arr[qmax.peekFirst()];
+        }
+    }
+    return res;
+}
+```
+
