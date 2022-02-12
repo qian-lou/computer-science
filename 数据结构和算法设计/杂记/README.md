@@ -665,7 +665,7 @@ public class Code9 {
 
 ## Morris遍历 
 
-一种遍历二叉树的方式，并且时间复杂度O(N)，额外空间复杂度O(1)  通过利用原树中大量空闲指针的方式，达到节省空间的目的
+一种遍历二叉树的方式，并且时间复杂度`O(N)`，额外空间复杂度`O(1)`  通过利用原树中大量空闲指针的方式，达到节省空间的目的
 
 **Morris遍历细节** 
 
@@ -715,5 +715,191 @@ public static void morris(Node head) {
 
 建立一种机制，对于没有左子树的节点只到达一次，对于有左子树的节点会到达两次 
 
-morris遍历时间复杂度的证明
+**前中后序遍历**
+
+```java
+/**
+ * @Description TODO
+ * @Author 千楼
+ * @Version 1.0
+ **/
+public class Code10 {
+
+    public static class Node {
+        public Node left;
+        public Node right;
+        public int value;
+
+        public Node(int value) {
+            this.value = value;
+        }
+        public Node() {
+        }
+    }
+	//前序遍历
+    public static void morris_pre(Node head) {
+        if (head == null) {
+            return;
+        }
+        Node cur = head;
+        Node mostRight = null;
+        while (cur != null) {
+            mostRight = cur.left;
+            if (mostRight != null) {
+                while (mostRight.right != null && mostRight.right != cur) {
+                    mostRight = mostRight.right;
+                }
+                if (mostRight.right == null) {
+                    System.out.print(cur.value + " ");
+                    mostRight.right = cur;
+                    cur = cur.left;
+                    continue;
+                } else {
+                    mostRight.right = null;
+                }
+            } else {
+                System.out.print(cur.value + " ");
+            }
+            cur = cur.right;
+        }
+        System.out.println();
+    }
+    //中序遍历
+    public static void morris_in(Node head) {
+        if (head == null) {
+            return;
+        }
+        Node cur = head;
+        Node mostRight = null;
+        while (cur != null) {
+            mostRight = cur.left;
+            if (mostRight != null) {
+                while (mostRight.right != null && mostRight.right != cur) {
+                    mostRight = mostRight.right;
+                }
+                if (mostRight.right == null) {
+                    mostRight.right = cur;
+                    cur = cur.left;
+                    continue;
+                } else {
+                    mostRight.right = null;
+                }
+            }
+            System.out.print(cur.value + " ");
+            cur = cur.right;
+        }
+        System.out.println();
+    }
+    //后续遍历
+    public static void morris_post(Node head) {
+        if (head == null) {
+            return;
+        }
+        Node cur = head;
+        Node mostRight = null;
+        while (cur != null) {
+            mostRight = cur.left;
+            if (mostRight != null) {
+                while (mostRight.right != null && mostRight.right != cur) {
+                    mostRight = mostRight.right;
+                }
+                if (mostRight.right == null) {
+                    mostRight.right = cur;
+                    cur = cur.left;
+                    continue;
+                } else {
+                    mostRight.right = null;
+                    //第二次出现的时候，cur的左子树的右边界的逆序
+                    printEdge(cur.left);
+                }
+            }
+            cur = cur.right;
+        }
+        printEdge(head);
+        System.out.println();
+    }
+
+    public static void printEdge(Node x) {
+        Node tail = reverseEdge(x);
+        Node cur = tail;
+        while (cur != null) {
+            System.out.print(cur.value + " ");
+            cur = cur.right;
+        }
+        reverseEdge(tail);
+    }
+    public static Node reverseEdge(Node from) {
+        Node pre = null;
+        Node next = null;
+        while (from != null) {
+            next = from.right;
+            from.right = pre;
+            pre = from;
+            from = next;
+        }
+        return pre;
+    }
+
+
+
+
+    public static void main(String[] args) {
+        Node n1 = new Node(1);
+        Node n2 = new Node(2);
+        Node n3 = new Node(3);
+        Node n4 = new Node(4);
+        Node n5 = new Node(5);
+        Node n6 = new Node(6);
+        Node n7 = new Node(7);
+        n1.left = n2;
+        n1.right = n3;
+        n2.left = n4;
+        n2.right = n5;
+        n3.left = n6;
+        n3.right = n7;
+        morris_pre(n1);
+        morris_in(n1);
+        morris_post(n1);
+    }
+
+}
+```
+
+
+
+## **使用`Morris`遍历判断是否`BST`**
+
+时间复杂度O(N)  空间复杂度O(1)
+
+```java
+public static boolean isBST(Node head) {
+    if (head == null) {
+        return true;
+    }
+    Node cur = head;
+    Node mostRight = null;
+    int preVal = Integer.MIN_VALUE;
+    while (cur != null) {
+        mostRight = cur.left;
+        if (mostRight != null) {
+            while (mostRight.right != null && mostRight.right != cur) {
+                mostRight = mostRight.right;
+            }
+            if (mostRight.right == null) {
+                mostRight.right = cur;
+                cur = cur.left;
+                continue;
+            } else {
+                mostRight.right = null;
+            }
+        }
+        if (preVal > cur.value) {
+            return false;
+        }
+        preVal = cur.value;
+        cur = cur.right;
+    }
+    return true;
+}
+```
 
