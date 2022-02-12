@@ -682,6 +682,10 @@ public class Code9 {
 3）cur为空时遍历停止
 
 ```java
+public static class Node {
+        public Node left;
+        public Node right;
+}
 public static void morris(Node head) {
     if (head == null) {
         return;
