@@ -246,7 +246,7 @@ class Solution {
 - `1 <= nums.length <= 105`
 - `-104 <= nums[i] <= 104`
 
-**进阶：**如果你已经实现复杂度为 `O(n)` 的解法，尝试使用更为精妙的 **分治法** 求解。
+**进阶：** 如果你已经实现复杂度为 `O(n)` 的解法，尝试使用更为精妙的 **分治法** 求解。
 
 ---
 
@@ -266,6 +266,23 @@ class Solution {
     }
 }
 ```
+
+```java
+class Solution {
+    public int maxSubArray(int[] nums) {
+        int len = nums.length;
+        int dp = 0;
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < len; i++) {
+            dp = dp >= 0 ? dp + nums[i] : nums[i];
+            max = Math.max(max, dp);
+        }
+        return max;
+    }
+}
+```
+
+
 
 ---
 
