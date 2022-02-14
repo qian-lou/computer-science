@@ -270,10 +270,8 @@ class Solution {
 ```java
 class Solution {
     public int maxSubArray(int[] nums) {
-        int len = nums.length;
-        int dp = 0;
-        int max = Integer.MIN_VALUE;
-        for (int i = 0; i < len; i++) {
+        int dp = nums[0], max = nums[0];
+        for (int i = 1; i < nums.length; i++) {
             dp = dp >= 0 ? dp + nums[i] : nums[i];
             max = Math.max(max, dp);
         }
@@ -281,8 +279,6 @@ class Solution {
     }
 }
 ```
-
-
 
 ---
 
