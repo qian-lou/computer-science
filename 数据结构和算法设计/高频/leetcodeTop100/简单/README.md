@@ -1464,11 +1464,306 @@ public void moveZeroes(int[] nums) {
 
 #### 比特位计数
 
+给你一个整数 `n` ，对于 `0 <= i <= n` 中的每个 `i` ，计算其二进制表示中 **`1` 的个数** ，返回一个长度为 `n + 1` 的数组 `ans` 作为答案。
+
+**示例 1：**
+
+```
+输入：n = 2
+输出：[0,1,1]
+解释：
+0 --> 0
+1 --> 1
+2 --> 10
+```
+
+**示例 2：**
+
+```
+输入：n = 5
+输出：[0,1,1,2,1,2]
+解释：
+0 --> 0
+1 --> 1
+2 --> 10
+3 --> 11
+4 --> 100
+5 --> 101
+```
+
+ 
+
+**提示：**
+
+- `0 <= n <= 105`
+
+ 
+
+**进阶：**
+
+- 很容易就能实现时间复杂度为 `O(n log n)` 的解决方案，你可以在线性时间复杂度 `O(n)` 内用一趟扫描解决此问题吗？
+- 你能不使用任何内置函数解决此问题吗？（如，C++ 中的 `__builtin_popcount` ）
+
+---
+
+每个逐一计算
+
+```java
+ public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        for (int i = 0; i <= n; i++) {
+            ans[i] = countOne(i);
+        }
+        return ans;
+    }
+    
+    public int countOne(int num) {
+        int c = 0;
+        while (num != 0) {
+            num &= (num - 1);
+            c++;
+        }
+        return c;
+    }
+```
+
+动态规划
+
+```java
+public int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            ans[i] = (i & 1) == 1 ? ans[i - 1] + 1 : ans[i >> 1];
+        }
+        return ans;
+    }
+```
+
+---
+
 #### 找到所有数组中消失的数字
+
+给你一个含 `n` 个整数的数组 `nums` ，其中 `nums[i]` 在区间 `[1, n]` 内。请你找出所有在 `[1, n]` 范围内但没有出现在 `nums` 中的数字，并以数组的形式返回结果。
+
+**示例 1：**
+
+```
+输入：nums = [4,3,2,7,8,2,3,1]
+输出：[5,6]
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,1]
+输出：[2]
+```
+
+**提示：**
+
+- `n == nums.length`
+- `1 <= n <= 105`
+- `1 <= nums[i] <= n`
+
+**进阶：**你能在不使用额外空间且时间复杂度为 `O(n)` 的情况下解决这个问题吗? 你可以假定返回的数组不算在额外空间内。
+
+---
+
+```java
+class Solution {
+    public List<Integer> findDisappearedNumbers(int[] nums) {
+        int n = nums.length;
+        for (int i = 0; i < n; i++) {
+            int x = (nums[i] - 1) % n;
+            nums[x] += n;
+        }
+        List<Integer> ans = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (nums[i] <= n) {
+                ans.add(i + 1);
+            }
+        }
+        return ans;
+    }
+}
+```
+
+---
 
 #### 汉明距离
 
+两个整数之间的 [汉明距离](https://baike.baidu.com/item/汉明距离) 指的是这两个数字对应二进制位不同的位置的数目。
+
+给你两个整数 `x` 和 `y`，计算并返回它们之间的汉明距离。
+
+ 
+
+**示例 1：**
+
+```
+输入：x = 1, y = 4
+输出：2
+解释：
+1   (0 0 0 1)
+4   (0 1 0 0)
+       ↑   ↑
+上面的箭头指出了对应二进制位不同的位置。
+```
+
+**示例 2：**
+
+```
+输入：x = 3, y = 1
+输出：1
+```
+
+**提示：**
+
+- `0 <= x, y <= 231 - 1`
+
+---
+
+```java
+class Solution {
+    public int hammingDistance(int x, int y) {
+        int ans = x ^ y;
+        int c = 0;
+        while(ans != 0) {
+            ans &= (ans - 1);
+            c++;
+        }
+        return c;
+    }
+}
+```
+
+---
+
 #### 二叉树的直径
 
+给定一棵二叉树，你需要计算它的直径长度。一棵二叉树的直径长度是任意两个结点路径长度中的最大值。这条路径可能穿过也可能不穿过根结点。
+
+**示例 :**
+给定二叉树
+
+```
+          1
+         / \
+        2   3
+       / \     
+      4   5    
+```
+
+返回 **3**, 它的长度是路径 [4,2,1,3] 或者 [5,2,1,3]。
+
+**注意：**两结点之间的路径长度是以它们之间边的数目表示。
+
+---
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    int ans = 1;
+    public int diameterOfBinaryTree(TreeNode root) {
+        depth(root);
+        return ans - 1;
+    }
+
+    public int depth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        int left = depth(root.left);
+        int right = depth(root.right);
+        ans = Math.max(ans, left + right + 1);
+        return Math.max(left, right) + 1;
+    }
+}
+```
+
+---
+
 #### 合并二叉树
+
+给你两棵二叉树： `root1` 和 `root2` 。
+
+想象一下，当你将其中一棵覆盖到另一棵之上时，两棵树上的一些节点将会重叠（而另一些不会）。你需要将这两棵树合并成一棵新二叉树。合并的规则是：如果两个节点重叠，那么将这两个节点的值相加作为合并后节点的新值；否则，**不为** null 的节点将直接作为新二叉树的节点。
+
+返回合并后的二叉树。
+
+**注意:** 合并过程必须从两个树的根节点开始。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/02/05/merge.jpg)
+
+```
+输入：root1 = [1,3,2,5], root2 = [2,1,3,null,4,null,7]
+输出：[3,4,5,5,4,null,7]
+```
+
+**示例 2：**
+
+```
+输入：root1 = [1], root2 = [1,2]
+输出：[2,2]
+```
+
+**提示：**
+
+- 两棵树中的节点数目在范围 `[0, 2000]` 内
+- `-104 <= Node.val <= 104`
+
+---
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {
+        if (root1 == null) {
+            return root2;
+        }
+        if (root2 == null) {
+            return root1;
+        }
+        TreeNode mergeNode = new TreeNode(root1.val + root2.val);
+        mergeNode.left = mergeTrees(root1.left, root2.left);
+        mergeNode.right = mergeTrees(root1.right, root2.right);
+        return mergeNode;
+    }
+
+}
+```
+
+---
 
