@@ -937,3 +937,55 @@ public static boolean isBST(Node head) {
 
 补充：每个文件的大根堆求Topk，然后总的再用大根堆求top100
 
+
+
+
+
+## 32位无符号整数的范围是0~4294967295，现在有40亿个无符号整数，可以使用最多1GB的内存，找出所有出现了两次的数。 
+
+位图解决，使用2个bit位统计
+
+【补充】 
+
+可以使用最多10MB的内存，怎么找到这40亿个整数的中位数？
+
+使用10kb内存解决方法：定义无符号 unsigned int []， 长度是10kb/4b约等于2500左右的长度，取2048长度，
+
+然后将所有数字进行词频统计，0~2048的统计，后面以此类型，然后看看第20亿个数在哪个范围内，然后使用同样的词频统计方法对该范围继续统计，直到找到中位数
+
+
+
+
+
+[位运算的题目 ]给定两个有符号32位整数a和b，返回a和b中较大的。 
+
+【要求】 
+
+不用做任何比较判断。
+
+```java 
+public static int flip(int n) {
+    return n ^ 1;
+}
+
+public static int sign(int n) {
+    return flip((n >> 31) & 1);
+}
+
+public static int getMax(int a, int b) {
+    int c = a - b;
+    int sa = sign(a);
+    int sb = sign(b);
+    int sc = sign(c);
+    //a和b符号不一样 1  一样 0
+    int difSab = sa ^ sb;
+    //a和b符号不一样 0  一样 1
+    int sameSab = flip(difSab);
+    //如果 a b符号不一样， sa=1,说明a为正，b是负数，返回a returnA=1；如果sa=0，说明a为负数，b是整数，返回b，returnA=0
+    //如果a b符号一样，则肯定不会溢出，使用sameSab * sc;
+    int returnA = difSab * sa + sameSab * sc;
+    int returnB = flip(returnA);
+    return a * returnA + b * returnB;
+}
+```
+
