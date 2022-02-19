@@ -1063,3 +1063,94 @@ public static int add(int a, int b) {
     }
 ```
 
+
+
+
+
+## 机器人达到指定位置方法数 
+
+【题目】 
+
+假设有排成一行的 N 个位置，记为 1~N，N 一定大于或等于 2。开始时机器人在其中的 M 位置上(M 一定是 1~N 中的一个)，机器人可以往左走或者往右走，如果机器人来到 1 位置， 那么下一步只能往右来到 2 位置;如果机器人来到 N 位置，那么下一步只能往左来到 N-1 位置。 规定机器人必须走 K 步，最终能来到 P 位置(P 也一定是 1~N 中的一个)的方法有多少种。给定四个参数 N、M、K、P，返回方法数。 
+
+【举例】 
+
+N=5,M=2,K=3,P=3 
+
+上面的参数代表所有位置为 1 2 3 4 5。机器人最开始在 2 位置上，必须经过 3 步，最后到 达 3 位置。走的方法只有如下 3 种: 
+
+1)从2到1，从1到2，从2到3 
+
+2)从2到3，从3到2，从2到3 
+
+3)从2到3，从3到4，从4到3 
+
+所以返回方法数 3。 N=3,M=1,K=3,P=3 
+
+上面的参数代表所有位置为 1 2 3。机器人最开始在 1 位置上，必须经过 3 步，最后到达 3 位置。怎么走也不可能，所以返回方法数 0。
+
+简单递归
+
+```java 
+public static int walkWays(int N, int P, int M, int K) {
+      return f(N, P, K, M);
+    }
+
+public static int f(int N, int E, int rest, int cur) {
+    if (rest == 0) {
+        return cur == E ? 1 : 0;
+    }
+    if (cur == 1) {
+        return f(N, E, rest - 1, 2);
+    }
+    if (cur == N) {
+        return f(N, E, rest - 1, N - 1);
+    }
+    return f(N, E, rest - 1, cur - 1) + f(N, E, rest - 1, cur + 1);
+}
+```
+
+记忆化搜索
+
+```java
+public static int walkWays(int N, int P, int M, int K) {
+	  int[][] dp = new int[K + 1][N + 1];
+	  //dp全部初始化为-1
+      return f(N, P, K, M, dp);
+    }
+public static int f(int N, int E, int rest, int cur, int[][] dp) {
+    if (dp[rest][cur] != -1) {
+        return dp[rest][cur];
+    }
+    if (rest == 0) {
+        dp[rest][cur] = cur == E ? 1 : 0;
+    } else if (cur == 1) {
+        dp[rest][cur] = f(N, E, rest - 1, 2, dp);
+    } else if (cur == N) {
+        dp[rest][cur] = f(N, E, rest - 1, N - 1, dp);
+    } else {
+        dp[rest][cur] = f(N, E, rest - 1, cur - 1, dp) + f(N, E, rest - 1, cur + 1, dp);
+    }
+    return dp[rest][cur];
+}
+```
+
+动态规划
+
+```java
+public static int walkWays(int N, int P, int M, int K) {
+    int[][] dp = new int[K + 1][N + 1];
+    dp[0][P] = 1;
+    for (int i = 1; i <= K; i++) {
+        for (int j = 1; j <= N; j++) {
+            if (j == N) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j + 1];
+            }
+        }
+    }
+    return dp[K][M];
+}
+```
+
