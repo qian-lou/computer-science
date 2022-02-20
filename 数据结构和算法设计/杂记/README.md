@@ -1154,3 +1154,79 @@ public static int walkWays(int N, int P, int M, int K) {
 }
 ```
 
+
+
+## 换钱的最少货币数 
+
+【题目】 
+
+给定数组 arr，arr 中所有的值都为正数且不重复。每个值代表一种面值的货币，每种面值的货币可以使用1张，再给定一个整数 aim，代表要找的钱数，求组成 aim 的最少货币数。
+
+简单递归
+
+```java
+public static int process(int[] arr, int index, int rest) {
+    if (rest < 0) {
+        return -1;
+    }
+    if (rest == 0) {
+        return 0;
+    }
+    if (index == arr.length) {
+        return -1;
+    }
+    int p1 = process(arr, index + 1, rest);
+    int p2 = process(arr, index + 1, rest - arr[index]);
+    if (p1 == -1 && p2 == -1) {
+        return -1;
+    }
+    if (p1 == -1 || p2 == -1) {
+        return p1 == -1 ? p2 + 1 : p1;
+    }
+    return Math.min(p1, p2 + 1);
+}
+
+public static int minCoin(int[] arr, int aim) {
+    return process(arr, 0, aim);
+}
+```
+
+记忆化搜索参考上面**机器人达到指定位置方法数**实现
+
+递归改动态规划
+
+```java
+public static int minCoin2(int[] arr, int aim) {
+    int N = arr.length;
+    int[][] dp = new int[N + 1][aim + 1];
+    for (int row = 0; row <= N; row++) {
+        dp[row][0] = 0;
+    }
+    for (int col = 1; col <= aim; col++) {
+        dp[N][col] = -1;
+    }
+    for (int index = N - 1; index >= 0; index--) {
+        for (int rest = 1; rest <= aim; rest++) {
+           int p1 = dp[index + 1][rest];
+           int p2 = -1;
+           if (rest - arr[index] >= 0) {
+               p2 = dp[index + 1][rest - arr[index]];
+           }
+           if (p1 == -1 && p2 == -1) {
+               dp[index][rest] = -1;
+           } else {
+               if (p1 == -1) {
+                   dp[index][rest] = p2 + 1;
+               } else if (p2 == -1) {
+                   dp[index][rest] = p1;
+               } else {
+                   dp[index][rest] = Math.min(p1, p2 + 1);
+               }
+           }
+
+        }
+    }
+    return dp[0][aim];
+}
+```
+
