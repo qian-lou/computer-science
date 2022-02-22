@@ -1287,3 +1287,44 @@ public static int dpWays(int x, int y, int step) {
     return dp[x][y][step];
 }
 ```
+
+
+
+
+
+## Bob的生存概率 
+
+【题目】 
+
+给定五个参数n,m,i,j,k。表示在一个N*M的区域，Bob处在(i,j)点，每次Bob等概率的向上、下、左、右四个方向移动一步，Bob必须走K步。如果走完之后，Bob还停留在这个区域上， 就算Bob存活，否则就算Bob死亡。请求解Bob的生存概率，返回字符串表示分数的方式。
+
+递归
+
+```java
+public static long process(int N, int M, int row, int col, int rest) {
+    if (row < 0 || row == N || col < 0 || col == M) {
+        return 0;
+    }
+    if (rest == 0) {
+        return 1;
+    }
+    long live = process(N, M, row - 1, col, rest - 1);
+    live += process(N, M, row + 1, col, rest - 1);
+    live += process(N, M, row, col + 1, rest - 1);
+    live += process(N, M, row, col - 1, rest - 1);
+    return live;
+}
+
+public static String bob(int N, int M, int i, int j, int K) {
+    long all = (long)Math.pow(4, K);
+    long live = process(N, M, i, j, K);
+    long gcd = gcd(all, live);
+    return (live / gcd) + "/" + (all / gcd);
+}
+
+public static long gcd(long m, long n) {
+    return n == 0 ? m : gcd(n, m % n);
+}
+```
+
+动态规划参考上一题
