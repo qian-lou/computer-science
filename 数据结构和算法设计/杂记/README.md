@@ -1363,3 +1363,50 @@ public static long gcd(long m, long n) {
 }
 ```
 
+
+
+## 换钱的总方法数
+
+给定数组 arr，arr 中所有的值都为正数且不重复。每个值代表一种面值的货币，每种面值的货币可以使用任意张，再给定一个整数 aim，代表要找的钱数，求组成 aim 的总方法数。
+
+递归
+
+```java
+public static int way1(int[] arr, int aim) {
+    return process(arr, 0, aim);
+}
+
+private static int process(int[] arr, int index, int rest) {
+    if (index == arr.length) {
+        return rest == 0 ? 1 : 0;
+    }
+    int ways = 0;
+    for (int zhang = 0; arr[index] * zhang <= rest; zhang++) {
+        ways += process(arr, index + 1, rest - arr[index] * zhang);
+    }
+    return ways;
+}
+```
+
+动态规划
+
+```java
+public static int dpWays(int[] arr, int aim) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int N = arr.length;
+    int[][] dp = new int[N + 1][aim + 1];
+    dp[N][0] = 1;
+    for (int row = N - 1; row >= 0; row--) {
+        for (int col = 0; col <= aim; col++) {
+            dp[row][col] = dp[row + 1][col];
+            if (col - arr[row] >= 0) {
+                dp[row][col] +=  dp[row][col - arr[row]];
+            }
+        }
+    }
+    return dp[0][aim];
+}
+```
+
