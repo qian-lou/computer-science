@@ -1286,6 +1286,12 @@ public static int dpWays(int x, int y, int step) {
     }
     return dp[x][y][step];
 }
+public static int getValue(int[][][] dp, int row, int col, int step) {
+        if (row < 0 || row > 8 || col < 0 || col > 9) {
+            return 0;
+        }
+        return dp[row][col][step];
+}
 ```
 
 
