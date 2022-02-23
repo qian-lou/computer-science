@@ -1334,3 +1334,32 @@ public static long gcd(long m, long n) {
 ```
 
 动态规划参考上一题
+
+```java
+public static String bob2(int N, int M, int i, int j, int K) {
+		int[][][] dp = new int[N + 2][M + 2][K + 1];
+		for (int row = 1; row <= N; row++) {
+			for (int col = 1; col <= M; col++) {
+				dp[row][col][0] = 1;
+			}
+		}
+		for (int rest = 1; rest <= K; rest++) {
+			for (int row = 1; row <= N; row++) {
+				for (int col = 1; col <= M; col++) {
+					dp[row][col][rest] = dp[row - 1][col][rest - 1];
+					dp[row][col][rest] += dp[row + 1][col][rest - 1];
+					dp[row][col][rest] += dp[row][col - 1][rest - 1];
+					dp[row][col][rest] += dp[row][col + 1][rest - 1];
+				}
+			}
+		}
+		long all = (long) Math.pow(4, K);
+		long live = dp[i + 1][j + 1][K];
+		long gcd = gcd(all, live);
+		return String.valueOf((live / gcd) + "/" + (all / gcd));
+}
+public static long gcd(long m, long n) {
+    return n == 0 ? m : gcd(n, m % n);
+}
+```
+
