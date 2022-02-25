@@ -1410,3 +1410,57 @@ public static int dpWays(int[] arr, int aim) {
 }
 ```
 
+
+
+
+
+## 给定一个有序数组arr，代表数轴上从左到右有n个点arr[0]、arr[1]...arr[n－1]， 给定一个正数L，代表一根长度为L的绳子，求绳子最多能覆盖其中的几个点。
+
+解法一：二分法 时间复杂度 O(N*logN)
+
+```java
+public static int maxPoint(int[] arr, int L) {
+    int res = 1;
+    for (int i = 0; i < arr.length; i++) {
+        int nearest = nearestIndex(arr, i, arr[i] - L);
+        res = Math.max(res, i - nearest + 1);
+    }
+    return res;
+}
+
+
+private static int nearestIndex(int[] arr, int R, int value) {
+    int L = 0;
+    int index = R;
+    while (L < R) {
+        int mid = L + ((R - L) >> 1);
+        if (arr[mid] >= value) {
+            index = mid;
+            R = mid - 1;
+        } else {
+            L = mid + 1;
+        }
+    }
+    return index;
+}
+```
+
+解法二：滑动窗口 O(N)
+
+```java
+public static int maxPoint2(int[] arr, int L) {
+   int res = 1;
+   int begin = 0;
+   int end = 1;
+   while (end < arr.length) {
+       if (arr[end] - arr[begin] > L) {
+           res = Math.max(res, end - begin);
+           begin++;
+       } else {
+           end++;
+       }
+   }
+   return res;
+}
+```
+
