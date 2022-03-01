@@ -250,9 +250,555 @@ Java线程分为用户线程和守护线程，线程的daemon属性为true表示
 
 ### CompletableFuture
 
-Future和Callable接口
+#### **Future和Callable接口**
+
+Future接口定义了操作异步任务执行一些方法，如获取异步任务的执行结果、取消任务的执行、判断任务是否被取消、判断任务执行是否完毕等。
+
+Callable接口中定义了需要有返回的任务需要实现的方法
+
+```
+@FunctionalInterface
+public interface Callable<V> {
+    V call() throws Exception;
+}
+```
+
+比如主线程让一个子线程去执行任务，子线程可能比较耗时，启动子线程开始执行任务后，主线程就去做其他事情了，过了一会才去获取子任务的执行结果。
 
 
+
+#### 从之前的FutureTask说开去
+
+![image-20220228204828839](https://gitee.com/JKcoding/imgs/raw/master/img/202202282048179.png)
+
+```java
+FutureTask<Integer> task = new FutureTask<Integer>(()-> {
+    Thread.sleep(5000);
+    return 1;
+});
+new Thread(task).start();
+System.out.println("main1");
+System.out.println(task.get());
+System.out.println("main2");
+```
+
+一旦调用`get()`方法，不管是否计算完成都会导致阻塞，o(╥﹏╥)o
+
+`isDone()`轮询：轮询的方式会耗费无谓的CPU资源，而且也不见得能及时地得到计算结果。如果想要异步获取结果,通常都会以轮询的方式去获取结果尽量不要阻塞
+
+当需要完成复杂的任务时：
+
+- 应对Future的完成时间，完成了可以告诉我，也就是我们的回调通知
+- 将两个异步计算合成一个异步计算，这两个异步计算互相独立，同时第二个又依赖第一个的结果。
+- 当Future集合中某个任务最快结束时，返回结果。
+- 等待Future结合中的所有任务都完成。
+
+
+
+#### 对Future的改进
+
+`CompletableFuture`和`CompletionStage`源码分别介绍
+
+![image-20220301215625859](https://gitee.com/JKcoding/imgs/raw/master/img/202203012156213.png)
+
+![image-20220301215728034](https://gitee.com/JKcoding/imgs/raw/master/img/202203012157672.png)
+
+**接口`CompletionStage`**：
+
+- completionStage代表异步计算过程中的某一个阶段，一个阶段完成以后可能会触发另一个阶段
+- 一个阶段的计算执行可以是`Function`，`Comsumer`或者`Runnable`。比如`stage.thenApply(x ->System.out.print(x)).thenRun(()->System.out.println())`
+- 一个阶段的执行可能是被单个阶段的完成触发，也可能是由多个阶段一起触发
+
+代表异步计算过程中的某一个阶段，一个阶段完成以后可能会触发另外一个阶段，有些类似Linux系统的管道分隔符传参数。
+
+**类`CompletableFuture`**:
+
+- 在`Java8`中，`CompletableFuture`提供了非常强大的`Future`的扩展功能，可以帮助我们简化异步编程的复杂性，并且提供了函数式编程的能力，可以通过回调的方式处理计算结果，也提供了转换和组合`CompletableFuture`的方法。
+- 它可能代表一个明确完成的`Future`，也有可能代表一个完成阶段（`CompletionStage`），它支持在计算完成以后触发一些函数或执行某些动作。
+- 它实现了`Future`和`CompletionStaget`接口
+
+
+
+**核心的四个静态方法，来创建一个异步操作**
+
+`runAsync` 无 返回值：
+
+```java
+public static CompletableFuture<Void> runAsync(Runnable runnable)`
+public static CompletableFuture<Void> runAsync(Runnable runnable,Executor executor)
+```
+
+`supplyAsync` 有 返回值：
+
+```java
+public static <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier)
+public static <U> CompletableFuture<U> supplyAsync(Supplier<U> supplier,Executor executor)
+```
+
+**上述`Executor executor`参数说明**：
+
+- 没有指定`Executor`的方法，直接使用默认的`ForkJoinPool.commonPool()` 作为它的线程池执行异步代码。
+- 如果指定线程池，则使用我们自定义的或者特别指定的线程池执行异步代码
+
+代码：
+
+```java
+ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 20, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
+CompletableFuture<Void> f1 = CompletableFuture.runAsync(() -> {
+    System.out.println(Thread.currentThread().getName() + "----come in-1");
+});
+
+CompletableFuture<Void> f2 = CompletableFuture.runAsync(() -> {
+    System.out.println(Thread.currentThread().getName() + "----come in-2");
+}, executor);
+System.out.println(f1.get());
+System.out.println(f2.get());
+System.out.println("------------");
+
+CompletableFuture<String> f3 = CompletableFuture.supplyAsync(() -> {
+    System.out.println(Thread.currentThread().getName() + "----come in-1 supplyAsync");
+    return "supplyAsync - 1";
+});
+CompletableFuture<String> f4 = CompletableFuture.supplyAsync(() -> {
+    System.out.println(Thread.currentThread().getName() + "----come in-2 supplyAsync");
+    return "supplyAsync - 2";
+}, executor);
+
+System.out.println(f3.get());
+System.out.println(f4.get());
+executor.shutdown();
+```
+
+从`Java8`开始引入了`CompletableFuture`，它是`Future`的功能增强版，可以传入回调对象，当异步任务完成或者发生异常时，自动调用回调对象的回调方法
+
+```java
+ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 20, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
+CompletableFuture<Integer> f1 = CompletableFuture.supplyAsync(() -> {
+    System.out.println(Thread.currentThread().getName() + "----come in-1");
+    try {
+        TimeUnit.SECONDS.sleep(5);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    return 1;
+}, executor).thenApply(f -> {
+    System.out.println(Thread.currentThread().getName() + "thenApplyAsync");
+    try {
+        TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    return f + 2;
+}).whenComplete((v, e) -> {
+    System.out.println(Thread.currentThread().getName() + "whenComplete");
+    if (e == null) {
+        System.out.println("---result: " + v);
+    }
+}).exceptionally(e -> {
+    e.printStackTrace();
+    return null;
+});
+
+System.out.println("main over");
+while (!f1.isDone()) {}
+executor.shutdown();
+```
+
+**`CompletableFuture`的优点：**
+
+- 异步任务结束时，会自动回调某个对象的方法
+- 异步任务出错时，会自动回调某个对象的方法
+- 主线程设置好回调后，不再关心异步任务的执行，异步任务之间可以顺序执行
+
+
+
+#### 案例精讲-从电商网站的比价需求说开去
+
+> 经常出现在等待某条 SQL 执行完成后，再继续执行下一条 SQL ，而这两条 SQL 本身是并无关系的，可以同时进行执行的。
+>
+> 我们希望能够两条 SQL 同时进行处理，而不是等待其中的某一条 SQL 完成后，再继续下一条。同理，
+> 对于分布式微服务的调用，按照实际业务，如果是无关联step by step的业务，可以尝试是否可以多箭齐发，同时调用。
+>
+> 我们去比同一个商品在各个平台上的价格，要求获得一个清单列表，
+> 1 step by step，查完京东查淘宝，查完淘宝查天猫......
+>
+> 2 all   一口气同时查询。。。。。
+
+```java
+public class Code3 {
+
+    static List<NetMall> list = Arrays.asList(
+            new NetMall("jd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("pdd"),
+            new NetMall("tmall")
+    );
+
+    private static ExecutorService service = Executors.newFixedThreadPool(50);
+
+    public static List<String> getPriceByStep(List<NetMall> list, String productName) {
+        return list.stream()
+                .map(netMall ->
+                        String.format(productName + " in %s price is %.2f",
+                                netMall.getMallName(), netMall.calPrice(productName)))
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getPriceByAsync(List<NetMall> list, String productName) {
+        return list.stream()
+                .map(netMall ->
+                        CompletableFuture.supplyAsync(() ->
+                                String.format(productName + " in %s price is %.2f",
+                                netMall.getMallName(), netMall.calPrice(productName)), service)
+                )
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        List<String> mysqls = getPriceByStep(list, "mysql");
+        mysqls.forEach(System.out::println);
+        long end = System.currentTimeMillis();
+        System.out.println("耗时: " + (end - start) + " ms");
+        start = System.currentTimeMillis();
+        List<String> oracles = getPriceByAsync(list, "oracle");
+        oracles.forEach(System.out::println);
+        end = System.currentTimeMillis();
+        System.out.println("耗时: " + (end - start) + " ms");
+    }
+}
+
+class NetMall {
+    private String mallName;
+
+    public String getMallName() {
+        return mallName;
+    }
+
+    public void setMallName(String mallName) {
+        this.mallName = mallName;
+    }
+
+    public NetMall(String mallName) {
+        this.mallName = mallName;
+    }
+    public double calPrice(String productName) {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return ThreadLocalRandom.current().nextDouble() * 2 + productName.charAt(0);
+    }
+}
+```
+
+
+
+#### `CompletableFuture`常用方法
+
+##### 获得结果和触发计算
+
+```java
+public T    get()
+public T    get(long timeout, TimeUnit unit)
+public T    getNow(T valueIfAbsent) 立即获取结果不阻塞，计算完，返回计算完成后的结果，没算完，返回设定的valueIfAbsent值
+```
+
+`getNow`方法
+
+```java
+CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    return 1;
+});
+System.out.println(future.getNow(2));
+```
+
+```java
+public T    join()
+```
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    System.out.println(CompletableFuture.supplyAsync(() -> "abc").thenApply(r -> r + "de").join());
+}
+```
+
+**主动触发计算**：`public boolean complete(T value)` 是否打断get方法立即返回括号值
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture<Integer> completableFuture = CompletableFuture.supplyAsync(() -> {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return 533;
+    });
+
+    //注释掉暂停线程，get还没有算完只能返回complete方法设置的444；暂停2秒钟线程，异步线程能够计算完成返回get
+    try {
+        TimeUnit.SECONDS.sleep(2);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    //当调用CompletableFuture.get()被阻塞的时候,complete方法就是结束阻塞并get()获取设置的complete里面的值.
+    System.out.println(completableFuture.complete(444) + "\t" + completableFuture.get());
+}
+```
+
+
+
+##### 对计算结果进行处理
+
+`thenApply`：计算结果存在依赖关系，这两个线程串行化
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture.supplyAsync(() -> {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return 1024;
+    }).thenApply(f -> {
+        System.out.println("--2--");
+        return f + 1;
+    }).thenApply(f -> {
+        System.out.println("--3--");
+        return f + 1;
+    }).whenComplete((v, e) -> {
+        System.out.println("--v: " + v);
+    }).exceptionally(e -> {
+        e.printStackTrace();
+        return null;
+    });
+    // 主线程不要立刻结束，否则CompletableFuture默认使用的线程池会立刻关闭:
+    try {
+        TimeUnit.SECONDS.sleep(2);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+}
+```
+
+由于存在依赖关系(当前步错，不走下一步)，当前步骤有异常的话就叫停。
+
+
+
+`handle`：有异常也可以往下一步走，根据带的异常参数可以进一步处理
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture.supplyAsync(() -> {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("--1--");
+        return 1024;
+    }).handle((f, e) -> {
+        int age = 1 / 0;
+        System.out.println("--2--");
+        return f + 1;
+    }).handle((f, e) -> {
+        System.out.println("--3--");
+        return f + 1;
+    }).whenComplete((v, e) -> {
+        System.out.println("---v: " + v);
+    }).exceptionally(e -> {
+        e.printStackTrace();
+        return null;
+    });
+    System.out.println("-----主线程结束，END");
+
+    // 主线程不要立刻结束，否则CompletableFuture默认使用的线程池会立刻关闭:
+    try {
+        TimeUnit.SECONDS.sleep(2);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+}
+
+-----主线程结束，END
+--1--
+--3--
+---v: null
+java.util.concurrent.CompletionException: java.lang.NullPointerException
+```
+
+总结：
+
+![image-20220301231659490](https://gitee.com/JKcoding/imgs/raw/master/img/202203012317283.png)
+
+![image-20220301231714338](https://gitee.com/JKcoding/imgs/raw/master/img/202203012317625.png)
+
+
+
+##### 对计算结果进行消费
+
+接收任务的处理结果，并消费处理，无返回结果
+
+`thenAccept`
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture.supplyAsync(() -> 1)
+            .thenApply(f -> f + 1)
+            .thenApply(f -> f + 1)
+            .thenAccept(System.out::println);
+}
+```
+
+任务之间的顺序执行
+
+`thenRun`：`thenRun(Runnable runnable)`
+
+`thenAccept`：`thenAccept(Consumer action)`，任务 A 执行完执行 B，B 需要 A 的结果，但是任务 B 无返回值
+
+`thenApply`：`thenApply(Function)` ，任务 A 执行完执行 B，B 需要 A 的结果，同时任务 B 有返回值
+
+```java
+System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenRun(() -> {}).join());
+System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenAccept(resultA -> {}).join());
+System.out.println(CompletableFuture.supplyAsync(() -> "resultA").thenApply(resultA -> resultA + " resultB").join());
+```
+
+
+
+##### 对计算速度进行选用
+
+`applyToEither`   谁快用谁
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture<Integer> completableFuture01 = CompletableFuture.supplyAsync(() -> {
+        System.out.println(Thread.currentThread().getName() + "\t" + "-completableFuture01-come in");
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return 10;
+    });
+    CompletableFuture<Integer> completableFuture02 = CompletableFuture.supplyAsync(() -> {
+        System.out.println(Thread.currentThread().getName() + "\t" + "-completableFuture02-come in");
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return 20;
+    });
+    //completableFuture01和completableFuture02 谁快用谁的结果
+    System.out.println(completableFuture01.applyToEither(completableFuture02, f -> {
+        System.out.println(Thread.currentThread().getName() + "\t" + "-applyToEither- come int");
+        return f + 1;
+    }).join());
+}
+
+ForkJoinPool.commonPool-worker-19	-completableFuture01-come in
+ForkJoinPool.commonPool-worker-5	-completableFuture02-come in
+ForkJoinPool.commonPool-worker-5	-applyToEither- come int
+21
+```
+
+
+
+##### 对计算结果进行合并
+
+两个`CompletionStage`任务都完成后，最终能把两个任务的结果一起交给`thenCombine` 
+
+先完成的先等着，等待其它分支任务
+
+`thenCombine`
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+    CompletableFuture<Integer> completableFuture01 = CompletableFuture.supplyAsync(() -> {
+        System.out.println(Thread.currentThread().getName() + "\t" + "---come in ");
+        return 10;
+    });
+    CompletableFuture<Integer> completableFuture02 = CompletableFuture.supplyAsync(() -> {
+        System.out.println(Thread.currentThread().getName() + "\t" + "---come in ");
+        return 20;
+    });
+    System.out.println(completableFuture01.thenCombine(completableFuture02, (x, y) -> x + y).join());
+}
+```
+
+```java
+public static void main(String[] args) throws ExecutionException, InterruptedException {
+        CompletableFuture<Integer> thenCombineResult = CompletableFuture.supplyAsync(() -> {
+            System.out.println(Thread.currentThread().getName() + "\t" + "---come in 1");
+            return 10;
+        }).thenCombine(CompletableFuture.supplyAsync(() -> {
+            System.out.println(Thread.currentThread().getName() + "\t" + "---come in 2");
+            return 20;
+        }), (x,y) -> {
+            System.out.println(Thread.currentThread().getName() + "\t" + "---come in 3");
+            return x + y;
+        }).thenCombine(CompletableFuture.supplyAsync(() -> {
+            System.out.println(Thread.currentThread().getName() + "\t" + "---come in 4");
+            return 30;
+        }),(a,b) -> {
+            System.out.println(Thread.currentThread().getName() + "\t" + "---come in 5");
+            return a + b;
+        });
+        System.out.println("-----主线程结束，END");
+        System.out.println(thenCombineResult.get());
+
+
+        // 主线程不要立刻结束，否则CompletableFuture默认使用的线程池会立刻关闭:
+        try { TimeUnit.SECONDS.sleep(10); } catch (InterruptedException e) { e.printStackTrace(); }
+    }
+
+```
 
 
 
