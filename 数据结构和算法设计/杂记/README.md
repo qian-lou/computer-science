@@ -1768,3 +1768,25 @@ public static int needParentheses(String str) {
 }
 ```
 
+
+
+
+
+## 给定一个数组arr，求差值为k的去重数字对。
+
+```java
+public static List<List<Integer>> addPair(int[] arr, int k) {
+    HashSet<Integer> set = new HashSet<>();
+    for(int num : arr) {
+        set.add(num);
+    }
+    List<List<Integer>> ans = new ArrayList<>();
+    for (int num : set) {
+        if (set.contains(num + k)) {
+            ans.add(Arrays.asList(num, num + k));
+        }
+    }
+    return ans;
+}
+```
+
