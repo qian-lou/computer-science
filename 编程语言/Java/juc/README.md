@@ -806,6 +806,324 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
 
 ### 说说Java“锁”事
 
+先看看一些面试题，看看有没有打击到你
+
+> 一、Synchronized相关问题
+>
+> 1、Synchronized用过吗，其原理是什么？
+>
+> 2、你刚才提到获取对象的锁，这个“锁”到底是什么？如何确定对象的锁？
+>
+> 3、什么是可重入性，为什么说Synchronized是可重入锁？
+>
+> 4、JVM对java的原生锁做了哪些优化？
+>
+> 5、为什么说Synchronized是非公平锁？
+>
+> 6、什么是锁消除和锁粗化？
+>
+> 7、为什么说Synchronized是一个悲观锁？乐观锁的实现原理又是什么？什么是CAS
+>
+> 8、乐观锁一定就是好的吗？
+>
+> 二、可重入锁ReentrantLock以及其他显示锁相关问题
+>
+> 1、跟Synchronized相比，可重入锁ReentrantLock其实现原理有什么不同？
+>
+> 2、那么请谈谈AQS框架是怎么回事？
+>
+> 3、请尽可能详尽地对比下Synchronized和ReentrantLock的异同
+>
+> 4、ReentrantLock是如何实现可重入锁性的？
+
+
+
+#### 乐观锁和悲观锁
+
+**悲观锁**
+
+
+认为自己在使用数据的时候一定有别的线程来修改数据，因此在获取数据的时候会先加锁，确保数据不会被别的线程修改。synchronized关键字和Lock的实现类都是悲观锁
+
+- 适合写操作多的场景，先加锁可以保证写操作时数据正确。
+- 显式的锁定之后再操作同步资源
+
+**乐观锁**
+
+
+乐观锁认为自己在使用数据时不会有别的线程修改数据，所以不会添加锁，只是在更新数据的时候去判断之前有没有别的线程更新了这个数据。
+
+如果这个数据没有被更新，当前线程将自己修改的数据成功写入。如果数据已经被其他线程更新，则根据不同的实现方式执行不同的操作
+
+乐观锁在Java中是通过使用无锁编程来实现，最常采用的是CAS算法，Java原子类中的递增操作就通过CAS自旋实现的。
+
+- 适合读操作多的场景，不加锁的特点能够使其读操作的性能大幅提升。
+
+- 乐观锁则直接去操作同步资源，是一种无锁算法，得之我幸不得我命，再抢
+
+- 乐观锁一般有两种实现方式：
+
+  采用版本号机制
+
+  `CAS`（`Compare-and-Swap`，即比较并替换）算法实现
+
+```java
+//=============悲观锁的调用方式
+public synchronized void m1() {
+    //加锁后的业务逻辑......
+}
+ReentrantLock lock = new ReentrantLock();
+public void m2() {
+    lock.lock();
+    try {
+        // 操作同步资源
+    } finally {
+        lock.unlock();
+    }
+}
+//=============乐观锁的调用方式
+// 保证多个线程使用的是同一个AtomicInteger
+private AtomicInteger atomicInteger = new AtomicInteger();
+public void m3() {
+    atomicInteger.incrementAndGet();
+}
+```
+
+
+
+#### 锁的是什么
+
+通过8种情况演示锁运行案例，看看我们到底锁的是什么
+
+看看JVM中对应的锁在哪里？
+
+![image-20220303103440787](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303103440787.png)
+
+
+
+`synchronized`有三种应用方式
+
+​	JDK源码(notify方法)说明举例![image-20220303103618621](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303103618621.png)
+
+8种锁的案例实际体现在3个地方
+
+- 作用于实例方法，当前实例加锁，进入同步代码前要获得当前实例的锁；
+- 作用于代码块，对括号里配置的对象加锁。
+- 作用于静态方法，当前类加锁，进去同步代码前要获得当前类对象的锁；
+
+
+
+**从字节码角度分析`synchronized`实现**
+
+javap -c ***.class文件反编译
+
+假如你需要更多信息：
+
+```shell
+1）javap -v ***.class文件反编译
+2） -v  -verbose             输出附加信息（包括行号、本地变量表，反汇编等详细信息）
+```
+
+下面看看三种代码
+
+**（1）synchronized同步代码块**
+
+```java
+public static void main(String[] args) {
+    new Demo01().m1();
+}
+
+public void m1() {
+    synchronized (this) {
+        System.out.println("hello world");
+    }
+}
+```
+
+使用`javap -c  ***.class`反编译
+
+```java
+public void m1();
+    Code:
+       0: aload_0
+       1: dup
+       2: astore_1
+       3: monitorenter
+       4: getstatic     #26                 // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: ldc           #27                 // String hello world
+       9: invokevirtual #28                 // Method java/io/PrintStream.println:(Ljava/lang/String;)
+V
+      12: aload_1
+      13: monitorexit
+      14: goto          22
+      17: astore_2
+      18: aload_1
+      19: monitorexit
+      20: aload_2
+      21: athrow
+      22: return
+    Exception table:
+       from    to  target type
+           4    14    17   any
+          17    20    17   any
+
+```
+
+![image-20220303105451130](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303105451130.png)
+
+可以看到有一个`monitorenter`和两个`monitorexit`，有两个`monitorexit`是为了在异常情况下也能释放锁
+
+那么一定是一个enter两个exit吗？看看下面，添加一个异常
+
+```java
+public void m1() {
+    synchronized (this) {
+        System.out.println("hello world");
+        throw new RuntimeException("test synchronized");
+    }
+}
+```
+
+看看反编译后的
+
+```java
+ public void m1();
+    Code:
+       0: aload_0
+       1: dup
+       2: astore_1
+       3: monitorenter
+       4: getstatic     #26                 // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: ldc           #27                 // String hello world
+       9: invokevirtual #28                 // Method java/io/PrintStream.println:(Ljava/lang/String;)
+V
+      12: new           #29                 // class java/lang/RuntimeException
+      15: dup
+      16: ldc           #30                 // String test synchronized
+      18: invokespecial #31                 // Method java/lang/RuntimeException."<init>":(Ljava/lang/
+String;)V
+      21: athrow
+      22: astore_2
+      23: aload_1
+      24: monitorexit
+      25: aload_2
+      26: athrow
+    Exception table:
+       from    to  target type
+           4    25    22   any
+
+```
+
+可以看到只有一个`monitorexit`了
+
+
+
+**（2）synchronized普通同步方法**
+
+```java
+public static void main(String[] args) {
+    new Demo01().m1();
+}
+
+public synchronized void m1() {
+    System.out.println("hello world");
+}
+```
+
+`javap -v ***.class`文件反编译
+
+```java
+public synchronized void m1();
+    descriptor: ()V
+    flags: (0x0021) ACC_PUBLIC, ACC_SYNCHRONIZED
+    Code:
+      stack=2, locals=1, args_size=1
+         0: getstatic     #26                 // Field java/lang/System.out:Ljava/io/PrintStream;
+         3: ldc           #27                 // String hello world
+         5: invokevirtual #28                 // Method java/io/PrintStream.println:(Ljava/lang/String
+;)V
+         8: return
+      LineNumberTable:
+        line 51: 0
+        line 52: 8
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       9     0  this   Lcom/example/Demo01;
+```
+
+调用指令将会检查方法的`ACC_SYNCHRONIZED`访问标志是否被设置。如果设置了，执行线程会将先持有`monitor`然后再执行方法，最后在方法完成(无论是正常完成还是非正常完成)时释放 `monitor`
+
+
+
+**（3）synchronized静态同步方法**
+
+```java
+public static void main(String[] args) {
+    m1();
+}
+public static synchronized void m1() {
+    System.out.println("hello world");
+}
+```
+
+`javap -v ***.class`文件反编译
+
+```java
+ public static synchronized void m1();
+    descriptor: ()V
+    flags: (0x0029) ACC_PUBLIC, ACC_STATIC, ACC_SYNCHRONIZED
+    Code:
+      stack=2, locals=0, args_size=0
+         0: getstatic     #24                 // Field java/lang/System.out:Ljava/io/PrintStream;
+         3: ldc           #25                 // String hello world
+         5: invokevirtual #26                 // Method java/io/PrintStream.println:(Ljava/lang/String
+;)V
+         8: return
+      LineNumberTable:
+        line 51: 0
+        line 52: 8
+```
+
+`ACC_STATIC`, `ACC_SYNCHRONIZED`访问标志区分该方法是否静态同步方法
+
+
+
+**反编译`synchronized`锁的是什么**
+
+**什么是管程monitor**
+
+管程 (英语：`Monitors`，也称为监视器) 是一种程序结构，结构内的多个子程序（对象或模块）形成的多个工作线程互斥访问共享资源。这些共享资源一般是硬件设备或一群变量。对共享变量能够进行的所有操作集中在一个模块中。（把信号量及其操作原语“封装”在一个对象内部）管程实现了在一个时间点，最多只有一个线程在执行管程的某个子程序。管程提供了一种机制，管程可以看做一个软件模块，它是将共享的变量和对于这些共享变量的操作封装起来，形成一个具有一定接口的功能模块，进程可以调用管程来实现进程级别的并发控制。
+
+![image-20220303111735524](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303111735524.png)
+
+
+
+在`HotSpot`虚拟机中，`monitor`采用`ObjectMonitor`实现
+
+上述C++源码解读：`ObjectMonitor.java→ObjectMonitor.cpp→objectMonitor.hpp`
+
+`objectMonitor.hpp:`![image-20220303111838827](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303111838827.png)
+
+`ObjectMonitor`中有几个关键属性
+
+| 属性        | 功能                              |
+| ----------- | --------------------------------- |
+| _owner      | 指向持有ObjectMonitor对象的线程   |
+| _WaitSet    | 存放处于wait状态的线程队列        |
+| _EntryList  | 存放处于等待锁block状态的线程队列 |
+| _recursions | 锁的重入次数                      |
+| _count      | 用来记录该线程获取锁的次数        |
+
+每个对象天生都带着一个对象监视器
+
+对于`synchronized`关键字，我会在《`Synchronized`与锁升级》还会再深度讲解，提前剧透
+
+ `synchronized`必须作用于某个对象中，所以Java在对象的头文件存储了锁的相关信息。锁升级功能主要依赖于 `MarkWord` 中的锁标志位和释放偏向锁标志位，后续讲解锁升级时候我们再加深，目前为了承前启后的学习，对下图先混个眼熟即可，`O(∩_∩)O`
+
+![image-20220303112358646](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220303112358646.png)
+
+
+
 ### LockSupport与线程中断
 
 ### Java内存模型之JMM
