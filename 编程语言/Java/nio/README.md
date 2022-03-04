@@ -578,11 +578,135 @@ socketChannel.getOption(StandardSocketOptions.SO_KEEPALIVE); socketChannel.getOp
 
 ##### DatagramChannel
 
+正如 `SocketChannel` 对应 `Socket`，`ServerSocketChannel` 对应 `ServerSocket`，每 一个 `DatagramChannel` 对象也有一个关联的 `DatagramSocket` 对象。正如 `SocketChannel` 模拟连接导向的流协议（如 TCP/IP），`DatagramChannel` 则模拟包 导向的无连接协议（如 UDP/IP）。`DatagramChannel` 是无连接的，每个数据报 （datagram）都是一个自包含的实体，拥有它自己的目的地址及不依赖其他数据报的 数据负载。与面向流的的 socket 不同，`DatagramChannel` 可以发送单独的数据报给 不同的目的地址。同样，`DatagramChannel` 对象也可以接收来自任意地址的数据 包。每个到达的数据报都含有关于它来自何处的信息（源地址）
+
+**1、打开 DatagramChannel**
+
+```java
+DatagramChannel server = DatagramChannel.open();
+server.socket().bind(new InetSocketAddress(10086));
+```
+
+此例子是打开 10086 端口接收 UDP 数据包
+
+**2、接收数据**
+
+```java
+ByteBuffer buffer = ByteBuffer.allocate(64);
+buffer.clear();
+SocketAddress receiveAddress = server.receive(buffer);
+```
+
+SocketAddress 可以获得发包的 ip、端口等信息，用 toString 查看，格式如下 /127.0.0.1:57126
+
+**3、发送数据**
+
+通过 send()发送 UDP 包
+
+```java
+DatagramChannel server = DatagramChannel.open();
+ByteBuffer buffer = ByteBuffer.wrap("client send".getBytes(StandardCharsets.UTF_8));
+server.send(buffer, new InetSocketAddress("127.0.0.1", 10086));
+```
+
+**4、连接**
+
+UDP 不存在真正意义上的连接，这里的连接是向特定服务地址用 read 和 write 接收 发送数据包。
+
+```java
+client.connect(new InetSocketAddress("127.0.0.1",10086));
+int readSize= client.read(sendBuffer);
+server.write(sendBuffer);
+```
+
+read()和 write()只有在 connect()后才能使用，不然会抛 NotYetConnectedException 异常。用 read()接收时，如果没有接收到包，会抛 PortUnreachableException 异常。
+
+**5、DatagramChannel 示例**
+
+```java
+new Thread(() -> {
+    try {
+        DatagramChannel server = DatagramChannel.open();
+        server.bind(new InetSocketAddress(9999));
+        ByteBuffer buffer = ByteBuffer.allocate(512);
+        while (true) {
+            buffer.clear();
+            SocketAddress receiveAddress = server.receive(buffer);
+            buffer.flip();
+            System.out.println(receiveAddress.toString() + " ");
+            System.out.println(Thread.currentThread().getName() + ": " + StandardCharsets.UTF_8.decode(buffer));
+            server.send(ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)), receiveAddress);
+            TimeUnit.SECONDS.sleep(1);
+        }
+
+    } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+    }
+
+}, "server-thread").start();
+
+new Thread(() -> {
+
+    try {
+        DatagramChannel client = DatagramChannel.open();
+        client.bind(new InetSocketAddress(9998));
+        client.connect(new InetSocketAddress("127.0.0.1", 9999));
+        client.write(ByteBuffer.wrap("客户端发送数据".getBytes(StandardCharsets.UTF_8)));
+        ByteBuffer buffer = ByteBuffer.allocate(512);
+        while (true) {
+            buffer.clear();
+            client.read(buffer);
+            buffer.flip();
+            System.out.println(Thread.currentThread().getName() + ": " + StandardCharsets.UTF_8.decode(buffer));
+            client.write(ByteBuffer.wrap(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+        }
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}, "client-thread").start();
+```
+
+
+
 #### Scatter/Gather
+
+`Java NIO` 开始支持 `scatter/gather`，`scatter/gather` 用于描述从 `Channel` 中读取或 者写入到 `Channel` 的操作。 
+
+分散（`scatter`）从 `Channel` 中读取是指在读操作时将读取的数据写入多个 `buffer` 中。因此，`Channel` 将从 `Channel` 中读取的数据“分散（`scatter`）”到多个 `Buffer` 中。 
+
+聚集（`gather`）写入 `Channel` 是指在写操作时将多个 `buffer` 的数据写入同一个 `Channel`，因此，`Channel` 将多个 `Buffer` 中的数据“聚集（`gather`）”后发送到 `Channel`。 
+
+`scatter / gather` 经常用于需要将传输的数据分开处理的场合，例如传输一个由消息头 和消息体组成的消息，你可能会将消息体和消息头分散到不同的 `buffer` 中，这样你可 以方便的处理消息头和消息体。
 
 ##### Scattering Reads
 
-##### Scattering Writes
+Scattering Reads 是指数据从一个 channel 读取到多个 buffer 中。如下图描述：
+
+![image-20220304151158870](https://gitee.com/JKcoding/imgs/raw/master/img01/image-20220304151158870.png)
+
+```java
+ByteBuffer header = ByteBuffer.allocate(128);
+ByteBuffer body = ByteBuffer.allocate(1024);
+ByteBuffer[] bufferArray = { header, body };
+channel.read(bufferArray);
+```
+
+注意 `buffer` 首先被插入到数组，然后再将数组作为 `channel.read()` 的输入参数。 `read()`方法按照 `buffer` 在数组中的顺序将从 `channel` 中读取的数据写入到 `buffer`，当 一个 `buffer` 被写满后，`channel` 紧接着向另一个 `buffer` 中写。 `Scattering Reads` 在移动下一个 `buffer` 前，必须填满当前的 `buffer`，这也意味着它 不适用于动态消息(注：消息大小不固定)。换句话说，如果存在消息头和消息体， 消息头必须完成填充（例如 128byte），Scattering Reads 才能正常工作。
+
+##### Gathering Writes
+
+`Gathering Writes` 是指数据从多个 `buffer` 写入到同一个 `channel`。如下图描述：
+
+```java 
+ByteBuffer header = ByteBuffer.allocate(128);
+ByteBuffer body = ByteBuffer.allocate(1024);
+//write data into buffers
+ByteBuffer[] bufferArray = { header, body };
+channel.write(bufferArray);
+```
+
+`buffers` 数组是 `write()`方法的入参，`write()`方法会按照 `buffer` 在数组中的顺序，将数据写入到 `channel`，注意只有 `position` 和 `limit` 之间的数据才会被写入。因此，如果 一个 `buffer` 的容量为 128byte，但是仅仅包含 58byte 的数据，那么这 58byte 的数 据将被写入到 `channel` 中。因此与 `Scattering` `Reads` 相反，`Gathering Writes` 能较 好的处理动态消息。
 
 
 
