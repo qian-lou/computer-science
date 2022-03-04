@@ -1991,3 +1991,58 @@ public static int dpWays(int num) {
 }
 ```
 
+
+
+## 二叉树每个结点都有一个int型权值，给定一棵二叉树，要求计算出从根结点到叶结点的所有路径中，权值和最大的值为多少。
+
+解法一：
+
+```java
+public static int maxSum = Integer.MIN_VALUE;
+
+public static int maxPath(Node head) {
+    if (head == null) {
+        return 0;
+    }
+    process(head, 0);
+    return maxSum;
+}
+
+public static void process(Node x, int pre) {
+    if (x.left == null && x.right == null) {
+        maxSum = Math.max(maxSum, pre + x.value);
+        return;
+    }
+    if (x.left != null) {
+        process(x.left, pre + x.value);
+    }
+    if (x.right != null) {
+        process(x.right, pre + x.value);
+    }
+}
+```
+
+解法二：
+
+```java
+public static int maxPath2(Node head) {
+    if (head == null) {
+        return 0;
+    }
+    return process2(head);
+}
+
+public static int process2(Node x) {
+    if (x.left == null && x.right == null) {
+        return x.value;
+    }
+    int next = Integer.MIN_VALUE;
+    if (x.left != null) {
+        next = process2(x.left);
+    }
+    if (x.right != null) {
+        next = Math.max(next, process2(x.right));
+    }
+    return x.value + next;
+}
+```
