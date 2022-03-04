@@ -2046,3 +2046,25 @@ public static int process2(Node x) {
     return x.value + next;
 }
 ```
+
+
+
+## 给定一个元素为非负整数的二维数组matrix，每行和每列都是从小到大有序的。 再给定一个非负整数aim，请判断aim是否在matrix中。
+
+```java
+public static boolean isContains(int[][] matrix, int k) {
+    int row = 0;
+    int col = matrix[0].length - 1;
+    while (row < matrix.length && col > -1) {
+        if (matrix[row][col] == k) {
+            return true;
+        }
+        if (matrix[row][col] > k) {
+            col--;
+        } else {
+            row++;
+        }
+    }
+    return false;
+}
+```
