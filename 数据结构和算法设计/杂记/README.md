@@ -1860,3 +1860,65 @@ public static double avg(double sum, int size) {
     return sum / (double) (size);
 }
 ```
+
+
+
+## 括号问题
+
+一个合法的括号匹配序列有以下定义:
+
+①空串""是一个合法的括号匹配序列
+
+②如果"X"和"Y"都是合法的括号匹配序列,"XY"也是一个合法的括号匹配序列
+
+③如果"X"是一个合法的括号匹配序列,那么"(X)"也是一个合法的括号匹配序列
+
+④每个合法的括号序列都可以由以上规则生成。
+
+例如:"","()","()()","((()))"都是合法的括号序列对于一个合法的括号序列我们又有以下定义它的深度:
+
+①空串""的深度是0
+
+②如果字符串"X"的深度是x,字符串"Y"的深度是y,那么字符串"XY"的深度为max(x,y)
+
+3、如果"X"的深度是x,那么字符串"(X)"的深度是x+1例如:"()()()"的深度是1,"((()))"的深度是3。牛牛现在给你一个合法的括号序列,需要你计算出其深度。
+
+```java
+public static int deep(String s) {
+    char[] str = s.toCharArray();
+    int count = 0;
+    int max = 0;
+    for (char c : str) {
+        if (c == '(') {
+            max = Math.max(max, ++count);
+        } else {
+            count--;
+        }
+    }
+    return max;
+}
+```
+
+进阶：字符串只含有"(" ")" 合法匹配的最大长度
+
+```java
+public static int maxLength(String s) {
+    if (s == null || s.length() == 0) {
+        return 0;
+    }
+    char[] str = s.toCharArray();
+    int[] dp = new int[str.length];
+    int pre = 0;
+    int res = 0;
+    for (int i = 1; i < str.length; i++) {
+        if (str[i] == ')') {
+            pre = i - dp[i - 1] - 1;
+            if (pre >= 0 && str[pre] == '(') {
+                dp[i] = dp[i - 1] + 2 + (pre > 0 ? dp[pre - 1] : 0);
+            }
+        }
+        res = Math.max(res, dp[i]);
+    }
+    return res;
+}
+```
