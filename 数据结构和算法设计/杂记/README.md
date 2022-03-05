@@ -2215,3 +2215,45 @@ public static void  rotate(int[][] matrix) {
 }
 ```
 
+
+
+## 用zigzag的方式打印矩阵，比如如下的矩阵 
+
+0 1 2 3 
+
+4 5 6 7 
+
+8 9 10 11 
+
+打印顺序为：0 1 4 8 5 2 3 6 9 10 7 11
+
+```java
+public static void printMatrixZigZag(int[][] matrix) {
+    int x1 = 0, y1 = 0;
+    int x2 = 0, y2 = 0;
+    int ex = matrix.length - 1, ey = matrix[0].length - 1;
+    boolean fromUp = false;
+    while (x1 != ex + 1) {
+        printLevel(matrix, x1, y1, x2, y2, fromUp);
+        x1 = y1 == ey ? x1 + 1 : x1;
+        y1 = y1 == ey ? y1 : y1 + 1;
+        y2 = x2 == ex ? y2 + 1 : y2;
+        x2 = x2 == ex ? x2 : x2 + 1;
+        fromUp = !fromUp;
+    }
+}
+public static void printLevel(int[][] m, int x1, int y1, int x2, int y2, boolean fromUp) {
+    if (fromUp) {
+        //右上往左下打印
+        while (x1 != x2 + 1) {
+            System.out.print(m[x1++][y1--] + " ");
+        }
+    } else {
+         //左下往右上打印
+        while (x2 != x1 - 1) {
+            System.out.print(m[x2--][y2++] + " ");
+        }
+    }
+}
+```
+
