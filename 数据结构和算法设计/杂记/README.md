@@ -2112,3 +2112,57 @@ public static int minOps(int[] arr) {
     return ans;
 }
 ```
+
+
+
+
+
+## 用螺旋的方式打印矩阵，比如如下的矩阵 
+
+```
+0 1 2 3 
+
+4 5 6 7 
+
+8 9 10 11 
+```
+
+打印顺序为：0 1 2 3 7 11 10 9 8 4 5 6
+
+```java
+public static void spiralOrderPrint(int[][] matrix) {
+    int x1 = 0, y1 = 0;
+    int x2 = matrix.length - 1, y2 = matrix[0].length - 1;
+    while (x1 <= x2 && y1 <= y2) {
+        printEdge(matrix, x1++, y1++, x2--, y2--);
+    }
+}
+
+public static void printEdge(int[][] m, int x1, int y1, int x2, int y2) {
+    if (x1 == x2) {
+        for (int i = y1; i <= y2; i++) {
+            System.out.print(m[x1][i] + " ");
+        }
+    } else if (y1 == y2) {
+        for (int i = x1; i <= x2; i++) {
+            System.out.print(m[i][y1] + " ");
+        }
+    } else {
+        int x = x1;
+        int y = y1;
+        while (y != y2) {
+            System.out.print(m[x][y++] + " ");
+        }
+        while (x != x2) {
+            System.out.print(m[x++][y] + " ");
+        }
+        while (y != y1) {
+            System.out.print(m[x][y--] + " ");
+        }
+        while (x != x1) {
+            System.out.print(m[x--][y] + " ");
+        }
+    }
+}
+```
+
