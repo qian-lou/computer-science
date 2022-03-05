@@ -2166,3 +2166,52 @@ public static void printEdge(int[][] m, int x1, int y1, int x2, int y2) {
 }
 ```
 
+
+
+
+
+给定一个正方形矩阵，只用有限几个变量，实现矩阵中每个位置的数顺时针转动90度，比如如下的矩阵 
+
+```
+0 1 2 3 
+
+4 5 6 7 
+
+8 9 10 11 
+
+12 13 14 15 
+```
+
+矩阵应该被调整为： 
+
+```
+12 8 4 0 
+
+13 9 5 1 
+
+14 10 6 2 
+
+15 11 7 3
+```
+
+```java
+public static void rotateEdge(int[][] m, int x1, int y1, int x2, int y2) {
+    int temp = 0;
+    for (int i = 0; i < x2 - x1; i++) {
+        temp = m[x1][y1 + i];
+        m[x1][y1 + i] = m[x2 - i][y1];
+        m[x2 - i][y1] = m[x2][y2 - i];
+        m[x2][y2 - i] = m[x1 + i][y2];
+        m[x1 + i][y2] = temp;
+    }
+}
+
+public static void  rotate(int[][] matrix) {
+    int x1 = 0, y1 = 0;
+    int x2 = matrix.length - 1, y2 = matrix[0].length - 1;
+    while (x1 <= x2 && y1 <= y2) {
+        rotateEdge(matrix, x1++, y1++, x2--, y2--);
+    }
+}
+```
+
