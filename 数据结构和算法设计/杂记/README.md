@@ -2317,3 +2317,46 @@ public static int minOps(int n) {
 	return divSumAndCount[0] - divSumAndCount[1];
 }
 ```
+
+
+
+## 给定一个字符串类型的数组arr，求其中出现次数最多的前K个
+
+```java
+public static class Node {
+    public String str;
+    public int times;
+
+    public Node(String str, int times) {
+        this.str = str;
+        this.times = times;
+    }
+}
+
+
+public static void printTopKAndRank(String[] arr, int topK) {
+    if (arr == null || arr.length == 0 || topK < 1) {
+        return;
+    }
+    HashMap<String, Integer> map = new HashMap<>();
+    for (String str : arr) {
+        map.put(str, map.getOrDefault(str, 0) + 1);
+    }
+    topK = Math.min(arr.length, topK);
+    PriorityQueue<Node> heap = new PriorityQueue<>((o1, o2) -> o2.times - o1.times);
+    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+        Node cur = new Node(entry.getKey(), entry.getValue());
+        if (heap.size() < topK) {
+            heap.add(cur);
+        } else {
+            if (heap.peek().times < cur.times) {
+                heap.poll();
+            }
+        }
+    }
+    while (!heap.isEmpty()) {
+        System.out.println(heap.poll().str);
+    }
+}
+```
+
