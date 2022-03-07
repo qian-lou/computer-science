@@ -2404,3 +2404,98 @@ public static class MyStack1 {
     }
 }
 ```
+
+
+
+## 如何仅用队列结构实现栈结构? 
+
+```java 
+public static class TwoQueuesStack {
+    
+    private Queue<Integer> queue;
+    
+    private Queue<Integer> help;
+
+    public TwoQueuesStack() {
+        this.queue = new LinkedList<>();
+        this.help = new LinkedList<>();
+    }
+
+    public void push(int val) {
+        queue.add(val);
+    }
+
+    public int pop() {
+        if (queue.isEmpty()) {
+            throw new RuntimeException("Stack is empty.");
+        }
+        while (queue.size() > 1) {
+            help.add(queue.poll());
+        }
+        int res = queue.poll();
+        swap();
+        return res;
+    }
+
+    public int peek() {
+        if (queue.isEmpty()) {
+            throw new RuntimeException("Stack is empty.");
+        }
+        while (queue.size() > 1) {
+            help.add(queue.poll());
+        }
+        int res = queue.poll();
+        help.add(res);
+        swap();
+        return res;
+    }
+
+    public void swap() {
+        Queue<Integer> tmp = help;
+        help = queue;
+        queue = tmp;
+    }
+}
+```
+
+## 如何仅用栈结构实现队列结构?
+
+```java 
+public static class TwoStacksQueue {
+    
+    private Stack<Integer> stackPush;
+    private Stack<Integer> stackPop;
+    public TwoStacksQueue() {
+        stackPush = new Stack<>();
+        stackPop = new Stack<>();
+    }
+
+    public void push(int val) {
+        stackPush.push(val);
+    }
+
+    public int poll() {
+        if (stackPop.isEmpty() && stackPush.isEmpty()) {
+            throw new RuntimeException("Queue is empty.");
+        }
+        if (stackPop.empty()) {
+            while (!stackPush.isEmpty()) {
+                stackPop.push(stackPush.pop());
+            }
+        }
+        return stackPop.pop();
+    }
+    
+    public int peek() {
+        if (stackPop.isEmpty() && stackPush.isEmpty()) {
+            throw new RuntimeException("Queue is empty.");
+        }
+        if (stackPop.empty()) {
+            while (!stackPush.isEmpty()) {
+                stackPop.push(stackPush.pop());
+            }
+        }
+        return stackPop.peek();
+    }
+}
+```
