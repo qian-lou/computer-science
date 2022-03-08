@@ -2592,3 +2592,104 @@ public static int minPathSum2(int[][] m) {
         System.out.println(minPathSum2(m));
     }
 ```
+
+
+
+## 给定一个数组arr，已知其中所有的值都是非负的，将这个数组看作一个容器，请返回容器能装多少水比如，arr={3，1，2，5，2，4}，根据值画出的直方图就是容器形状，该容器可以装下5格水再比如，arr={4，5，1，3，2}，该容器可以装下2格水
+
+第i位置 的水  =  Math.max(0, Math.min(【0~i-1的最大值】, 【i + 1, N - 1】的最大值)   -   i位置的值)
+
+```java 
+public static int getWater2(int[] arr) {
+    if (arr == null || arr.length < 3) {
+        return 0;
+    }
+    int value = 0;
+    for (int i = 1; i < arr.length - 1; i++) {
+        int leftMax = 0;
+        int rightMax = 0;
+        for (int l = 0; l < i; l++) {
+            leftMax = Math.max(leftMax, arr[l]);
+        }
+        for (int r = i + 1; r < arr.length; r++) {
+            rightMax = Math.max(rightMax, arr[r]);
+        }
+        value += Math.max(0, Math.min(leftMax, rightMax) - arr[i]);
+    }
+    return value;
+}
+```
+
+使用两个辅助数组
+
+```java
+public static int getWater1(int[] arr) {
+    if (arr == null || arr.length < 3) {
+        return 0;
+    }
+    int n = arr.length - 2;
+    int[] leftMaxs = new int[n];
+    leftMaxs[0] = arr[0];
+    for (int i = 1; i < n; i++) {
+        leftMaxs[i] = Math.max(leftMaxs[i - 1], arr[i]);
+    }
+    int[] rightMaxs = new int[n];
+    rightMaxs[n - 1] = arr[n + 1];
+    for (int j = n - 2; j >= 0; j--) {
+        rightMaxs[j] = Math.max(rightMaxs[j + 1], arr[j + 2]);
+    }
+    int value = 0;
+    for (int i = 1; i <= n; i++) {
+        value += Math.max(0, Math.min(leftMaxs[i - 1], rightMaxs[i - 1]) - arr[i]);
+    }
+    return value;
+}
+```
+
+使用一个辅助数组
+
+```java
+public static int getWater3(int[] arr) {
+        if (arr == null || arr.length < 3) {
+            return 0;
+        }
+        int n = arr.length - 2;
+        int[] rightMaxs = new int[n];
+        rightMaxs[n - 1] = arr[n + 1];
+        for (int i = n - 2; i >= 0; i--) {
+            rightMaxs[i] = Math.max(rightMaxs[i + 1], arr[i + 2]);
+        }
+        int leftMax = arr[0];
+        int value = 0;
+        for (int i = 1; i <= n; i++) {
+            value += Math.max(0, Math.min(leftMax, rightMaxs[i - 1]) - arr[i]);
+            leftMax = Math.max(leftMax, arr[i]);
+        }
+        return value;
+}
+```
+
+不使用辅助数组
+
+```java
+public static int getWater4(int[] arr) {
+    if (arr == null || arr.length < 3) {
+        return 0;
+    }
+    int value = 0;
+    int leftMax = arr[0];
+    int rightMax = arr[arr.length  - 1];
+    int left = 1;
+    int right = arr.length - 2;
+    while (left <= right) {
+        if (leftMax <= rightMax) {
+            value += Math.max(0, leftMax - arr[left]);
+            leftMax = Math.max(leftMax, arr[left++]);
+        } else {
+            value += Math.max(0, rightMax - arr[right]);
+            rightMax = Math.max(rightMax, arr[right--]);
+        }
+    }
+    return value;
+}
+```
