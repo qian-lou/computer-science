@@ -2693,3 +2693,65 @@ public static int getWater4(int[] arr) {
     return value;
 }
 ```
+
+
+
+## 给定一个数组arr长度为N，你可以把任意长度大于0且小于N的前缀作为左部分，剩下的作为右部分。但是每种划分下都有左部分的最大值和右部分的最大值，请返回最大的，左部分最大值减去右部分最大值的绝对值。
+
+暴力
+
+```java
+public static int maxABS1(int[] arr) {
+    int res = Integer.MIN_VALUE;
+    int maxLeft = 0;
+    int maxRight = 0;
+    for (int i = 0; i < arr.length - 1; i++) {
+        maxLeft = Integer.MIN_VALUE;
+        for (int j = 0; j <= i; j++) {
+            maxLeft = Math.max(maxLeft, arr[j]);
+        }
+        maxRight = Integer.MIN_VALUE;
+        for (int j = i + 1; j < arr.length; j++) {
+            maxRight = Math.max(maxRight, arr[j]);
+        }
+        res = Math.max(res, Math.abs(maxLeft - maxRight));
+    }
+    return res;
+}
+```
+
+使用辅助数组
+
+```java
+public static int maxABS2(int[] arr) {
+    int N = arr.length;
+    int[] leftMaxs = new int[N];
+    int[] rightMaxs = new int[N];
+    leftMaxs[0] = arr[0];
+    rightMaxs[N - 1] = arr[N - 1];
+    for (int i = 1; i < N; i++) {
+        leftMaxs[i] = Math.max(leftMaxs[i - 1], arr[i]);
+    }
+    for (int i = N - 2; i >= 0; i--) {
+        rightMaxs[i] = Math.max(rightMaxs[i + 1], arr[i]);
+    }
+    int res = 0;
+    for (int i = 0; i < N - 1; i++) {
+        res = Math.max(res, Math.abs(leftMaxs[i] - rightMaxs[i + 1]));
+    }
+    return res;
+}
+```
+
+优化
+
+```java
+public static int maxABS3(int[] arr) {
+    int max = Integer.MIN_VALUE;
+    for (int i = 0; i < arr.length; i++) {
+        max = Math.max(max, arr[i]);
+    }
+    return max - Math.min(arr[0], arr[arr.length - 1]);
+}
+```
+
