@@ -2755,3 +2755,54 @@ public static int maxABS3(int[] arr) {
 }
 ```
 
+
+
+## 如果一个字符串为str，把字符串str前面任意的部分挪到后面形成的字符串叫作str的旋转词。比如str="12345"，str的旋转词有"12345"、"23451"、"34512"、"45123"和"51234"。给定两个字符串a和b，请判断a和b是否互为旋转词。比如：a="cdab"，b="abcd"，返回true。a="1ab2"，b="ab12"，返回false。a="2ab1"，b="ab12"，返回true。
+
+```java
+public static boolean isRotation(String a, String b) {
+    if (a == null || b == null || a.length() != b.length()) {
+        return false;
+    }
+    String a2 = a + a;
+    return getIndexOf(a2, b) != -1;
+}
+//KMP
+public static int getIndexOf(String s, String m) {
+    if (s.length() < m.length()) {
+        return -1;
+    }
+    int[] next = getNextArray(m);
+    int si = 0, mi = 0;
+    while (si < s.length() && mi < m.length()) {
+        if (s.charAt(si) == m.charAt(mi)) {
+            si++;
+            mi++;
+        } else if (next[mi] == -1) {
+            si++;
+        } else {
+            mi = next[mi];
+        }
+    }
+    return mi == m.length() ? si - mi : -1;
+}
+public static int[] getNextArray(String m) {
+    char[] ms = m.toCharArray();
+    int[] next = new int[ms.length];
+    next[0] = -1;
+    next[1] = 0;
+    int cn = 0;
+    int pos = 2;
+    while (pos < ms.length) {
+        if (ms[pos - 1] == ms[cn]) {
+            next[pos++] = ++cn;
+        } else if (cn > 0) {
+            cn = next[cn];
+        } else {
+            next[pos++] = 0;
+        }
+    }
+    return next;
+}
+```
+
