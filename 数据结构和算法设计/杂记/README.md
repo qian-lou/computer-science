@@ -2806,3 +2806,43 @@ public static int[] getNextArray(String m) {
 }
 ```
 
+
+
+
+
+## 给定一个数组arr，如果通过调整可以做到arr中任意两个相邻的数字相乘是4的倍数，返回true；如果不能返回false
+
+```java
+public static boolean nearMultiple4Times(int[] arr) {
+    	if (arr == null || arr.length == 0) {
+            return false;
+        }
+        //是4的倍数的数有多少个
+        int fourTimes = 0;
+        // 是偶数但不是4的倍数的数有多少个
+        int twoTimes = 0;
+        // 奇数有多少个
+        int odd = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if ((arr[i] & 1) != 0) {
+                odd++;
+                continue;
+            }
+            if (arr[i] % 4 == 0) {
+                fourTimes++;
+                continue;
+            }
+            twoTimes++;
+        }
+        //只有奇数和4的倍数
+        if (twoTimes == 0) {
+            return fourTimes + 1 >= odd;
+        }
+        //没有奇数 没有4的倍数的时候 2的倍数只有大于1个
+        if (odd == 0 && fourTimes == 0) {
+            return twoTimes > 1;
+        }
+        return fourTimes >= odd;
+    }
+```
+
