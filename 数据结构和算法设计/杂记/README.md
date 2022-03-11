@@ -2808,46 +2808,41 @@ public static int[] getNextArray(String m) {
 
 
 
-## logN级别求斐波那契数列
 
-```java 
-public static int fibonacci(int n) {
-    if (n < 1) {
-        return 0;
-    }
-    if (n == 1 || n == 2) {
-        return 1;
-    }
-    int[][] base = {{1, 1},{1, 0}};
-    int[][] res = matrixPower(base, n - 2);
-    return res[0][0] + res[1][0];
-}
-private static int[][] matrixPower(int[][] base, int n) {
-    int[][] res = new int[base.length][base[0].length];
-    for (int i = 0; i < res.length; i++) {
-        res[i][i] = 1;
-    }
-    int[][] tmp = base;
-    while (n != 0) {
-        if ((n & 1) != 0) {
-            res = multiMatrix(res, tmp);
+
+## 给定一个数组arr，如果通过调整可以做到arr中任意两个相邻的数字相乘是4的倍数，返回true；如果不能返回false
+
+```java
+public static boolean nearMultiple4Times(int[] arr) {
+    	if (arr == null || arr.length == 0) {
+            return false;
         }
-        tmp = multiMatrix(tmp, tmp);
-        n >>= 1;
-    }
-    return res;
-}
-//矩阵乘法
-private static int[][] multiMatrix(int[][] m1, int[][] m2) {
-    int[][] res = new int[m1.length][m2[0].length];
-    for (int i = 0; i < m1.length; i++) {
-        for (int j = 0; j < m2[0].length; j++) {
-            for (int k = 0; k < m2.length; k++) {
-                res[i][j] += m1[i][k] * m2[k][j];
+        //是4的倍数的数有多少个
+        int fourTimes = 0;
+        // 是偶数但不是4的倍数的数有多少个
+        int twoTimes = 0;
+        // 奇数有多少个
+        int odd = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if ((arr[i] & 1) != 0) {
+                odd++;
+                continue;
             }
+            if (arr[i] % 4 == 0) {
+                fourTimes++;
+                continue;
+            }
+            twoTimes++;
         }
+        //只有奇数和4的倍数
+        if (twoTimes == 0) {
+            return fourTimes + 1 >= odd;
+        }
+        //没有奇数 没有4的倍数的时候 2的倍数只有大于1个
+        if (odd == 0 && fourTimes == 0) {
+            return twoTimes > 1;
+        }
+        return fourTimes >= odd;
     }
-    return res;
-}
 ```
 
