@@ -227,6 +227,70 @@ public class Solution {
 
 #### **BM3** **链表中的节点每k个一组翻转**
 
+将给出的链表中的节点每 k 个一组翻转，返回翻转后的链表，如果链表中的节点数不是 k 的倍数，将最后剩下的节点保持原样
+你不能更改节点中的值，只能更改节点本身。
+
+数据范围：0≤*n*≤2000 ，1≤*k*≤2000 ，链表中每个元素都满足 0≤*v**a**l*≤1000
+要求空间复杂度 *O*(1)，时间复杂度 O*(*n)
+
+例如：
+
+给定的链表是 1→2→3→4→5
+
+对于 k*=2 , 你应该返回2→1→4→3→5
+
+对于*k*=3 , 你应该返回3→2→1→4→5
+
+```java
+import java.util.*;
+
+/*
+ * public class ListNode {
+ *   int val;
+ *   ListNode next = null;
+ * }
+ */
+
+public class Solution {
+    /**
+     * 
+     * @param head ListNode类 
+     * @param k int整型 
+     * @return ListNode类
+     */
+    public ListNode reverseKGroup (ListNode head, int k) {
+        ListNode newHead = new ListNode(-1);
+        newHead.next = head;
+        ListNode pre = newHead;
+        ListNode cur = pre.next;
+        ListNode next = pre;
+        while (next != null) {
+            int count = 0;
+            while (count <= k) {
+                if (next == null) {
+                    return newHead.next;
+                }
+                next = next.next;
+                count++;
+            }
+            ListNode preHead = pre;
+            while (cur != next) {
+                ListNode tmp = cur.next;
+                cur.next = pre;
+                pre = cur;
+                cur = tmp;
+            }
+            ListNode tmp = preHead.next;
+            preHead.next.next = next;
+            preHead.next = pre;
+            pre = tmp;
+            next = pre;
+        }
+        return newHead.next;
+    }
+}
+```
+
 
 
 #### **BM4** **合并两个排序的链表**
