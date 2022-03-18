@@ -389,6 +389,107 @@ public class Solution {
 
 #### **BM5** **合并k个已排序的链表**
 
+合并 k 个升序的链表并将结果作为一个升序的链表返回其头节点。
+
+数据范围：节点总数 0≤*n*≤5000，每个节点的val满足∣*v**a**l*∣<=1000
+
+要求：时间复杂度 O*(*n**l**o**g**n*)
+
+示例1
+
+输入：
+
+```
+[{1,2,3},{4,5,6,7}]
+```
+
+返回值：
+
+```
+{1,2,3,4,5,6,7}
+```
+
+示例2
+
+输入：
+
+```
+[{1,2},{1,4,5},{6}]
+```
+
+返回值：
+
+```
+{1,1,2,4,5,6}
+```
+
+**优先队列**：
+
+```java
+ public ListNode mergeKLists(ArrayList<ListNode> lists) {
+        if (lists == null || lists.size() == 0) {
+            return null;
+        }
+        PriorityQueue<ListNode> queue = new PriorityQueue<>(lists.size(), Comparator.comparingInt(o -> o.val));
+        for (ListNode node : lists) {
+            if (node == null) continue;
+            queue.offer(node);
+        }
+        ListNode head = new ListNode(-1);
+        ListNode cur = head;
+        while (!queue.isEmpty()) {
+            ListNode node = queue.poll();
+            cur.next = node;
+            cur = cur.next;
+            if (node.next != null) {
+                node = node.next;
+                queue.offer(node);
+            }
+        }
+        return head.next;
+        
+    }
+```
+
+**归并**：
+
+```java
+public ListNode mergeKLists(ArrayList<ListNode> lists) {
+        return mergeRange(lists, 0, lists.size() - 1);
+    }
+    public ListNode mergeRange(ArrayList<ListNode> list, int left, int right) {
+        if (left == right) {
+            return list.get(left);
+        }
+        if (left > right) {
+            return null;
+        }
+        int mid = left + ((right - left) >> 1);
+        return merge(mergeRange(list, left, mid), mergeRange(list, mid + 1, right));
+    }
+
+    public ListNode merge(ListNode head1, ListNode head2) {
+        ListNode newHead = new ListNode(-1);
+        ListNode cur1 = head1;
+        ListNode cur2 = head2;
+        ListNode cur = newHead;
+        while (cur1 != null && cur2 != null) {
+            if (cur1.val <= cur2.val) {
+                cur.next = cur1;
+                cur1 = cur1.next;
+            } else {
+                cur.next = cur2;
+                cur2 = cur2.next;
+            }
+            cur = cur.next;
+        }
+        cur.next = cur1 != null ? cur1 : cur2;
+        return newHead.next;
+    }
+```
+
+
+
 #### **BM6** **判断链表中是否有环**
 
 #### **BM7** **链表中环的入口结点**
