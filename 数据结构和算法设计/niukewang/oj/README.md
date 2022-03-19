@@ -492,40 +492,38 @@ public ListNode mergeKLists(ArrayList<ListNode> lists) {
 
 #### **BM6** **判断链表中是否有环**
 
-输入两个无环的单向链表，找出它们的第一个公共结点，如果没有公共节点则返回空。（注意因为传入数据是链表，所以错误测试数据的提示是用其他方式显示的，保证传入数据是正确的）
+判断给定的链表中是否有环。如果有环则返回true，否则返回false。
 
-数据范围：n≤1000
-要求：空间复杂度 *O*(1)，时间复杂度 O*(*n)
+数据范围：链表长度 0≤*n*≤10000，链表中任意节点的值满足∣*v**a**l*∣<=100000
 
-例如，输入{1,2,3},{4,5},{6,7}时，两个无环的单向链表的结构如下图所示：
+要求：空间复杂度 *O*(1)，时间复杂度 *O*(*n*)
 
-![img](https://uploadfiles.nowcoder.com/images/20211104/423483716_1635999204882/394BB7AFD5CEA3DC64D610F62E6647A6)
+输入分为两部分，第一部分为链表，第二部分代表是否有环，然后将组成的head头结点传入到函数里面。-1代表无环，其它的数字代表有环，这些参数解释仅仅是为了方便读者自测调试。实际在编程时读入的是链表的头节点。
 
-可以看到它们的第一个公共结点的结点值为6，所以返回结点值为6的结点。
+例如输入{3,2,0,-4},1时，对应的链表结构如下图所示：
 
-输入分为是3段，第一段是第一个链表的非公共部分，第二段是第二个链表的非公共部分，第三段是第一个链表和第二个链表的公共部分。 后台会将这3个参数组装为两个链表，并将这两个链表对应的头节点传入到函数FindFirstCommonNode里面，用户得到的输入只有pHead1和pHead2。
+![img](https://uploadfiles.nowcoder.com/images/20220110/423483716_1641800950920/0710DD5D9C4D4B11A8FA0C06189F9E9C)
 
-返回传入的pHead1和pHead2的第一个公共结点，后台会打印以该节点为头节点的链表。
+可以看出环的入口结点为从头结点开始的第1个结点（注：头结点为第0个结点），所以输出true。
 
 示例1
 
 输入：
 
 ```
-{1,2,3},{4,5},{6,7}
+{3,2,0,-4},1
 ```
 
 返回值：
 
 ```
-{6,7}
+true
 ```
 
 说明：
 
 ```
-第一个参数{1,2,3}代表是第一个链表非公共部分，第二个参数{4,5}代表是第二个链表非公共部分，最后的{6,7}表示的是2个链表的公共部分
-这3个参数最后在后台会组装成为2个两个无环的单链表，且是有公共节点的          
+第一部分{3,2,0,-4}代表一个链表，第二部分的1表示，-4到位置1（注：头结点为位置0），即-4->2存在一个链接，组成传入的head为一个带环的链表，返回true           
 ```
 
 示例2
@@ -533,45 +531,64 @@ public ListNode mergeKLists(ArrayList<ListNode> lists) {
 输入：
 
 ```
-{1},{2,3},{}
+{1},-1
 ```
 
 返回值：
 
 ```
-{}
+false
 ```
 
 说明：
 
 ```
-2个链表没有公共节点 ,返回null，后台打印{}       
+第一部分{1}代表一个链表，-1代表无环，组成传入head为一个无环的单链表，返回false           
+```
+
+示例3
+
+输入：
+
+```
+{-1,-7,7,-4,19,6,-9,-5,-2,-5},6
+```
+
+返回值：
+
+```
+true
 ```
 
 **双指针**
 
 ```java
-/*
-public class ListNode {
-    int val;
-    ListNode next = null;
- 
-    ListNode(int val) {
-        this.val = val;
-    }
-}*/
+/**
+ * Definition for singly-linked list.
+ * class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
 public class Solution {
-    public ListNode FindFirstCommonNode(ListNode pHead1, ListNode pHead2) {
-        if (pHead1 == null || pHead2 == null) {
-            return null;
+    public boolean hasCycle(ListNode head) {
+        if (head == null) {
+            return false;
         }
-        ListNode cur1 = pHead1;
-        ListNode cur2 = pHead2;
-        while (cur1 != cur2) {
-            cur1 = cur1 != null ? cur1.next : pHead2;
-            cur2 = cur2 != null ? cur2.next : pHead1;
+        ListNode fast = head.next;
+        ListNode slow = head;
+        while (slow != fast) {
+            if (fast == null || fast.next == null) {
+                return false;
+            }
+            fast = fast.next.next;
+            slow = slow.next;
         }
-        return cur1;
+        return true;
     }
 }
 ```
