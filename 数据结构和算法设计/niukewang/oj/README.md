@@ -729,6 +729,125 @@ public class Solution {
 
 #### **BM13** **判断一个链表是否为回文结构**
 
+给定一个链表，请判断该链表是否为回文结构。
+
+回文是指该字符串正序逆序完全一致。
+
+数据范围： 链表节点数 0≤*n*≤105，链表中每个节点的值满足 ∣*v**a**l*∣≤10^7
+
+示例1
+
+输入：
+
+```
+{1}
+```
+
+返回值：
+
+```
+true
+```
+
+示例2
+
+输入：
+
+```
+{2,1}
+```
+
+返回值：
+
+```
+false
+```
+
+说明：
+
+```
+2->1     
+```
+
+示例3
+
+输入：
+
+```
+{1,2,2,1}
+```
+
+返回值：
+
+```
+true
+```
+
+说明：
+
+```
+1->2->2->1     
+```
+
+```java
+import java.util.*;
+
+/*
+ * public class ListNode {
+ *   int val;
+ *   ListNode next = null;
+ * }
+ */
+
+public class Solution {
+    /**
+     * 
+     * @param head ListNode类 the head
+     * @return bool布尔型
+     */
+    public boolean isPail (ListNode head) {
+        if (head == null || head.next == null) {
+            return true;
+        }
+        
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode rightHead = reverse(slow.next);
+        ListNode left = head;
+        ListNode right = rightHead;
+        ListNode end = fast == null ? slow : slow.next;
+        while (left != end) {
+            if (left.val != right.val) {
+                return false;
+            } 
+            left = left.next;
+            right = right.next;
+        }
+        return true;
+    }
+    
+    public ListNode reverse(ListNode head) {
+        ListNode pre = head;
+        ListNode cur = head;
+        while (cur != null) {
+            ListNode next = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+}
+```
+
+
+
+
+
 #### **BM14** **链表的奇偶重排**
 
 #### **BM15** **删除有序链表中重复的元素-I**
