@@ -3004,3 +3004,240 @@ public static void main(String[] args) {
 
 
 
+## 目录打印
+
+给你一个字符串类型的数组arr，譬如： 
+
+String[] arr = { "b\\cst", "d\\", "a\\d\\e", "a\\b\\c" }; 
+
+你把这些路径中蕴含的目录结构给画出来，子目录直接列在父目录下面，并比父目录 
+
+向右进两格，就像这样: 
+
+![image-20220326013638750](C:\Users\lzj\AppData\Roaming\Typora\typora-user-images\image-20220326013638750.png)
+
+同一级的需要按字母顺序排列，不能乱。
+
+```java 
+public class Code04 {
+
+
+    public static void main(String[] args) {
+        String[] strs = {"a\\b\\c", "a\\d\\e"};
+        Node head = generateFolderTree(strs);
+        print(head, "-");
+    }
+
+    public static class Node {
+        public String name;
+        public TreeMap<String, Node> nextMap;
+        public Node(String name) {
+            this.name = name;
+            this.nextMap = new TreeMap<String, Node>();
+        }
+    }
+
+
+
+    public static Node generateFolderTree(String[] folderPaths) {
+        Node head = new Node("");
+        for (String folderPath : folderPaths) {
+            String[] paths = folderPath.split("\\\\");
+            Node cur = head;
+            for (int i = 0; i < paths.length; i++) {
+                if (!cur.nextMap.containsKey(paths[i])) {
+                    cur.nextMap.put(paths[i], new Node(paths[i]));
+                }
+                cur = cur.nextMap.get(paths[i]);
+            }
+        }
+        return head;
+    }
+    public static void print(Node head, String space) {
+        if (head == null) {
+            return;
+        }
+        System.out.println(space + head.name);
+        for (Map.Entry<String, Node> entry : head.nextMap.entrySet()) {
+            print(entry.getValue(), space + "-");
+        }
+    }
+}
+```
+
+
+
+
+
+## 双向链表节点结构和二叉树节点结构是一样的，如果你把last认为是left， next认为是next的话。 给定一个搜索二叉树的头节点head，请转化成一条有序的双向链表，并返回链表的头节点。
+
+```java 
+public static class Node {
+    public int val;
+    public Node left;
+    public Node right;
+}
+
+public static class Info {
+    public Node start;
+    public Node end;
+
+    public Info(Node start, Node end) {
+        this.start = start;
+        this.end = end;
+    }
+}
+
+
+public static Info process(Node x) {
+    if (x == null) {
+        return new Info(null, null);
+    }
+    Info leftHeadEnd = process(x.left);
+    Info rightHeadEnd = process(x.right);
+    if (leftHeadEnd.end != null) {
+        leftHeadEnd.end.right = x;
+    }
+    x.left = leftHeadEnd.end;
+    x.right = rightHeadEnd.start;
+    if (rightHeadEnd.start != null) {
+        rightHeadEnd.start.left = x;
+    }
+    return new Info(leftHeadEnd.start != null ? leftHeadEnd.start : x,
+            rightHeadEnd.end != null ? rightHeadEnd.end : x);
+}
+```
+
+
+
+## 找到一棵二叉树中，最大的搜索二叉子树，返回最大搜索二叉子树的节点个数。
+
+```java 
+public static class Node {
+    public int val;
+    public Node left;
+    public Node right;
+}
+
+public static class Info {
+    public Node maxBSTHead;
+    public boolean isBST;
+    public int min;
+    public int max;
+    public int maxBSTSize;
+
+    public Info(Node maxBSTHead, boolean isBST, int min, int max, int maxBSTSize) {
+        this.maxBSTHead = maxBSTHead;
+        this.isBST = isBST;
+        this.min = min;
+        this.max = max;
+        this.maxBSTSize = maxBSTSize;
+    }
+}
+
+public static Info process(Node x) {
+    if (x == null) {
+        return null;
+    }
+    Info leftInfo = process(x.left);
+    Info rightInfo = process(x.right);
+    int min = x.val;
+    int max = x.val;
+    if (leftInfo != null) {
+        min = Math.min(min, leftInfo.min);
+        max = Math.max(max, leftInfo.max);
+    }
+    if (rightInfo != null) {
+        min = Math.min(min, rightInfo.min);
+        max = Math.max(max, rightInfo.max);
+    }
+    int maxBSTSize = 0;
+    Node maxBSTHead = null;
+    boolean isBST = false;
+    if (leftInfo != null) {
+        maxBSTSize = leftInfo.maxBSTSize;
+        maxBSTHead = leftInfo.maxBSTHead;
+    }
+    if (rightInfo != null && rightInfo.maxBSTSize > maxBSTSize) {
+        maxBSTSize = rightInfo.maxBSTSize;
+        maxBSTHead = rightInfo.maxBSTHead;
+    }
+    if ((leftInfo == null || leftInfo.isBST) && (rightInfo == null || rightInfo.isBST)) {
+        if ((leftInfo == null || leftInfo.max < x.val) && (rightInfo == null || rightInfo.min > x.val)) {
+            isBST = true;
+            maxBSTHead = x;
+            int leftSize = leftInfo == null ? 0 : leftInfo.maxBSTSize;
+            int rightSize = rightInfo == null ? 0 : rightInfo.maxBSTSize;
+            maxBSTSize = leftSize + 1 + rightSize;
+        }
+    }
+    return new Info(maxBSTHead, isBST, min, max, maxBSTSize);
+}
+```
+
+
+
+## 子数组的最大累加和
+
+为了保证招聘信息的质量问题，公司为每个职位设计了打分系统，打分可以为正数，也可以为负数，正数表示用户认可帖子质量，负数表示用户不认可帖子质量．打分的分数根据评价用户的等级大小不定，比如可以为 -1分，10分，30分，-10分等。假设数组A记录了一条帖子所有打分记录，现在需要找出帖子曾经得到过最高的分数是多少，用于后续根据最高分数来确认需要对发帖用户做相应的惩罚或奖励．其中，最高分的定义为： 用户所有打分记录中，连续打分数据之和的最大值即认为是帖子曾经获得的最高分。例如：帖子10001010近期的打分记录为[1,1,-1,-10,11,4,-6,9,20,-10,-2],那么该条帖子曾经到达过的最高分数为 11+4+(-6)+9+20=38。请实现一段代码，输入为帖子近期的打分记录，输出为当前帖子得到的最高分数。
+
+```java
+public static int maxSum(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int sum = 0;
+    for (int num : arr) {
+        sum += num;
+        max = Math.max(max, sum);
+        sum = Math.max(sum, 0);
+    }
+    return max;
+}
+public static int maxSum1(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int max = arr[0];
+    for (int i = 1; i < arr.length; i++) {
+        arr[i] = arr[i - 1] + arr[i];
+        max = Math.max(max, arr[i]);
+        arr[i] = Math.max(0, arr[i]);
+    }
+    return max;
+}
+```
+
+
+
+
+
+## 给定一个整型矩阵，返回子矩阵的最大累计和。
+
+压缩数组 + 子数组的最大累加和
+
+```java 
+public static int maxSum(int[][] m) {
+    if (m == null || m.length == 0 || m[0].length == 0) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int cur = 0;
+    int[] s = null;
+    for (int i = 0; i < m.length; i++) {
+        s = new int[m[0].length];
+        for (int j = i; j < m.length; j++) {
+            cur = 0;
+            for (int k = 0; k < s.length; k++) {
+                s[k] += m[j][k];
+                cur += s[k];
+                max = Math.max(max, cur);
+                cur = Math.max(cur, 0);
+            }
+        }
+    }
+    return max;
+}
+```
+
