@@ -3331,3 +3331,46 @@ public static void set(int[] pre, int[] in, int[] pos,
     set(pre, in, pos, prei + find - ini + 1, prej, find + 1, inj, posi + find - ini, posj - 1);
 }
 ```
+
+
+
+## 求完全二叉树节点的个数
+
+log(h) * log(h)
+
+```java
+static class Node {
+    Node left;
+    Node right;
+    int val;
+
+    public Node(int val) {
+        this.val = val;
+    }
+}
+
+
+public static int nodeNum(Node head) {
+    if (head == null) {
+        return 0;
+    }
+    return bs(head,1,  mostLeftLevel(head, 1));
+}
+public static int bs(Node node, int level, int h) {
+    if (level == h) {
+        return 1;
+    }
+    if (mostLeftLevel(node.right, level + 1) == h) {
+        return (1 << (h - level)) + bs(node.right, level + 1, h);
+    } else {
+        return (1 << (h - level - 1)) + bs(node.left, level + 1, h);
+    }
+}
+public static int mostLeftLevel(Node node, int level) {
+    while (node != null) {
+        level++;
+        node = node.left;
+    }
+    return level - 1;
+}
+```
