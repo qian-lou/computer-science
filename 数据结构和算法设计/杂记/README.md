@@ -3286,3 +3286,48 @@ public static int minLight(String s) {
 }
 ```
 
+
+
+
+
+## 已知一棵二叉树中没有重复节点，并且给定了这棵树的中序遍历数组和先序遍历数组，返回后序遍历数组。 
+
+比如给定： 
+
+int[] pre = { 1, 2, 4, 5, 3, 6, 7 }; 
+
+int[] in = { 4, 2, 5, 1, 6, 3, 7 }; 
+
+返回： {4,5,2,6,7,3,1}
+
+```java
+public static int[] getPostArray(int[] pre, int[] in) {
+    if (pre == null) {
+        return null;
+    }
+    int N = pre.length;
+    int[] pos = new int[N];
+    set(pre, in, pos, 0, N - 1, 0, N - 1, 0, N - 1);
+    return pos;
+}
+
+public static void set(int[] pre, int[] in, int[] pos,
+                       int prei, int prej, int ini, int inj, int posi, int posj) {
+    if (prei > prej) {
+        return;
+    }
+    if (prei == prej) {
+        pos[posi] = prei;
+        return;
+    }
+    pos[posj] = prei;
+    int find = ini;
+    for (; find <= inj; find++) {
+        if (in[find] == pre[prei]) {
+            break;
+        }
+    }
+    set(pre, in, pos, prei + 1, prei + find - ini, ini, find - 1, posi, posi + find - ini - 1);
+    set(pre, in, pos, prei + find - ini + 1, prej, find + 1, inj, posi + find - ini, posj - 1);
+}
+```
