@@ -3576,3 +3576,32 @@ public static int noRepeatMaxLen(String str) {
 }
 ```
 
+如果需要求该子串
+
+```java
+public static String noRepeatMaxSubStr(String str) {
+    if (str == null || str.equals("")) {
+        return "";
+    }
+    char[] chars = str.toCharArray();
+    int[] map = new int[256];
+    for (int i = 0; i < 256; i++) {
+        map[i] = -1;
+    }
+    int pre = -1;
+    int len = -1;
+    int end = -1;
+    int cur = 0;
+    for (int i = 0; i < chars.length; i++) {
+        pre = Math.max(pre, map[chars[i]]);
+        cur = i - pre;
+        if (cur > len) {
+            end = i;
+            len = cur;
+        }
+        map[chars[i]] = i;
+    }
+    return str.substring(end - len + 1, end + 1);
+}
+```
+
