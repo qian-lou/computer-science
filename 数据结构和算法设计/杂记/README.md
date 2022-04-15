@@ -3732,3 +3732,115 @@ public static int num2(String express, boolean desired) {
 		return desired ? t[0][t.length - 1] : f[0][f.length - 1];
 ```
 
+
+
+
+
+## 设计LRU缓存结构，该结构在构造时确定大小，假设大小为K，并有如下两个功能。 
+
+set(key,value):将记录(key,value)插入该结构。 
+
+get(key):返回key对应的value值。 
+
+【要求】 
+
+1.set和get方法的时间复杂度为O(1) 
+
+2.某个key的set或get操作一旦发生，认为这个key的记录成了最常使用的 
+
+3.当缓存的大小超过K时，移除最不经常使用的记录，即set或get最久远的 
+
+【举例】 
+
+假设缓存结构的实例是cache，大小为3，并依次发生如下行为 
+
+1.cache.set("A",1)。最常使用的记录为("A",1) 
+
+2.cache.set("B",2)。最常使用的记录为("B",2)，("A",1)变为最不常使用的 
+
+3.cache.set("C",3)。最常使用的记录为("C",2)，("A",1)还是最不常使用的 
+
+4.cache.get("A")。最常使用的记录为("A",1)，("B",2)变为最不常使用的 
+
+5.cache.set("D",4)。大小超过了3，所以移除此时最不常使用的记录("B",2)，加入记录 
+
+("D",4)，并且为最常使用的记录，然后("C",2)变为最不常使用的记录。
+
+```java
+public class LRUCache {
+
+    class Node {
+        int key;
+        int value;
+        Node prev;
+        Node next;
+
+        public Node() {
+        }
+
+        public Node(int key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    private int size;
+    private int capacity;
+    private Node head;
+    private Node tail;
+    private Map<Integer, Node> cache = new HashMap<>();
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.size = 0;
+        this.head = new Node();
+        this.tail = new Node();
+        this.head.next = tail;
+        this.tail.prev = head;
+    }
+
+    public int get(int key) {
+        Node node = cache.get(key);
+        if (node == null) {
+            return -1;
+        }
+        moveToHead(node);
+        return node.value;
+    }
+
+    private void moveToHead(Node node) {
+        removeNode(node);
+        addToHead(node);
+    }
+
+    private void addToHead(Node node) {
+        node.next = head.next;
+        head.next.prev = node;
+        node.prev = head;
+        head.next = node;
+    }
+
+    private void removeNode(Node node) {
+        node.next.prev = node.prev;
+        node.prev.next = node.next;
+    }
+
+    public void put(int key, int value) {
+        Node node = cache.get(key);
+        if (node == null) {
+            Node newNode = new Node(key, value);
+            cache.put(key, newNode);
+            addToHead(newNode);
+            size++;
+            if (size > capacity) {
+                removeNode(tail.prev);
+                size--;
+            }
+        } else {
+            node.value = value;
+            moveToHead(node);
+        }
+    }
+}
+```
+
