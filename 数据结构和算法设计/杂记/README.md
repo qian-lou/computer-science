@@ -3844,3 +3844,28 @@ public class LRUCache {
 }
 ```
 
+
+
+
+
+## 给出一组正整数，你从第一个数向最后一个数方向跳跃，每次至少跳跃1格，每个数的值表示你从这个位置可以跳跃的最大长度。计算如何以最少的跳跃次数跳到最后一个数。
+
+```java
+public static int jump(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int jump = 0;
+    int cur = 0;
+    int next = 0;
+    for (int i = 0; i < arr.length; i++) {
+        if (cur < i) {
+            jump++;
+            cur = next;
+        }
+        next = Math.max(next, i + arr[i]);
+    }
+    return jump;
+}
+```
+
