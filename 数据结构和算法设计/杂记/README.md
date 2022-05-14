@@ -3974,3 +3974,32 @@ public static boolean isCross(String str1, String str2, String aim) {
 }
 ```
 
+
+
+## 一个数的因子仅仅包括2，3，5的数称为丑数。 数字1特别对待也看作是丑数，所以从1開始的10个丑数分别为1、2、3、4、5、6、8、9、 10、12  返回第n个丑数
+
+```java
+public static int uglyNumber(int n) {
+    int[] help = new int[n];
+    help[0] = 1;
+    int i2 = 0;
+    int i3 = 0;
+    int i5 = 0;
+    int index = 1;
+    while (index < n) {
+        help[index] = Math.min(2 * help[i2], Math.min(3 * help[i3], 5 * help[i5]));
+        if (help[index] == 2 * help[i2]) {
+            i2++;
+        }
+        if (help[index] == 3 * help[i3]) {
+            i3++;
+        }
+        if (help[index] == 5 * help[i5]) {
+            i5++;
+        }
+        index++;
+    }
+    System.out.println(Arrays.toString(help));
+    return help[n - 1];
+}
+```
