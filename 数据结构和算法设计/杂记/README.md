@@ -4003,3 +4003,33 @@ public static int uglyNumber(int n) {
     return help[n - 1];
 }
 ```
+
+
+
+## 给定一个无序数组arr，如果只能对一个子数组进行排序，但是想让数组整体都 有序，求需要排序的最短子数组长度。例如:arr = [1,5,3,4,2,6,7]返回4，因为只有[5,3,4,2]需要排序
+
+```java
+public static int maxSortLen(int[] arr) {
+    if (arr == null || arr.length < 2) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int len = arr.length;
+    int right = 0;
+    for (int i = 0; i < len; i++) {
+        if (max > arr[i]) {
+            right = i;
+        }
+        max = Math.max(max, arr[i]);
+    }
+    int min = Integer.MAX_VALUE;
+    int left = 0;
+    for (int i = len - 1; i >= 0; i--) {
+        if (min < arr[i]) {
+            left = i;
+        }
+        min = Math.min(min, arr[i]);
+    }
+    return right == left ? 0 : right - left + 1;
+}
+```
