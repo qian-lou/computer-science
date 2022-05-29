@@ -4135,3 +4135,148 @@ public static int minPatches(int[] arr, int range) {
     return patches;
 }
 ```
+
+
+
+给定一个不含有1的正整数组arr，假设其中任意两个数a和b，如果a和b的最大公约数比1大，那么认为a和b之间有路相连；如果a和b的最大公约数比1大，那么a和b之间有路相连，如果是1，则没路，那么数组arr中所有的数字就可以组成一张图
+
+1、求arr中有多少个连通区域
+
+2、求arr中的最大的连通区域中有多少个数
+
+```java
+package com.qianlou.code;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Stack;
+
+public class Code02 {
+
+    public static void main(String[] args) {
+        int[] test = { 2, 3, 6, 7, 4, 12, 21, 39 };
+        System.out.println(Arrays.toString(largestComponentSize2(test)));
+    }
+
+    public static int[] largestComponentSize2(int[] arr) {
+        UnionFindSet unionFindSet = new UnionFindSet(arr.length);
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < arr.length; i++) {
+            int n = (int) Math.sqrt(arr[i]);
+            for (int j = 1; j <= n; j++) {
+                if (arr[i] % j == 0) {
+                    if (j != 1) {
+                        if (!map.containsKey(j)) {
+                            map.put(j, i);
+                        }
+                        else {
+                            unionFindSet.union(i, map.get(j));
+                        }
+                    }
+                    int other = arr[i] / j;
+                    if (other != 1) {
+                        if (!map.containsKey(other)) {
+                            map.put(other, i);
+                        }
+                        else {
+                            unionFindSet.union(i, map.get(other));
+                        }
+                    }
+                }
+            }
+        }
+        return new int[] {unionFindSet.size(), unionFindSet.maxSize()};
+    }
+}
+
+
+class UnionFindSet {
+    private int[] parent;
+    private int[] size;
+
+    public UnionFindSet(int len) {
+        parent = new int[len];
+        size = new int[len];
+        for (int i = 0; i < len; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
+    }
+
+    public int size() {
+        int count = 0;
+        for (int i = 0; i < size.length; i++) {
+            if (size[i] != 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int maxSize() {
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < size.length; i++) {
+            max = Math.max(max, size[i]);
+        }
+        return max;
+    }
+
+    public int findHead(int index) {
+        Stack<Integer> path = new Stack<>();
+        while (index != parent[index]) {
+            path.push(index);
+            index = parent[index];
+        }
+        while (!path.isEmpty()) {
+            parent[path.pop()] = index;
+        }
+        return index;
+    }
+
+    public void union(int index1, int index2) {
+        int head1 = findHead(index1);
+        int head2 = findHead(index2);
+        if (head1 != head2) {
+            int big = size[head1] >= size[head2] ? head1 : head2;
+            int small = big == head2 ? head1 : head2;
+            parent[small] = big;
+            size[big] += size[small];
+            size[small] = 0;
+        }
+    }
+
+}
+```
+
+
+
+# 先给出可整合数组的定义:如果一个数组在排序之后，每相邻两个数差的绝对值 都为 1， 则该数组为可整合数组。例如，[5,3,4,6,2]排序之后为[2,3,4,5,6]， 符合每相邻两个数差的绝对值 都为 1，所以这个数组为可整合数组。 给定一个整型数组 arr，请返回其中最大可整合子数组的长度。例如， [5,5,3,2,6,4,3]的最大 可整合子数组为[5,3,2,6,4]，所以返回 5。
+
+```java
+public static int getLIT(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int min = 0;
+    int max = 0;
+    int ans = 0;
+    HashSet<Integer> set = new HashSet<>();
+    for (int i = 0; i < arr.length; i++) {
+        min = Integer.MAX_VALUE;
+        max = Integer.MIN_VALUE;
+        for (int j = i; j < arr.length; j++) {
+            if (set.contains(arr[j])) {
+                break;
+            }
+            set.add(arr[j]);
+            max = Math.max(max, arr[j]);
+            min = Math.min(min, arr[j]);
+            if (max - min == j - i) {
+                ans = Math.max(ans, j - i + 1);
+            }
+        }
+        set.clear();
+    }
+    return ans;
+}
+```
