@@ -4280,3 +4280,45 @@ public static int getLIT(int[] arr) {
     return ans;
 }
 ```
+
+
+
+
+
+# 一个矩阵可以由左上角点的坐标和右下角点的坐标代表。给定一些矩阵，请返回这些矩阵全拼在一起，能否拼出完美的矩形?完美的矩形指，内部没有重叠、没有突出和凹陷、所有矩形正好拼成一块。
+
+```java
+public boolean isRectangleCover(int[][] rectangles) {
+    if (rectangles == null || rectangles.length == 0) {
+        return false;
+    }
+    int x1 = Integer.MAX_VALUE;
+    int x2 = Integer.MIN_VALUE;
+    int y1 = Integer.MAX_VALUE;
+    int y2 = Integer.MIN_VALUE;
+    int area = 0;
+    HashSet<String> set = new HashSet<>();
+    for (int[] rects : rectangles) {
+        x1 = Math.min(rects[0], x1);
+        y1 = Math.min(rects[1], y1);
+        x2 = Math.max(rects[2], x2);
+        y2 = Math.max(rects[3], y2);
+        area += (rects[2] - rects[0]) * (rects[3] - rects[1]);
+        String s1 = rects[0] + "_" + rects[1];
+        String s2 = rects[0] + "_" + rects[3];
+        String s3 = rects[2] + "_" + rects[1];
+        String s4 = rects[2] + "_" + rects[3];
+        if (!set.add(s1)) set.remove(s1);
+        if (!set.add(s2)) set.remove(s2);
+        if (!set.add(s3)) set.remove(s3);
+        if (!set.add(s4)) set.remove(s4);
+    }
+    if (!set.contains(x1 + "_" + y1) || !set.contains(x1 + "_" + y2)
+    || !set.contains(x2 + "_" + y1) || !set.contains(x2 + "_" + y2)
+            || set.size() != 4
+    ) {
+        return false;
+    }
+    return area == (y2 - y1) * (x2 - x1);
+}
+```
