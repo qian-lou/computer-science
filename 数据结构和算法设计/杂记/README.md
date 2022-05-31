@@ -4322,3 +4322,75 @@ public boolean isRectangleCover(int[][] rectangles) {
     return area == (y2 - y1) * (x2 - x1);
 }
 ```
+
+
+
+## 一种消息接收并打印的结构设计
+
+已知一个消息流会不断地吐出整数 1~N，但不一定按照顺序吐出。如果上次打印的数为 i， 那么当 i+1 出现时，请打印 i+1 及其之后接收过的并且连续的所有数，直到 1~N 全部接收 并打印完，请设计这种接收并打印的结构。初始时默认i==0
+
+```java
+public class ReceiveAndPrintOrderLine {
+
+    public static void main(String[] args) {
+        MessageBox box = new MessageBox();
+        int[] arr = new int[] {2, 3, 1, 4, 5,  6, 8, 7, 10, 9, 15, 11, 12, 13, 14};
+        for (int num : arr) {
+            box.receive(num);
+        }
+    }
+
+    public static class Node {
+        public int num;
+        public Node next;
+
+        public Node(int num) {
+            this.num = num;
+        }
+    }
+
+    public static class MessageBox {
+        private HashMap<Integer, Node> headMap;
+        private HashMap<Integer, Node> tailMap;
+
+        private int lastPrint;
+
+        public MessageBox() {
+            this.headMap = new HashMap<>();
+            this.tailMap = new HashMap<>();
+            this.lastPrint = 1;
+        }
+
+        public void receive(int num) {
+            if (num < 1) {
+                return;
+            }
+            Node cur = new Node(num);
+            tailMap.put(num, cur);
+            headMap.put(num, cur);
+            if (tailMap.containsKey(num - 1)) {
+                tailMap.get(num - 1).next = cur;
+                tailMap.remove(num - 1);
+                headMap.remove(num);
+            }
+            if (headMap.containsKey(num + 1)) {
+                cur.next = headMap.get(num + 1);
+                headMap.remove(num + 1);
+                tailMap.remove(num);
+            }
+            if (headMap.containsKey(lastPrint)) {
+                print();
+            }
+        }
+        public void print() {
+            Node cur = headMap.get(lastPrint);
+            while (cur != null) {
+                System.out.print(cur.num + " ");
+                cur = cur.next;
+                lastPrint++;
+            }
+            tailMap.remove(lastPrint - 1);
+        }
+    }
+}
+```
