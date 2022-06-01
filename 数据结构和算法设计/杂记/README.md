@@ -4394,3 +4394,78 @@ public class ReceiveAndPrintOrderLine {
     }
 }
 ```
+
+
+
+
+
+# 给定k个有序链表的头节点，怎么把他们merge成一个有序的链表。
+
+```java
+public class Code03 {
+
+    public static class ListNode {
+        public int val;
+        public ListNode next;
+
+        public ListNode(int val) {
+            this.val = val;
+        }
+    }
+
+    public static class ListNodeComparators implements Comparator<ListNode> {
+
+        @Override
+        public int compare(ListNode o1, ListNode o2) {
+            return o1.val - o2.val;
+        }
+    }
+
+    public static ListNode mergeLists(ListNode[] lists) {
+        PriorityQueue<ListNode> queue = new PriorityQueue<>(new ListNodeComparators());
+        queue.addAll(Arrays.asList(lists));
+        ListNode newHead = new ListNode(-1);
+        ListNode cur = newHead;
+        while (!queue.isEmpty()) {
+            ListNode node = queue.poll();
+            cur.next = node;
+            if (node.next != null) {
+                queue.add(node.next);
+            }
+            cur = cur.next;
+        }
+        return newHead.next;
+    }
+    public static void print(ListNode head) {
+        ListNode cur = head;
+        while (cur != null) {
+            System.out.print(cur.val + " ");
+            cur = cur.next;
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        ListNode node1 = new ListNode(1);
+        ListNode node2 = new ListNode(2);
+        ListNode node3 = new ListNode(3);
+        ListNode node4 = new ListNode(4);
+        ListNode node5 = new ListNode(5);
+        ListNode node6 = new ListNode(6);
+        ListNode node7 = new ListNode(7);
+        ListNode node8 = new ListNode(8);
+        ListNode node9 = new ListNode(9);
+        node1.next = node4;
+        node4.next = node7;
+        node2.next = node5;
+        node5.next = node8;
+        node3.next = node6;
+        node6.next = node9;
+        print(node1);
+        print(node2);
+        print(node3);
+        print(mergeLists(new ListNode[]{node1, node2, node3}));
+    }
+}
+```
+
