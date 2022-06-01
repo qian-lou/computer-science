@@ -4469,3 +4469,57 @@ public class Code03 {
 }
 ```
 
+
+
+# 有k个有序的数组，请找到一个最小的数字范围。使得这k个有序数组中，每个数组都至少有一个数字在该范围中。
+
+```java
+public class Code04 {
+
+    public static class Node {
+        public int val;
+        public int arrNo;
+        public int index;
+
+        public Node(int val, int arrNo, int index) {
+            this.val = val;
+            this.arrNo = arrNo;
+            this.index = index;
+        }
+    }
+    public static int[] minRange(int[][] matrix) {
+        if (matrix == null || matrix.length == 0) {
+            return new int[] {};
+        }
+        TreeSet<Node> set = new TreeSet<>(Comparator.comparingInt(o -> o.val));
+        for (int arrNo = 0; arrNo < matrix.length; arrNo++) {
+            set.add(new Node(matrix[arrNo][0], arrNo, 0));
+        }
+        int begin = -1, end = -1;
+        boolean isSet = false;
+        while (true) {
+            Node minNode = set.first();
+            Node maxNode = set.last();
+            if (!isSet) {
+                begin = minNode.val;
+                end = maxNode.val;
+                isSet = true;
+            } else if (end - begin > maxNode.val - minNode.val){
+                begin = minNode.val;
+                end = maxNode.val;
+            }
+            set.pollFirst();
+            if (minNode.index == matrix[minNode.arrNo].length - 1) {
+                break;
+            }
+            set.add(new Node(matrix[minNode.arrNo][minNode.index + 1], minNode.arrNo, minNode.index + 1));
+        }
+        return new int[] {begin, end};
+    }
+
+    public static void main(String[] args) {
+        int[][] matrix = new int[][] {{4, 10, 15, 24, 26}, {0, 9, 12, 20}, {5, 18, 22, 30}};
+        System.out.println(Arrays.toString(minRange(matrix)));
+    }
+}
+```
