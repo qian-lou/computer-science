@@ -4523,3 +4523,32 @@ public class Code04 {
     }
 }
 ```
+
+
+
+
+
+# 给定一个无序整型数组 arr，找到数组中未出现的最小正整数。要求时间复杂度O(N)，额 外空间复杂度O(1)
+
+```java
+public static int missNum(int[] arr) {
+   int left = 0;
+   int right = arr.length;
+   while (left < right) {
+       if (arr[left] == left + 1) {
+           left++;
+       } else if (arr[left] <= left || arr[left] > right || arr[arr[left] - 1] == arr[left]) {
+           swap(arr, left, --right);
+       } else {
+           swap(arr, left, arr[left] - 1);
+       }
+   }
+   return left + 1;
+}
+
+public static void swap(int[] arr, int index1, int index2) {
+    int tmp = arr[index1];
+    arr[index1] = arr[index2];
+    arr[index2] = tmp;
+}
+```
