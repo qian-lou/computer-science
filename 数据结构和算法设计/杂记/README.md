@@ -4552,3 +4552,58 @@ public static void swap(int[] arr, int index1, int index2) {
     arr[index2] = tmp;
 }
 ```
+
+
+
+# 给定一个有序数组arr，和一个整数aim，请不重复打印arr中所有累加和为aim的二元组。 给定一个有序数组arr，和一个整数aim，请不重复打印arr中所有累加和为aim的三元组。
+
+```java
+public static void printUniquePair(int[] arr, int target) {
+    if (arr == null || arr.length < 2) {
+        return;
+    }
+    int left = 0, right = arr.length - 1;
+    while (left < right) {
+        if (arr[left] + arr[right] > target) {
+            right--;
+        } else if (arr[left] + arr[right] < target) {
+            left++;
+        } else {
+            if (left == 0 || arr[left] != arr[left - 1]) {
+                System.out.println("left=" + arr[left] + ", right=" + arr[right]);
+            }
+            left++;
+            right--;
+        }
+    }
+}
+```
+
+```java
+public static void printUniqueTriad(int[] arr, int target) {
+    if (arr == null || arr.length < 3) {
+        return;
+    }
+    for (int i = 0; i < arr.length - 2; i++) {
+        if (i == 0 || arr[i - 1] != arr[i]) {
+            printRest(arr, i, i + 1, arr.length - 1, target - arr[i]);
+        }
+    }
+}
+
+public static void printRest(int[] arr, int f, int left, int right, int target) {
+    while (left < right) {
+        if (arr[left] + arr[right] > target) {
+            right--;
+        } else if (arr[left] + arr[right] < target) {
+            left++;
+        } else {
+            if (left == f + 1 || arr[left] != arr[left - 1]) {
+                System.out.println("f=" + arr[f] + ", left=" + arr[left] + ", right=" + arr[right]);
+            }
+            left++;
+            right--;
+        }
+    }
+}
+```
