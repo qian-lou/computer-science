@@ -4607,3 +4607,56 @@ public static void printRest(int[] arr, int f, int left, int right, int target) 
     }
 }
 ```
+
+
+
+
+
+# 给定一个整型矩阵nums，每个位置都可以走向左、右、上、下四个方向，找到 其中最长的递增路径
+
+ 【例子】
+ nums =
+
+[ [9,9,4], [6,6,8],
+
+] [2,1,1]
+
+输出:4 最长的递增路径为:[1, 2, 6, 9] nums =
+
+[ [3,4,5], [3,2,6],
+
+] [2,2,1]
+ 输出:4 最长的递增路径为:[3, 4, 5, 6]
+
+```java
+public static int longestIncreasingPath(int[][] matrix) {
+    if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+        return 0;
+    }
+    int N = matrix.length;
+    int M = matrix[0].length;
+    int[][] cache = new int[N][M];
+    int ans = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            ans = Math.max(ans, process(matrix, i + 1, j, matrix[i][j], cache) + 1);
+            ans = Math.max(ans, process(matrix, i - 1, j, matrix[i][j], cache) + 1);
+            ans = Math.max(ans, process(matrix, i, j + 1, matrix[i][j], cache) + 1);
+            ans = Math.max(ans, process(matrix, i, j - 1, matrix[i][j], cache) + 1);
+        }
+    }
+    return ans;
+}
+public static int process(int[][] matrix, int row, int col, int lastValue, int[][] cache) {
+    if (row < 0 || row >= matrix.length || col < 0 || col >= matrix[0].length || matrix[row][col] <= lastValue) {
+        return 0;
+    }
+    if (cache[row][col] == 0) {
+        cache[row][col] = process(matrix, row - 1, col, matrix[row][col], cache) + 1;
+        cache[row][col] = Math.max(cache[row][col], process(matrix, row + 1, col, matrix[row][col], cache) + 1);
+        cache[row][col] = Math.max(cache[row][col], process(matrix, row, col - 1, matrix[row][col], cache) + 1);
+        cache[row][col] = Math.max(cache[row][col], process(matrix, row, col + 1, matrix[row][col], cache) + 1);
+    }
+    return cache[row][col];
+}
+```
