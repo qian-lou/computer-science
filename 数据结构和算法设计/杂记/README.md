@@ -4660,3 +4660,88 @@ public static int process(int[][] matrix, int row, int col, int lastValue, int[]
     return cache[row][col];
 }
 ```
+
+
+
+
+
+# 给定一个整型矩阵nums和一个整数K，找到不大于K的最大子矩阵累加和 
+
+```java
+public static int maxSumSubmatrix(int[][] matrix, int k) {
+		if (matrix == null || matrix[0] == null)
+			return 0;
+		int row = matrix.length, col = matrix[0].length, res = Integer.MIN_VALUE;
+		TreeSet<Integer> sumSet = new TreeSet<>();
+		for (int s = 0; s < row; s++) {
+			int[] colSum = new int[col];
+			for (int e = s; e < row; e++) {
+				sumSet.add(0);
+				int rowSum = 0;
+				for (int c = 0; c < col; c++) {
+					colSum[c] += matrix[e][c];
+					rowSum += colSum[c];
+					Integer it = sumSet.ceiling(rowSum - k);
+					if (it != null) {
+						res = Math.max(res, rowSum - it);
+					}
+					sumSet.add(rowSum);
+				}
+				sumSet.clear();
+			}
+		}
+		return res;
+	}
+```
+
+
+
+# 克隆图
+
+无向图节点类型如下
+
+```java
+class UndirectedGraphNode { int label;
+
+List<UndirectedGraphNode> neighbors;
+
+UndirectedGraphNode(int x) { label = x;
+
+neighbors = new ArrayList<UndirectedGraphNode>(); }
+
+} 
+```
+
+由以上的节点结构组成了一张无向图，给定一个出发点node，请你克隆整张图
+
+```java
+public static UndirectedGraphNode cloneGraph(UndirectedGraphNode node) {
+    if (node == null) {
+        return null;
+    }
+    UndirectedGraphNode head = new UndirectedGraphNode(node.label);
+    LinkedList<UndirectedGraphNode> queue = new LinkedList<>();
+    HashMap<UndirectedGraphNode, UndirectedGraphNode> map = new HashMap<>();
+    queue.add(node);
+    map.put(node, head);
+    while (!queue.isEmpty()) {
+        UndirectedGraphNode cur = queue.poll();
+        for (UndirectedGraphNode next : cur.neighbors) {
+            if (!map.containsKey(next)) {
+                UndirectedGraphNode copy = new UndirectedGraphNode(next.label);
+                map.put(next, copy);
+                queue.add(next);
+            }
+            
+        }
+    }
+    for (Map.Entry<UndirectedGraphNode, UndirectedGraphNode> entry : map.entrySet()) {
+        UndirectedGraphNode cur = entry.getKey();
+        UndirectedGraphNode copy = entry.getValue();
+        for (UndirectedGraphNode next : cur.neighbors) {
+            copy.neighbors.add(map.get(next));
+        }
+    }
+    return head;
+}
+```
