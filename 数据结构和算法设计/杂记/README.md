@@ -4745,3 +4745,116 @@ public static UndirectedGraphNode cloneGraph(UndirectedGraphNode node) {
     return head;
 }
 ```
+
+
+
+
+
+# 给定一个由字符组成的矩阵board，还有一个字符串数组words，里面有很多字符串(word)。 在board中找word是指，从board某个位置出发，每个位置都可以走向左、右、上、下四个方 向，但不能重复经过一个位置。返回在board中能找到哪些word。
+
+ 【例子】
+
+board =
+
+[ ['o','a','a','n'], ['e','t','a','e'], ['i','h','k','r'],
+
+] ['i','f','l','v']
+
+words = ["oath","pea","eat","rain"]
+ 输出: ["eat","oath"] 从第2行最右边的'e'出发，向左找到'a'，再向左找到't'，就搞定了"eat" 从第1行最左边的'o'出发，向右找到'a'，向下找到't'，再向下找到'h'，就搞定了"oath"
+
+```java
+public class Code08 {
+
+    public class TrieNode {
+        public TrieNode[] nexts;
+        public int pass;
+        public int end;
+
+        public TrieNode() {
+            nexts = new TrieNode[26];
+            pass = 0;
+            end = 0;
+        }
+    }
+
+    public String generatePath(LinkedList<Character> path) {
+        char[] str = new char[path.size()];
+        int index = 0;
+        for (Character cha : path) {
+            str[index++] = cha;
+        }
+        return String.valueOf(str);
+    }
+
+    public List<String> findWords(char[][] board, String[] words) {
+        HashSet<String> set = new HashSet<>();
+        TrieNode head = new TrieNode();
+        for (String word : words) {
+            if (!set.contains(word)) {
+                fillWord(head, word);
+                set.add(word);
+            }
+        }
+        List<String> res = new ArrayList<>();
+        LinkedList<Character> path = new LinkedList<>();
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[0].length; col++) {
+                process(board, row, col, path, head, res);
+            }
+        }
+        return res;
+    }
+
+    public int process(char[][] board, int row, int col, LinkedList<Character> path, TrieNode cur, List<String> res) {
+        char cha = board[row][col];
+        if (cha == '0') {
+            return 0;
+        }
+        int index = cha - 'a';
+        if (cur.nexts[index] == null || cur.nexts[index].pass == 0) {
+            return 0;
+        }
+        cur = cur.nexts[index];
+        path.addLast(cha);
+        int fix = 0;
+        if (cur.end > 0) {
+            res.add(generatePath(path));
+            cur.end--;
+            fix++;
+        }
+        board[row][col] = 0;
+        if (row > 0) {
+            fix += process(board, row - 1, col, path, cur, res);
+        }
+        if (row < board.length - 1) {
+            fix += process(board, row + 1, col, path, cur, res);
+        }
+        if (col > 0) {
+            fix += process(board, row, col - 1, path, cur, res);
+        }
+        if (col < board[0].length - 1) {
+            fix += process(board, row, col + 1, path, cur, res);
+        }
+        board[row][col] = cha;
+        path.pollLast();
+        cur.pass -= fix;
+        return fix;
+    }
+
+    public void fillWord(TrieNode node, String word) {
+        node.pass++;
+        char[] chs = word.toCharArray();
+        int index = 0;
+        for (int i = 0; i < chs.length; i++) {
+            index = chs[i] - 'a';
+            if (node.nexts[index] == null) {
+                node.nexts[index] = new TrieNode();
+            }
+            node = node.nexts[index];
+            node.pass++;
+        }
+        node.end++;
+    }
+}
+```
