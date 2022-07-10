@@ -4993,3 +4993,50 @@ public static int numDistinct2(String S, String T) {
     return dp[t.length];
 }
 ```
+
+
+
+
+
+# 给定一个数组，求如果排序之后，相邻两数的最大差值。要求时间复杂度O(N)，且要求不能用非基于比较的排序。
+
+```java
+public static int maxGap(int[] nums) {
+    if (nums == null || nums.length < 2) {
+        return 0;
+    }
+    int len = nums.length;
+    int min = Integer.MAX_VALUE;
+    int max = Integer.MIN_VALUE;
+    for (int num : nums) {
+        min = Math.min(min, num);
+        max = Math.max(max, num);
+    }
+    if (max == min) {
+        return 0;
+    }
+    boolean[] hasNum = new boolean[len + 1];
+    int[] maxs = new int[len + 1];
+    int[] mins = new int[len + 1];
+    int bid = 0;
+    for (int num : nums) {
+        bid = bucket(num, len, min, max);
+        mins[bid] = hasNum[bid] ? Math.min(mins[bid], num) : num;
+        maxs[bid] = hasNum[bid] ? Math.max(maxs[bid], num) : num;
+        hasNum[bid] = true;
+    }
+    int res = 0;
+    int lastMax = maxs[0];
+    for (int i = 1; i <= len; i++) {
+        if (hasNum[i]) {
+            res = Math.max(res, mins[i] - lastMax);
+            lastMax = maxs[i];
+        }
+    }
+    return res;
+}
+
+public static int bucket(long num, long len, long min, long max) {
+    return (int) ((num - min) * len / (max - min));
+}
+```
