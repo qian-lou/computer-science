@@ -5040,3 +5040,31 @@ public static int bucket(long num, long len, long min, long max) {
     return (int) ((num - min) * len / (max - min));
 }
 ```
+
+
+
+
+
+# 给出n个数字 a_1,...,a_n，问最多有多少不重叠的非空区间，使得每个区间内数字的 xor都等于0。
+
+```java
+public static int mostEOR(int[] nums) {
+    int xor = 0;
+    int N = nums.length;
+    int[] dp = new int[N];
+    HashMap<Integer, Integer> map = new HashMap<>();
+    map.put(0, -1);
+    for (int i = 0; i < N; i++) {
+        xor = xor ^ nums[i];
+        if (map.containsKey(xor)) {
+            int pre = map.get(xor);
+            dp[i] = pre == -1 ? 1 : (dp[pre] + 1);
+        }
+        if (i > 0) {
+            dp[i] = Math.max(dp[i - 1], dp[i]);
+        }
+        map.put(xor, i);
+    }
+    return dp[N - 1];
+}
+```
