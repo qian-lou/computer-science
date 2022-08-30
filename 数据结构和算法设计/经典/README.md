@@ -235,3 +235,63 @@ public static int minPaint2(String s) {
     return ans;
 }
 ```
+
+
+
+## 题目五
+
+给定一个N*N的矩阵matrix，只有0和1两种值，返回边框全是1的最大正方形的边长。
+
+```java
+public static void setBorderMap(int[][] m, int[][] right, int[][] down) {
+    int r = m.length;
+    int c = m[0].length;
+    if (m[r - 1][c - 1] == 1) {
+        right[r - 1][c - 1] = 1;
+        down[r - 1][c - 1] = 1;
+    }
+    for (int i = r - 2; i >= 0; i--) {
+        if (m[i][c - 1] == 1) {
+            right[i][c - 1] = 1;
+            down[i][c - 1] = down[i + 1][c - 1] + 1;
+        }
+    }
+    for (int j = c - 2; j >= 0; j--) {
+        if (m[r - 1][j] == 1) {
+            right[r - 1][j] = right[r - 1][j + 1] + 1;
+            down[r - 1][j] = 1;
+        }
+    }
+    for (int i = r - 2; i >= 0; i--) {
+        for (int j = c - 2; j >= 0; j--) {
+            if (m[i][j] == 1) {
+                right[i][j] = right[i][j + 1] + 1;
+                down[i][j] = down[i + 1][j] + 1;
+            }
+        }
+    }
+}
+
+
+public static int getMaxSize(int[][] m) {
+    int N = m.length;
+    int M = m[0].length;
+
+    int[][] right = new int[N][M];
+    int[][] down = new int[N][M];
+
+    setBorderMap(m, right, down);
+
+    for (int edge = Math.min(N, M); edge > 0; edge--) {
+        for (int i = 0; i < N - edge + 1; i++) {
+            for (int j = 0; j < M - edge + 1; j++) {
+                if (right[i][j] >= edge && down[i][j] >= edge
+                        && right[i + edge - 1][j] >= edge && down[i][j + edge - 1] >= edge) {
+                    return edge;
+                }
+            }
+        }
+    }
+    return 0;
+}
+```
