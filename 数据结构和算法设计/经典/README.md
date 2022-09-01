@@ -295,3 +295,28 @@ public static int getMaxSize(int[][] m) {
     return 0;
 }
 ```
+
+
+
+## 题目六
+
+给定一个正整数M，请构造出一个长度为M的数组arr， 要求对任意的i、j、k三个位置，如果i<j<k， 都有arr[] + arr[k] != 2*arr[j]返回构造出的arr
+
+```java
+public static int[] makeNo(int size) {
+    if (size == 1) {
+        return new int[] {1};
+    }
+    int halfSize = (size + 1) / 2;
+    int[] base = makeNo(halfSize);
+    int[] ans = new int[size];
+    int index = 0;
+    for (; index < halfSize; index++) {
+        ans[index] = base[index] * 2 - 1;
+    }
+    for (int i = 0; index < size; i++, index++) {
+        ans[index] = base[i] * 2;
+    }
+    return ans;
+}
+```
