@@ -320,3 +320,208 @@ public static int[] makeNo(int size) {
     return ans;
 }
 ```
+
+
+
+## 题目七
+
+给定一个二叉树的头节点head,路径的规定有以下三种不同的规定:
+
+1)路径必须是头节点出发，到叶节点为止，返回最大路径和
+
+写法一：
+
+```java
+public static class Node {
+    public Node left;
+    public Node right;
+    public int value;
+
+    public Node(int value) {
+        this.value = value;
+    }
+
+    public Node() {
+    }
+}
+
+public static int MAX_SUM;
+public static int maxPath(Node root) {
+    MAX_SUM = Integer.MIN_VALUE;
+    process1(root, 0);
+    return MAX_SUM;
+}
+public static void process1(Node root, int pre) {
+    if (root == null) {
+        return;
+    }
+    if (root.left == null && root.right ==  null) {
+        MAX_SUM = Math.max(MAX_SUM, pre + root.value);
+        return;
+    }
+    process1(root.left, pre + root.value);
+    process1(root.right, pre + root.value);
+}
+```
+
+写法二：
+
+```Java
+public static int maxPath2(Node root) {
+        if (root == null) {
+            return 0;
+        }
+        return process2(root);
+    }
+
+    public static int process2(Node root) {
+        if (root.left == null  && root.right == null) {
+            return root.value;
+        }
+        int next = Integer.MIN_VALUE;
+        if (root.left != null) {
+            next = Math.max(next, process2(root.left));
+        }
+        if (root.right != null) {
+            next = Math.max(next, process2(root.right));
+        }
+        return root.value + next;
+    }
+```
+
+2)路径可以从任何节点出发，但必须往下走到达任何节点，返回最大路径和
+
+```java
+public static class Info {
+        public int allTreeMaxSum;
+        public int fromHeadMaxSum;
+
+        public Info(int allTreeMaxSum, int fromHeadMaxSum) {
+            this.allTreeMaxSum = allTreeMaxSum;
+            this.fromHeadMaxSum = fromHeadMaxSum;
+        }
+    }
+public static int maxSum(Node root) {
+    if (root == null) {
+        return 0;
+    }
+    return process3(root).allTreeMaxSum;
+}
+
+public static Info process3(Node root) {
+    if (root == null) {
+        return null;
+    }
+    Info leftInfo = process3(root.left);
+    Info rightInfo = process3(root.right);
+    int p1 = Integer.MIN_VALUE;
+    if (leftInfo != null) {
+        p1 = leftInfo.allTreeMaxSum;
+    }
+    int p2 = Integer.MIN_VALUE;
+    if (rightInfo != null) {
+        p2 = rightInfo.allTreeMaxSum;
+    }
+    int p3 = root.value;
+    int p4 = Integer.MIN_VALUE;
+    if (leftInfo != null) {
+        p4 = root.value + leftInfo.fromHeadMaxSum;
+    }
+    int p5 = Integer.MIN_VALUE;
+    if (rightInfo != null) {
+        p5 = root.value + rightInfo.fromHeadMaxSum;
+    }
+    int allTreeMaxSum = Math.max(Math.max(Math.max(p1, p2), p3), Math.max(p4, p5));
+    int formHeadMaxSum = Math.max(Math.max(p3, p4), p5);
+    return new Info(allTreeMaxSum, formHeadMaxSum);
+}
+```
+
+
+
+3)路径可以从任何节点出发，到任何节点，返回最大路径和
+
+```java
+public static int maxSum2(Node root) {
+    if (root == null) {
+        return 0;
+    }
+    return process4(root).allTreeMaxSum;
+}
+
+public static Info process4(Node root) {
+    if (root == null) {
+        return null;
+    }
+    Info leftInfo = process3(root.left);
+    Info rightInfo = process3(root.right);
+    int p1 = Integer.MIN_VALUE;
+    if (leftInfo != null) {
+        p1 = leftInfo.allTreeMaxSum;
+    }
+    int p2 = Integer.MIN_VALUE;
+    if (rightInfo != null) {
+        p2 = rightInfo.allTreeMaxSum;
+    }
+    int p3 = root.value;
+    int p4 = Integer.MIN_VALUE;
+    if (leftInfo != null) {
+        p4 = root.value + leftInfo.fromHeadMaxSum;
+    }
+    int p5 = Integer.MIN_VALUE;
+    if (rightInfo != null) {
+        p5 = root.value + rightInfo.fromHeadMaxSum;
+    }
+    int p6 = Integer.MIN_VALUE;
+    if (leftInfo != null && rightInfo != null) {
+        p6 = root.value + leftInfo.fromHeadMaxSum + rightInfo.fromHeadMaxSum;
+    }
+    int allTreeMaxSum = Math.max(Math.max(Math.max(p1, p2), p3), Math.max(Math.max(p4, p5), p6));
+    int formHeadMaxSum = Math.max(Math.max(p3, p4), p5);
+    return new Info(allTreeMaxSum, formHeadMaxSum);
+}
+```
+
+
+
+## 题目八
+
+有个打包机器从左到右一字排开，上方有一个自动装置会抓取一批放物品到每个打包机上，放到每个机器上的这些物品数量有多有少，由于物品数量不相同，需要工人将每个机器上的物品进行移动从而到达物品数量相等才能打包。每个物品重量太大、每次只能搬一个物品进
+行移动，为了省力，只在相邻的机器上移动。请计算在搬动最小轮数的前提下，使每个机器上的物品数量相等。如果不能使每个机器上的物品相同，返回-1。例如[1,0,5]表示有3个机器，每个机器上分别有1、0、5个物品，经过这些轮后：
+第一轮：10<-5=>1 1 4
+
+第二轮：1<-1<-4=>2 1 3
+
+第三轮：21<-3=>2 2 2
+移动了3轮，每个机器上的物品相等，所以返回3
+例如[2,2,3]表示有3个机器，每个机器上分别有2、2、3个物品，这些物品不管怎么移动，都不能使三个机器上物品数量相等，返回-1
+
+```java
+public static int minOps(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int size = arr.length;
+    int sum = 0;
+    for (int i = 0; i < arr.length; i++) {
+        sum += arr[i];
+    }
+    if (sum % size != 0) {
+        return -1;
+    }
+    int avg = sum / size;
+    int leftSum = 0;
+    int ans = 0;
+    for (int i = 0; i < arr.length; i++) {
+        int leftRest = leftSum - i * avg;
+        int rightRest = (sum - leftSum - arr[i]) - (size - i - 1) * avg;
+        if (leftRest < 0 && rightRest < 0) {
+            ans = Math.max(ans, Math.abs(leftRest) + Math.abs(rightRest));
+        } else {
+            ans = Math.max(ans, Math.max(Math.abs(leftRest), Math.abs(rightRest)));
+        }
+        leftSum += arr[i];
+    }
+    return ans;
+}
+```
