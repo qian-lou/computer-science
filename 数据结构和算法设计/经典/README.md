@@ -544,3 +544,34 @@ public static int maxLeftSubRight(int[] arr) {
     return max - Math.min(arr[0], arr[arr.length - 1]);
 }
 ```
+
+
+
+## 题目十
+
+给定一个数组r,已知其中所有的值都是非负的，将这个数组看作一个容器，请返回容器能装多少水
+比如，r={3,1,2,5,2,4},根据值画出的直方图就是容器形状，该容器可以装下5格水，再比如，arr={4,5,1,3,2}, 该容器可以装下2格水
+
+```java
+public static int water(int[] arr) {
+    if (arr == null || arr.length < 2) {
+        return 0;
+    }
+    int N = arr.length;
+    int L = 1;
+    int R = N - 2;
+    int leftMax = arr[0];
+    int rightMax = arr[N - 1];
+    int water = 0;
+    while (L <= R) {
+        if (leftMax <= rightMax) {
+            water += Math.max(0, leftMax - arr[L]);
+            leftMax = Math.max(leftMax, arr[L++]);
+        } else {
+            water += Math.max(0, rightMax - arr[R]);
+            rightMax = Math.max(rightMax, arr[R]);
+        }
+    }
+    return water;
+}
+```
