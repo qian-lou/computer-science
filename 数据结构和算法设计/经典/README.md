@@ -569,7 +569,7 @@ public static int water(int[] arr) {
             leftMax = Math.max(leftMax, arr[L++]);
         } else {
             water += Math.max(0, rightMax - arr[R]);
-            rightMax = Math.max(rightMax, arr[R]);
+            rightMax = Math.max(rightMax, arr[R--]);
         }
     }
     return water;
