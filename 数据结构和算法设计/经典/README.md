@@ -525,3 +525,22 @@ public static int minOps(int[] arr) {
     return ans;
 }
 ```
+
+
+
+## 题目九
+
+给定一个数组arr长度为N,你可以把任意长度大于0且小于N的前缀作为左部分，剩下的作为右部分。但是每种划分下都有左部分的最大值和右部分的最大值，请返回最大的，左部分最大值减去右部分最大值的绝对值。
+
+```java
+public static int maxLeftSubRight(int[] arr) {
+    if (arr == null || arr.length < 2) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    for (int num : arr) {
+        max = Math.max(max, num);
+    }
+    return max - Math.min(arr[0], arr[arr.length - 1]);
+}
+```
