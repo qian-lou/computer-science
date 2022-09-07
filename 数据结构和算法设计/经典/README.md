@@ -988,3 +988,59 @@ public static String getLcs(String s1, String s2) {
     return s1.substring(end - max + 1, end + 1);
 }
 ```
+
+
+
+## 题目十七
+
+给定一个由字符串组成的数组String[] strs,给定一个正数K，返回词频最大的前K个字符串，假设结果是唯一的
+
+```java
+public static class Node {
+    public String str;
+    public int times;
+
+    public Node(String str, int times) {
+        this.str = str;
+        this.times = times;
+    }
+}
+
+public static class NodeComparator implements Comparator<Node> {
+
+    @Override
+    public int compare(Node o1, Node o2) {
+        return o1.times - o2.times;
+    }
+}
+
+public static void printTopKAndRank(String[] arr, int topK) {
+    if (arr == null || arr.length == 0 || topK < 1) {
+        return;
+    }
+    HashMap<String, Integer> map = new HashMap<>();
+    for (String str : arr) {
+        if (!map.containsKey(str)) {
+            map.put(str, 1);
+        } else {
+            map.put(str, map.get(str) + 1);
+        }
+    }
+    topK = Math.min(arr.length, topK);
+    PriorityQueue<Node> heap = new PriorityQueue<>(new NodeComparator());
+    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+        Node node = new Node(entry.getKey(), entry.getValue());
+        if (heap.size() < topK) {
+            heap.add(node);
+        } else {
+            if (heap.peek().times < node.times) {
+                heap.poll();
+                heap.add(node);
+            }
+        }
+    }
+    while (!heap.isEmpty()) {
+        System.out.println(heap.poll().str);
+    }
+}
+```
