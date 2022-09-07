@@ -946,3 +946,45 @@ public static int ways3(int[] arr, int w) {
     return ans;
 }
 ```
+
+
+
+## 题目十六
+
+最长公共字串
+
+```java
+public static String getLcs(String s1, String s2) {
+    if (s1 == null || s2 == null || s1.length() == 0 || s2.length() == 0) {
+        return "";
+    }
+    int row = 0;
+    int col = s2.length() - 1;
+    int end = 0;
+    int max = 0;
+    while (row < s1.length()) {
+        int i = row;
+        int j = col;
+        int len = 0;
+        while (i < s1.length() && j < s2.length()) {
+            if (s1.charAt(i) != s2.charAt(j)) {
+                len = 0;
+            } else {
+                len++;
+            }
+            if (len > max) {
+                max = len;
+                end = i;
+            }
+            i++;
+            j++;
+        }
+        if (col > 0) {
+            col--;
+        } else {
+            row++;
+        }
+    }
+    return s1.substring(end - max + 1, end + 1);
+}
+```
