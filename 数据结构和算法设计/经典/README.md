@@ -1044,3 +1044,130 @@ public static void printTopKAndRank(String[] arr, int topK) {
     }
 }
 ```
+
+
+
+## 题目十八 
+
+请实现如下结构：
+
+```java
+TopRecord{
+public TopRecord(intK):构造时事先指定好K的大小，构造后就固定不变了
+public void add(Strinig str)）:向该结构中加入一个字符串，可以重复加入
+public List<String> topK:返回之前加入的所有字符串中，词频最大的K个
+
+}
+```
+
+要求:
+add方法，复杂度O(logK)
+top方法，复杂度O(K)
+
+```java
+public static class Node {
+    public String str;
+    public int times;
+
+    public Node(String str, int times) {
+        this.str = str;
+        this.times = times;
+    }
+}
+
+public static class TopKRecord {
+    private Node[] heap;
+    private int heapSize;
+    private HashMap<String, Node> strNodeMap;
+    private HashMap<Node, Integer> nodeIndexMap;
+
+    public TopKRecord(int topK) {
+        heap = new Node[topK];
+        heapSize = 0;
+        strNodeMap = new HashMap<>();
+        nodeIndexMap = new HashMap<>();
+    }
+
+    public void add(String str) {
+        Node curNode = null;
+        int preIndex = -1;
+        if (!strNodeMap.containsKey(str)) {
+            curNode = new Node(str, 1);
+            strNodeMap.put(str, curNode);
+            nodeIndexMap.put(curNode, -1);
+        } else {
+            curNode = strNodeMap.get(str);
+            curNode.times++;
+            preIndex = nodeIndexMap.get(curNode);
+        }
+        if (preIndex == -1) {
+            if (heapSize == heap.length) {
+                if (heap[0].times < curNode.times) {
+                    nodeIndexMap.put(heap[0], -1);
+                    nodeIndexMap.put(curNode, 0);
+                    heap[0] = curNode;
+                    heapify(0, heapSize);
+                }
+            } else {
+                nodeIndexMap.put(curNode, heapSize);
+                heap[heapSize] = curNode;
+                heapInsert(heapSize++);
+            }
+        } else {
+            heapify(preIndex, heapSize);
+        }
+
+    }
+
+    private void heapify(int index, int heapSize) {
+        int l = index * 2 + 1;
+        int r = index * 2 + 1;
+        int smallest = index;
+        while (l < heapSize) {
+            if (heap[l].times < heap[index].times) {
+                smallest = l;
+            }
+            if (r < heapSize && heap[r].times < heap[smallest].times) {
+                smallest = r;
+            }
+            if (smallest != index) {
+                swap(smallest, index);
+            } else {
+                break;
+            }
+            index = smallest;
+            l = index * 2 + 1;
+            r = index * 2 + 2;
+        }
+    }
+
+    public void heapInsert(int index) {
+        while (index != 0) {
+            int parent = (index - 1) / 2;
+            if (heap[index].times < heap[parent].times) {
+                swap(parent, index);
+              	index = parent;
+            } else {
+                break;
+            }
+        }
+    }
+
+    public void swap(int index1, int index2) {
+        nodeIndexMap.put(heap[index1], index2);
+        nodeIndexMap.put(heap[index2], index1);
+        Node node = heap[index1];
+        heap[index1] = heap[index2];
+        heap[index2] = node;
+    }
+
+    public void printTopK() {
+        for (int i = 0; i < heap.length; i++) {
+            if (heap[i] == null) {
+                break;
+            }
+            System.out.println("str: " + heap[i].str);
+            System.out.println("times: " + heap[i].times);
+        }
+    }
+```
