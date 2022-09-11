@@ -1171,3 +1171,35 @@ public static class TopKRecord {
         }
     }
 ```
+
+
+
+## 题目十九
+
+最长公共子序列
+
+```java
+public static int lcs2(String s1, String s2) {
+    char[] str1 = s1.toCharArray();
+    char[] str2 = s2.toCharArray();
+    int N = str1.length;
+    int M = str2.length;
+    int[][] dp = new int[N][M];
+    dp[0][0] = str1[0] == str2[0] ? 1 : 0;
+    for (int i = 1; i < N; i++) {
+        dp[i][0] = str1[0] == str2[i] ? 1 : dp[i - 1][0];
+    }
+    for (int j = 1; j < M; j++) {
+        dp[0][j] = str2[0] == str1[j] ? 1 : dp[0][j - 1];
+    }
+    for (int i = 1; i < N; i++) {
+        for (int j = 1; j < M; j++) {
+            dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+            if (str1[i] == str2[j]) {
+                dp[i][j] = Math.max(dp[i][j], dp[i - 1][j - 1] + 1);
+            }
+        }
+    }
+    return dp[N - 1][M - 1];
+}
+```
