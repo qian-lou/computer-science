@@ -1203,3 +1203,66 @@ public static int lcs2(String s1, String s2) {
     return dp[N - 1][M - 1];
 }
 ```
+
+
+
+## 题目二十
+
+打印字符串, 文件结构形式，同一层按照字典序
+
+```java
+public static class Node {
+    public String path;
+    public TreeMap<String, Node> nextMap;
+    public Node(String s) {
+        this.path = s;
+        nextMap = new TreeMap<>();
+    }
+}
+
+public static void print(String[] folderPaths) {
+    if (folderPaths == null || folderPaths.length == 0) {
+        return;
+    }
+    printTree(generateFolderTree(folderPaths), 0);
+}
+
+
+
+public static Node generateFolderTree(String[]folderPaths) {
+    Node head = new Node("");
+    for (String foldPath : folderPaths) {
+        String[] paths = foldPath.split("\\\\");
+        Node cur = head;
+        for (int i = 0; i < paths.length; i++) {
+            if (!cur.nextMap.containsKey(paths[i])) {
+                cur.nextMap.put(paths[i], new Node(paths[i]));
+            }
+            cur = cur.nextMap.get(paths[i]);
+        }
+    }
+    return head;
+}
+
+public static void printTree(Node node, int level) {
+    if (level != 0) {
+        System.out.println(get4nSpace(level) + node.path);
+    }
+    for(Node next : node.nextMap.values()) {
+        printTree(next, level + 1);
+    }
+}
+
+public static String get4nSpace(int n) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 1; i < n; i++) {
+        sb.append("    ");
+    }
+    return sb.toString();
+}
+
+
+public static void main(String[] args) {
+    print(new String[] {"a\\b\\c", "b\\v\\d\\c"});
+}
+```
