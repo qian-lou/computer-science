@@ -1208,7 +1208,10 @@ public static int lcs2(String s1, String s2) {
 
 ## 题目二十
 
-打印字符串, 文件结构形式，同一层按照字典序
+给你一个字符串类型的数组arr,譬如：
+String arr ="b\st","d\","ald\e","a\b\c"}
+把这些路径中蕴含的目录结构给打印出来，子目录直接列在父目录下面，并比父目录向右进两格，
+同一级的需要按字母顺序排列不能乱。
 
 ```java
 public static class Node {
@@ -1264,5 +1267,44 @@ public static String get4nSpace(int n) {
 
 public static void main(String[] args) {
     print(new String[] {"a\\b\\c", "b\\v\\d\\c"});
+}
+```
+
+
+
+
+
+## 题目二十一
+
+已知一棵二叉树中没有重复节点，并且给定了这棵树的中序遍历数组和先序
+遍历数组，返回后序遍历数组。
+比如给定：
+in[] pre={1,2,4,5,3,6,7};
+int[] in={4,2,5,1,6,3,7}; 
+
+返回：{4,5,2,6,7,3,1}
+
+```java
+public static void process(int[] pre, int L1, int R1,
+                           int[] in, int L2, int R2,
+                           int[] pos, int L3, int R3
+                           ) {
+    if (L1 > R1) {
+        return;
+    }
+    if (L1 == R1) {
+        pos[L3] = pre[L1];
+        return;
+    }
+    pos[R3] = pre[L1];
+    int mid = L2;
+    for(; mid <= R2; mid++) {
+        if (in[mid] == pre[L1]) {
+            break;
+        }
+    }
+    int leftSize = mid - L2;
+    process(pre, L1 + 1, L1 + leftSize, in, L2, mid - 1, pos, L3, L3 + leftSize - 1);
+    process(pre, L1 + leftSize + 1, R1, in, mid + 1, R2, pos, L3 + leftSize, R3 - 1);
 }
 ```
