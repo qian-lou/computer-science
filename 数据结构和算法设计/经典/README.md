@@ -1342,3 +1342,55 @@ public static int[] f(int[] pre, int[] in) {
     return pos;
 }
 ```
+
+
+
+## 题目二十二
+
+最长递增子序列问题的O(N*logN)的解法
+
+```java
+public static int getDp1(int[] arr) {
+    int N = arr.length;
+    int[] dp = new int[N];
+    dp[0] = 1;
+    for (int i = 1; i < N; i++) {
+        for (int j = 0; j < i; j++) {
+            if (arr[j] < arr[i]) {
+                dp[i] = Math.max(dp[i], dp[j]);
+            }
+        }
+        dp[i]++;
+    }
+    return dp[N - 1];
+}
+```
+
+```java
+public static int[]  getDp2(int[] arr) {
+    int[] dp = new int[arr.length];
+    int[] ends = new int[arr.length];
+    ends[0] = arr[0];
+    dp[0] = 1;
+    int right = 0;
+    int l = 0;
+    int r = 0;
+    int m = 0;
+    for (int i = 1; i < arr.length; i++) {
+        l = 0;
+        r = right;
+        while (l <= r) {
+            m = (l + r) / 2;
+            if (arr[i] > ends[m]) {
+                l = m + 1;
+            } else {
+                r = m - 1;
+            }
+        }
+        right = Math.max(right, l);
+        ends[l] = arr[i];
+        dp[i] = l + 1;
+    }
+    return dp;
+}
+```
