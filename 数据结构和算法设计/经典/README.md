@@ -1541,3 +1541,55 @@ public static int maxSum2(int[][] m) {
     return max;
 }
 ```
+
+
+
+## 题目二十六
+
+双向链表节点结构和二叉树节点结构是一样的，如果你把last认为是left,next认为是next的话。给定一个搜索二叉树的头节点head,请转化成一条有序的双向链表，并返回链表的头节点。
+
+```java
+public static class Node {
+    public int value;
+    public Node left;
+    public Node right;
+
+    public Node(int value) {
+        this.value = value;
+    }
+}
+
+public static class Info {
+    public Node start;
+    public Node end;
+
+    public Info(Node start, Node end) {
+        this.start = start;
+        this.end = end;
+    }
+}
+
+public static Info process(Node X) {
+    if (X == null) {
+        return new Info(null, null);
+    }
+    Info leftInfo = process(X.left);
+    Info rightInfo = process(X.right);
+    if (leftInfo.end != null) {
+        leftInfo.end.right = X;
+    }
+    X.left = leftInfo.end;
+    X.right = rightInfo.start;
+    if (rightInfo.start != null) {
+        rightInfo.start.left = X;
+    }
+    return new Info(leftInfo.start != null ? leftInfo.start : X, rightInfo.end != null ? rightInfo.end : X);
+}
+
+public static Node treeToDoublyList(Node head) {
+    if (head == null) {
+        return null;
+    }
+    return process(head).start;
+}
+```
