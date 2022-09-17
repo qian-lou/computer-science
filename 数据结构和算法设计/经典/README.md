@@ -1463,3 +1463,26 @@ public static int maxEnvelopes(int[][] matrix) {
     return right + 1;
 }
 ```
+
+
+
+## 题目二十四
+
+给定一个数组arr,返回子数组的最大累加和。
+
+```java
+public static int maxSum(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int cur = 0;
+    for (int i = 0; i < arr.length; i++) {
+        cur += arr[i];
+        max = Math.max(max, cur);
+        cur = Math.max(cur, 0);
+    }
+    return max;
+}
+```
+
