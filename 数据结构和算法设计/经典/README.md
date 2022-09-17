@@ -1486,3 +1486,58 @@ public static int maxSum(int[] arr) {
 }
 ```
 
+
+
+## 题目二十五
+
+给定一个整型矩阵，返回子矩阵的最大累加和
+
+```java
+public static int maxSum(int[][] m) {
+    if (m == null || m.length == 0 || m[0].length == 0) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int[] sum = null;
+    int cur = 0;
+    for (int i = 0; i < m.length; i++) {
+        sum = new int[m[0].length];
+        for (int j = i; j < m.length; j++) {
+            cur = 0;
+            for (int k = 0; k < m[j].length; k++) {
+                sum[k] += m[j][k];
+                cur += sum[k];
+                max = Math.max(max, cur);
+                cur = Math.max(cur, 0);
+            }
+        }
+    }
+    return max;
+}
+
+
+public static int maxSum2(int[][] m) {
+    if (m == null || m.length == 0 || m[0].length == 0) {
+        return 0;
+    }
+    int max = Integer.MIN_VALUE;
+    int[] sum = null;
+    int cur = 0;
+    boolean isColMax = m.length <= m[0].length;
+    int N = isColMax ? m.length : m[0].length;
+    int M = isColMax ? m[0].length : m.length;
+    for (int i = 0; i < N; i++) {
+        sum = new int[M];
+        for (int j = i; j < N; j++) {
+            cur = 0;
+            for (int k = 0; k < M; k++) {
+                sum[k] += isColMax ? m[j][k] : m[k][j];
+                cur += sum[k];
+                max = Math.max(max, cur);
+                cur = Math.max(cur, 0);
+            }
+        }
+    }
+    return max;
+}
+```
