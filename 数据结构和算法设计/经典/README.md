@@ -1635,3 +1635,87 @@ public static int minCost1(String s1, String s2, int ic, int dc, int rc) {
     return dp[N - 1][M - 1];
 }
 ```
+
+
+
+## 题目二十八
+
+给定两个字符串s1和s2,问s2最少删除多少字符可以成为s1的子串？比如s1="abcde",s2="axbc" 返回1。s2删掉'x就是s1的子串了。
+
+```java
+public static class LenComp implements Comparator<String> {
+
+    @Override
+    public int compare(String o1, String o2) {
+        return o2.length() - o1.length();
+    }
+}
+
+// 解法一
+// 求出str2所有的子序列，然后按照长度排序，长度大的排在前面。
+// 然后考察哪个子序列字符串和s1的某个子串相等(KMP)，答案就出来了。
+// 分析：
+// 因为题目原本的样本数据中，有特别说明s2的长度很小。所以这么做也没有太大问题，也几乎不会超时。
+// 但是如果某一次考试给定的s2长度远大于s1，这么做就不合适了。
+public static int minCost1(String s1, String s2) {
+    List<String> s2Subs = new ArrayList<>();
+    process(s2.toCharArray(), 0, "", s2Subs);
+    s2Subs.sort(new LenComp());
+    for (String str : s2Subs) {
+        if (s1.contains(str)) {
+            return s2.length() - str.length();
+        }
+    }
+    return s2.length();
+}
+
+public static void process(char[] str2, int index, String path, List<String> list) {
+    if (index == str2.length) {
+        list.add(path);
+        return;
+    }
+    process(str2, index + 1, path, list);
+    process(str2, index + 1, path + str2[index], list);
+}
+
+
+// 解法二
+// 生成所有s1的子串
+// 然后考察每个子串和s2的编辑距离(假设编辑距离只有删除动作且删除一个字符的代价为1)
+// 如果s1的长度较小，s2长度较大，这个方法比较合适
+public static int minCost2(String s1, String s2) {
+    int ans = Integer.MAX_VALUE;
+    char[] str2 = s2.toCharArray();
+    for (int start = 0; start < s1.length(); start++) {
+        for (int end = start + 1; end <= s1.length(); end++) {
+            ans = Math.min(ans, distance(str2, s1.substring(start, end).toCharArray()));
+        }
+    }
+    return ans == Integer.MAX_VALUE ? s2.length() : ans;
+}
+
+private static int distance(char[] str2, char[] s1sub) {
+    int row = str2.length;
+    int col = s1sub.length;
+    int[][] dp = new int[row][col];
+    dp[0][0] = str2[0] == s1sub[0] ? 0 : Integer.MAX_VALUE;
+    for (int j = 1; j < col; j++) {
+        dp[0][j] = Integer.MAX_VALUE;
+    }
+    for (int i = 1; i < row; i++) {
+        dp[i][0] = ((dp[i - 1][0] != Integer.MAX_VALUE) || str2[i] == s1sub[0]) ? i : Integer.MAX_VALUE;
+    }
+    for (int i = 1; i < row; i++) {
+        for (int j = 1; j < col; j++) {
+            dp[i][j] = Integer.MAX_VALUE;
+            if (dp[i - 1][j] != Integer.MAX_VALUE) {
+                dp[i][j] = dp[i - 1][j] + 1;
+            }
+            if (str2[i] == s1sub[j] && dp[i - 1][j - 1] != Integer.MAX_VALUE) {
+                dp[i][j] = Math.min(dp[i][j], dp[i - 1][j - 1]);
+            }
+        }
+    }
+    return dp[row - 1][col - 1];
+}
+```
