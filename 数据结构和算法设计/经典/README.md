@@ -1719,3 +1719,203 @@ private static int distance(char[] str2, char[] s1sub) {
     return dp[row - 1][col - 1];
 }
 ```
+
+
+
+## 题目二十八
+
+求完全二叉树节点的个数  要求时间复杂度低于O(N)
+
+//递归
+
+```java
+public static class Node {
+    public TreeNode left;
+    public TreeNode right;
+}
+
+public static int nodeNum(TreeNode head) {
+    if (head == null) {
+        return 0;
+    }
+    return bs(head, 1, mostLeftLevel(head, 1));
+}
+
+private static int bs(TreeNode node, int Level, int h) {
+    if (Level == h) {
+        return 1;
+    }
+    if (mostLeftLevel(node.right, Level + 1) == h) {
+        return (1 << (h - Level)) + bs(node.right, Level + 1, h);
+    }
+    return (1 << (h - Level - 1)) + bs(node.left, Level + 1, h);
+}
+
+public static int mostLeftLevel(TreeNode node, int level) {
+    while (node != null) {
+        level++;
+        node = node.left;
+    }
+    return level - 1;
+}
+```
+
+//迭代
+
+```java
+public int countNodes(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        int level = 0;
+        TreeNode node = root;
+        while (node.left != null) {
+            level++;
+            node = node.left;
+        }
+        int low = 1 << level, high = (1 << (level + 1)) - 1;
+        while (low < high) {
+            int mid = (high - low + 1) / 2 + low;
+            if (exists(root, level, mid)) {
+                low = mid;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return low;
+    }
+
+    public boolean exists(TreeNode root, int level, int k) {
+        int bits = 1 << (level - 1);
+        TreeNode node = root;
+        while (node != null && bits > 0) {
+            if ((bits & k) == 0) {
+                node = node.left;
+            } else {
+                node = node.right;
+            }
+            bits >>= 1;
+        }
+        return node != null;
+    }
+```
+
+
+
+## 题目二十九
+
+LRU内存替换算法
+
+```java
+public static class Node<K, V> {
+    public K key;
+    public V value;
+    public Node<K, V> last;
+    public Node<K, V> next;
+
+    public Node(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+}
+
+public static class NodeDoubleLinkedList<K, V> {
+    private Node<K, V> head;
+    private Node<K, V> tail;
+
+    //往尾部添加节点
+    public void addNode(Node<K, V> newNode) {
+        if (newNode == null) {
+            return;
+        }
+        if (head == null) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail.next = newNode;
+            newNode.last = tail;
+            tail = newNode;
+        }
+    }
+
+    //将节点移动到尾部
+    public void moveNodeToTail(Node<K, V> node) {
+        if (this.tail == node) {
+            return;
+        }
+        if (this.head == node) {
+            this.head = node.next;
+            this.head.last = null;
+        } else {
+            node.last.next = node.next;
+            node.next.last = node.last;
+        }
+        node.last = this.tail;
+        node.next = null;
+        this.tail.next = node;
+        this.tail = node;
+    }
+
+    //把头结点删除并返回
+    public Node<K, V> removeHead() {
+        if (this.head == null) {
+            return null;
+        }
+        Node<K, V> res = this.head;
+        if (this.head == this.tail) {
+            this.head = null;
+            this.tail = null;
+        } else {
+            this.head = res.next;
+            res.next = null;
+            this.head.last = null;
+        }
+        return res;
+    }
+}
+
+
+public static class MyCache<K, V> {
+    private HashMap<K, Node<K, V>> keyNodeMap;
+    private NodeDoubleLinkedList<K, V> nodeList;
+    private final int capacity;
+
+    public MyCache(int capacity) {
+        if (capacity < 1) {
+            throw new RuntimeException("The capacity should be more than 0.");
+        }
+        this.capacity = capacity;
+        this.keyNodeMap = new HashMap<>();
+        this.nodeList = new NodeDoubleLinkedList<>();
+    }
+
+
+    public V get(K key) {
+        if (keyNodeMap.containsKey(key)) {
+            Node<K, V> res = keyNodeMap.get(key);
+            nodeList.moveNodeToTail(res);
+            return res.value;
+        }
+        return null;
+    }
+
+    public void set(K key, V value) {
+        if (keyNodeMap.containsKey(key)) {
+            Node<K, V> node = keyNodeMap.get(key);
+            node.value = value;
+            nodeList.moveNodeToTail(node);
+        } else {
+            if (keyNodeMap.size() == capacity) {
+                removeMostUnusedCache();
+            }
+            Node<K, V> newNode = new Node<>(key, value);
+            keyNodeMap.put(key, newNode);
+            nodeList.addNode(newNode);
+        }
+    }
+    private void removeMostUnusedCache() {
+        Node<K, V> removeNode = nodeList.removeHead();
+        keyNodeMap.remove(removeNode.key);
+    }
+}
+```
