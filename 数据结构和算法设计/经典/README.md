@@ -1919,3 +1919,103 @@ public static class MyCache<K, V> {
     }
 }
 ```
+
+
+
+## 题目三十
+
+给定两个字符串，记为stat和to,再给定一个字符串列表list,list中一定包含to list中没有重复字符串，所有的字符串都是小写的。
+规定：start每次只能改变一个字符，最终的目标是彻底变成to,但是每次变成的新字符串必须在list中存在。请返回所有最短的变换路径。
+【举例】
+start="abc",end="cab"list=("cab","acc","cbc""ccc","cac"."cbb","aab","abb")
+转换路径的方法有很多种，但所有最短的转换路径如下：
+abc ->abb->aab->cab
+abc ->abb->cbb->cab
+abc ->cbc->cac ->cab
+abc->cbc ->cbb->cab
+
+```java
+public static void main(String[] args) {
+    List<String> list = new ArrayList<>(Arrays.asList("cab","acc","cbc","ccc","cac","cbb","aab","abb"));
+    List<List<String>> minPaths = findMinPaths("abc", "cab", list);
+    System.out.println(minPaths);
+}
+
+public static List<List<String>> findMinPaths(String start, String end, List<String> list) {
+     list.add(start);
+     HashMap<String, List<String>> nexts = getNexts(list);
+     HashMap<String, Integer> distances = getDistances(start, nexts);
+     LinkedList<String> pathList = new LinkedList<>();
+     List<List<String>> res = new ArrayList<>();
+     getShortestPaths(start, end, nexts, distances, pathList, res);
+     return res;
+}
+//DFS收集答案
+private static void getShortestPaths(
+        String cur,
+        String to,
+        HashMap<String, List<String>> nexts,
+        HashMap<String, Integer> distances,
+        LinkedList<String> path,
+        List<List<String>> res) {
+    path.add(cur);
+    if (to.equals(cur)) {
+        res.add(new LinkedList<>(path));
+    } else {
+        for (String next : nexts.get(cur)) {
+            if (distances.get(next) == distances.get(cur) + 1) {
+                getShortestPaths(next, to, nexts, distances, path, res);
+            }
+        }
+    }
+    path.pollLast();
+}
+//BFS
+//获取其他字符串到开始串的距离
+private static HashMap<String, Integer> getDistances(String start, HashMap<String, List<String>> nexts) {
+    HashMap<String, Integer> distances = new HashMap<>();
+    distances.put(start, 0);
+    Queue<String> queue = new LinkedList<>();
+    HashSet<String> set = new HashSet<>();
+    set.add(start);
+    queue.add(start);
+    while (!queue.isEmpty()) {
+        String cur = queue.poll();
+        for (String next : nexts.get(cur)) {
+            if (!set.contains(next)) {
+                set.add(next);
+                queue.add(next);
+                distances.put(next, distances.get(cur) + 1);
+            }
+        }
+    }
+    return distances;
+}
+//获取每个字符串的邻居字符串
+private static HashMap<String, List<String>> getNexts(List<String> words) {
+    Set<String> dict = new HashSet<>(words);
+    HashMap<String, List<String>> nexts = new HashMap<>();
+    for (int i = 0; i < words.size(); i++) {
+        nexts.put(words.get(i), getNext(words.get(i), dict));
+    }
+    return nexts;
+}
+
+private static List<String> getNext(String word, Set<String> dict) {
+    List<String> res = new ArrayList<>();
+    char[] chs = word.toCharArray();
+    for (int i = 0; i < chs.length; i++) {
+        for (char cur = 'a'; cur < 'z'; cur++) {
+            if (chs[i] != cur) {
+                char temp = chs[i];
+                chs[i] = cur;
+                if (dict.contains(String.valueOf(chs))) {
+                    res.add(String.valueOf(chs));
+                }
+                chs[i] = temp;
+            }
+        }
+    }
+    return res;
+}
+```
