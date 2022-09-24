@@ -2091,3 +2091,31 @@ public static int maxXorSubArray2(int[] arr) {
     return max;
 }
 ```
+
+
+
+## 题目三十二
+
+将数组arr划分为多段，使得子数组的异或和为0的子数组数量尽量多，返回子数组最多是多少
+
+```java
+public int mostEOR(int[] arr) {
+    int sum = 0;
+    int N = arr.length;
+    int[] dp = new int[N];
+    HashMap<Integer, Integer> map = new HashMap<>();
+    map.put(0, -1);
+    for (int i = 0; i < N; i++) {
+        sum ^= arr[i];
+        if (map.containsKey(sum)) {
+            int pre = map.get(sum);
+            dp[i] = pre == -1 ? 1 : dp[pre] + 1;
+        }
+        if (i > 0) {
+            dp[i] = Math.max(dp[i - 1], dp[i]);
+        }
+        map.put(sum, i);
+    }
+    return dp[N - 1];
+}
+```
