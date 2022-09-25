@@ -2256,3 +2256,28 @@ public static int dpLive(String express, boolean desired) {
     return desired ? tMap[0][N - 1] : fMap[0][N - 1];
 }
 ```
+
+
+
+## 题目三十四
+
+给出一组正整数arr,你从第0个数向最后一个数，每个数的值表示你从这个位置可以向右跳跃的最大长度，计算如何以最少的跳跃次数跳到最后一个数。  
+
+```java
+public static int jump(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int step = 0;
+    int cur = 0;
+    int next = -1;
+    for (int i = 0; i < arr.length; i++) {
+        if (cur < i) {
+            step++;
+            cur = next;
+        }
+        next = Math.max(next, i + arr[i]);
+    }
+    return step;
+}
+```
