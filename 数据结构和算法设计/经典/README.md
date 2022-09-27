@@ -2385,3 +2385,43 @@ public static int[] topKSum(int[] arr1, int[] arr2, int topK) {
     return res;
 }
 ```
+
+
+
+## 题目三十七
+
+给定一个正数数组arr,返回该数组能不能分成4个部分，并且每个部分的累加和相等，切分位置的数不要。
+例如：arr=[3,2,4,1,4,9,5,10,1,2,2] 返回true，三个切割点下标为2,5,7。切出的四个子数组为[3,2]，[1,4]，[5]，[1,2,2]累加和都是5
+
+```java
+public static boolean splitArr(int[] arr) {
+    if (arr == null || arr.length < 7) {
+        return false;
+    }
+    int N = arr.length;
+    int[] preSum = new int[N];
+    int sum = 0;
+    for (int i = 0; i < N; i++) {
+        sum = sum + arr[i];
+        preSum[i] = sum;
+    }
+    for (int i = 1; i < N - 6; i++) {
+        int firstSum = preSum[i] - arr[i];
+        for (int j = i + 2; j < N - 4; j++) {
+            int secondSum = preSum[j] - preSum[i] - arr[j];
+            if (firstSum != secondSum) {
+                continue;
+            }
+            for (int k = j + 2; k < N - 2; k++) {
+                int thirdSum = preSum[k] -preSum[j] - arr[k];
+                int fourSum = sum - preSum[k] - arr[N - 1];
+                if (secondSum != thirdSum && secondSum != fourSum) {
+                    continue;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+```
