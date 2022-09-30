@@ -2428,6 +2428,36 @@ public static boolean splitArr(int[] arr) {
 
 
 
+```java
+public static boolean canSplit2(int[] arr) {
+    if (arr == null || arr.length < 7) {
+        return false;
+    }
+    HashMap<Integer, Integer> map = new HashMap<>();
+    int sum = arr[0];
+    for (int i = 1; i < arr.length; i++) {
+        map.put(sum, i);
+        sum += arr[i];
+    }
+    int lsum = arr[0];
+    for (int s1 = 1; s1 < arr.length - 5; s1++) {
+        int checkSum = lsum * 2 + arr[s1];
+        if (map.containsKey(checkSum)) {
+            int s2 = map.get(checkSum);
+            checkSum += lsum + arr[s2];
+            if (map.containsKey(checkSum)) {
+                int s3 = map.get(checkSum);
+                if (checkSum + arr[s3] + lsum == sum) {
+                    return true;
+                }
+            }
+        }
+        lsum += arr[s1];
+    }
+    return false;
+}
+```
+
 ## 题目三十八
 
 给定三个字符串str1、str2和aim,如果aim包含且仅包含来自str1和str2的所有字符，而且在aim中属于str1的字符之间保持原来在str1中的顺序，属于str2的字符之间保持原来在str2中的顺序，那么称aim是str1和str2的交错组成。实现一个函数，判断aim是否是str1和str2交错组成
