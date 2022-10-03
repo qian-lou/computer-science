@@ -2570,3 +2570,32 @@ public static int minPatches(int[] arr, int aim) {
     return patches;
 }
 ```
+
+
+
+## 题目四十一
+
+在一个字符串中找到没有重复字符子串中最长的长度。例如：abcabcbb没有重复字符的最长子串是abc,长度为3，bbbbb,答案是b,长度为1，pwwkew,答案是wke,长度是3
+要求：答案必须是子串，"pwke"是一个子字符序列但不是一个子字符串。
+
+```java
+public static int getNoRepeatMaxLength(String s) {
+    if (s == null || s.length() == 0) {
+        return 0;
+    }
+    char[] str = s.toCharArray();
+    int[] map = new int[256];
+    for (int i = 0; i < 256; i++) {
+        map[i] = -1;
+    }
+    map[str[0]] = 0;
+    int pre = 1;
+    int max = 1;
+    for (int i = 1; i < str.length; i++) {
+        pre = Math.min(i - map[str[i]], pre + 1);
+        map[str[i]] = i;
+        max = Math.max(max, pre);
+    }
+    return max;
+}
+```
