@@ -2703,3 +2703,73 @@ public static int largestComponentSize2(int[] arr) {
     return uf.maxSize();
 }
 ```
+
+
+
+## 题目四十三
+
+给定一个全是小写字母的字符串s，删除多余字符，使得每种字符只保留一个，并让最终结果字符串的字典序最小【举例】
+str="acbc",删掉第一个'c',得到"abc",是所有结果字符串中字典序最小的。
+str="dbcacbca", 删掉第一个b'、第一个'c'、第二个'c'、第二个'a',得到"dabc",是所有结果字符串中字典序最小的。
+
+```java
+public static String remove(String str) {
+    if (str == null || str.length() < 2) {
+        return str;
+    }
+    int[] map = new int[256];
+    for (int i = 0; i < str.length(); i++) {
+        map[str.charAt(i)]++;
+    }
+    int minACSIndex = 0;
+    for (int i = 0; i < str.length(); i++) {
+        minACSIndex = str.charAt(minACSIndex) > str.charAt(i) ? i : minACSIndex;
+        if (--map[str.charAt(i)] == 0) {
+            break;
+        }
+    }
+    return str.charAt(minACSIndex) + remove(str.substring(minACSIndex + 1).replaceAll(String.valueOf(str.charAt(minACSIndex)), ""));
+}
+```
+
+优化
+
+```java
+public String removeDuplicateLetters(String s) {
+        if (s == null || s.length() < 2) {
+            return s;
+        }
+        int[] map = new int[26];
+        char[] str = s.toCharArray();
+        for (char c : str) {
+            map[c - 'a']++;
+        }
+        char[] res = new char[26];
+        int L = 0;
+        int index = 0;
+        while (L < str.length) {
+            if (map[str[L] - 'a'] == -1) {
+                L++;
+                continue;
+            }
+            int minACSIndex = L;
+            int i = L;
+            for (; i < str.length; i++) {
+                if (map[str[i] - 'a'] != -1) {
+                    minACSIndex = str[minACSIndex] > str[i] ? i : minACSIndex;
+                    if (--map[str[i] - 'a'] == 0) break;
+                }
+            }
+            for (int j = minACSIndex + 1; j <= i; j++) {
+                if (map[str[j] - 'a'] != -1) {
+                    map[str[j] - 'a']++;
+                }
+            }
+            res[index++] = str[minACSIndex];
+            map[str[minACSIndex] - 'a'] = -1;
+            L = minACSIndex + 1;
+        }
+        return String.valueOf(res, 0, index);
+    }
+```
+
