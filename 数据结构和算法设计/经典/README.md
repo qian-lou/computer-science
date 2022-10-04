@@ -2599,3 +2599,107 @@ public static int getNoRepeatMaxLength(String s) {
     return max;
 }
 ```
+
+
+
+## 题目四十二
+
+一个数组中，如果两个数的最小公共因子大于1，则认为这两个数之间有通路，返回数组中最大的域
+
+```java
+public static int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}
+
+public static class UnionFind {
+    private int[] parents;
+    private int[] sizes;
+    private int[] help;
+
+    public UnionFind(int N) {
+        parents = new int[N];
+        sizes = new int[N];
+        help = new int[N];
+        for (int i = 0; i < N; i++) {
+            parents[i] = i;
+            sizes[i] = 1;
+        }
+    }
+
+    public int maxSize() {
+        int ans = 0;
+        for (int size : sizes) {
+            ans = Math.max(ans, size);
+        }
+        return ans;
+    }
+
+    public int find(int i) {
+        int hi = 0;
+        while (i != parents[i]) {
+            help[hi++] = i;
+            i = parents[i];
+        }
+        for (hi--; hi >= 0; hi--) {
+            parents[help[hi]] = i;
+        }
+        return i;
+    }
+
+    public void union(int i, int j) {
+        int f1 = find(i);
+        int f2 = find(j);
+        if (f1 != f2) {
+            int big = sizes[f1] >= sizes[f2] ? f1 : f2;
+            int small = big == f1 ? f2 : f1;
+            parents[small] = big;
+            sizes[big] = sizes[f1] + sizes[f2];
+        }
+    }
+}
+
+
+public static int largestComponentSize1(int[] arr) {
+    int N = arr.length;
+    UnionFind uf = new UnionFind(N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (gcd(arr[i], arr[j]) != 1) {
+                uf.union(i, j);
+            }
+        }
+    }
+    return uf.maxSize();
+}
+
+public static int largestComponentSize2(int[] arr) {
+    int N = arr.length;
+    UnionFind uf = new UnionFind(N);
+    HashMap<Integer, Integer> fatorsMap = new HashMap<>();
+    for (int i = 0; i < N; i++) {
+        int num = arr[i];
+        int limit = (int)Math.sqrt(num);
+        for (int j = 1; j <= limit; j++) {
+            if (num % j == 0) {
+                if (j != 1) {
+                    if (!fatorsMap.containsKey(j)) {
+                        fatorsMap.put(j, i);
+                    } else {
+                        uf.union(fatorsMap.get(j), i);
+                    }
+                }
+                int other = num / j;
+                if (other != 1) {
+                    if (!fatorsMap.containsKey(other)) {
+                        fatorsMap.put(other, i);
+                    } else {
+                        uf.union(fatorsMap.get(other), i);
+                    }
+                }
+            }
+
+        }
+    }
+    return uf.maxSize();
+}
+```
