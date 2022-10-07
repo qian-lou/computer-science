@@ -3060,3 +3060,711 @@ public static void main(String[] args) {
     }
 ```
 
+## 题目四十八
+
+现有n1+n2种面值的硬币，其中前n1种为普通币，可以取任意枚，后n2种为纪念币，每种最多只能取一枚，每种硬币有一个面值，问能用多少种方法拼出m的面值？
+
+
+
+```java
+public static boolean canSplit2(int[] arr) {
+    if (arr == null || arr.length < 7) {
+        return false;
+    }
+    HashMap<Integer, Integer> map = new HashMap<>();
+    int sum = arr[0];
+    for (int i = 1; i < arr.length; i++) {
+        map.put(sum, i);
+        sum += arr[i];
+    }
+    int lsum = arr[0];
+    for (int s1 = 1; s1 < arr.length - 5; s1++) {
+        int checkSum = lsum * 2 + arr[s1];
+        if (map.containsKey(checkSum)) {
+            int s2 = map.get(checkSum);
+            checkSum += lsum + arr[s2];
+            if (map.containsKey(checkSum)) {
+                int s3 = map.get(checkSum);
+                if (checkSum + arr[s3] + lsum == sum) {
+                    return true;
+                }
+            }
+        }
+        lsum += arr[s1];
+    }
+    return false;
+}
+```
+
+## 题目三十八
+
+给定三个字符串str1、str2和aim,如果aim包含且仅包含来自str1和str2的所有字符，而且在aim中属于str1的字符之间保持原来在str1中的顺序，属于str2的字符之间保持原来在str2中的顺序，那么称aim是str1和str2的交错组成。实现一个函数，判断aim是否是str1和str2交错组成
+【举例】str1="AB",Str2="12"。那么"AB12"、"A1B2"、"A12B"、"1A2B"和 "1AB2"等都是str1和str2的交错组成
+
+```java
+public static boolean isCross(String s1, String s2, String aim) {
+    if (s1 == null || s2 == null || aim == null) {
+        return false;
+    }
+    char[] str1 = s1.toCharArray();
+    char[] str2 = s2.toCharArray();
+    char[] aims = aim.toCharArray();
+    int N = str1.length;
+    int M = str2.length;
+    if (N + M != aim.length()) {
+        return false;
+    }
+    boolean[][] dp = new boolean[N + 1][M + 1];
+    dp[0][0] = true;
+    for (int i = 1; i <= N; i++) {
+        if (str1[i - 1] != aims[i - 1]) {
+            break;
+        }
+        dp[i][0] = true;
+    }
+    for (int j = 1; j <= M; j++) {
+        if (str2[j - 1] != aims[j - 1]) {
+            break;
+        }
+        dp[0][j] = true;
+    }
+    for (int i = 1; i <= N; i++) {
+        for (int j = 1; j <= M; j++) {
+            dp[i][j] = (str1[i - 1] == aims[i + j - 1] && dp[i - 1][j]) || (str2[j - 1] == aims[i + j - 1] && dp[i][j - 1]);
+        }
+    }
+    return dp[N][M];
+}
+```
+
+
+
+## 题目三十九
+
+给定一个无序数组arr,如果只能再一个子数组上排序, 返回如果让arr整体有序，需要排序的最短子数组长度
+
+```java
+public static int getMinLength(int[] arr) {
+    if (arr == null || arr.length < 2) {
+        return 0;
+    }
+    int min = arr[arr.length - 1];
+    int noMinIndex = -1;
+    for (int i = arr.length - 2; i >= 0; i--) {
+        if (arr[i] > min) {
+            noMinIndex = i;
+        } else {
+            min = Math.min(min, arr[i]);
+        }
+    }
+    if (noMinIndex == -1) {
+        return 0;
+    }
+    int max = arr[0];
+    int noMaxIndex = -1;
+    for (int i = 1; i < arr.length; i++) {
+        if (arr[i] < max) {
+            noMaxIndex = i;
+        } else {
+            max = Math.max(max, arr[i]);
+        }
+    }
+    return noMaxIndex - noMinIndex + 1;
+}
+```
+
+
+
+## 题目四十
+
+给定一个有序的正数数组arr和一个正数aim,如果可以自由选择arr中的数字，想累加得到1~aim范围上所有的数，返回arr最少还缺几个数。
+【举例】
+
+arr={1,2,3,7}, aim 15 想累加得到1~15范围上所有的数，arr还缺14这个数，所以返回1
+arr={1,5,7,aim=15 想累加得到1~15范围上所有的数，arr还缺2和4，所以返回2
+
+```java
+public static int minPatches(int[] arr, int aim) {
+    int patches = 0;
+    long range = 0;
+    Arrays.sort(arr);
+    for (int i = 0; i < arr.length; i++) {
+        while (arr[i] > range + 1) {
+            range += range + 1;
+            patches++;
+            if (range >= aim) {
+                return patches;
+            }
+        }
+        range += arr[i];
+        if (range >= aim) {
+            return patches;
+        }
+    }
+    while (aim >= range + 1) {
+        range += range + 1;
+        patches++;
+    }
+    return patches;
+}
+```
+
+
+
+## 题目四十一
+
+在一个字符串中找到没有重复字符子串中最长的长度。例如：abcabcbb没有重复字符的最长子串是abc,长度为3，bbbbb,答案是b,长度为1，pwwkew,答案是wke,长度是3
+要求：答案必须是子串，"pwke"是一个子字符序列但不是一个子字符串。
+
+```java
+public static int getNoRepeatMaxLength(String s) {
+    if (s == null || s.length() == 0) {
+        return 0;
+    }
+    char[] str = s.toCharArray();
+    int[] map = new int[256];
+    for (int i = 0; i < 256; i++) {
+        map[i] = -1;
+    }
+    map[str[0]] = 0;
+    int pre = 1;
+    int max = 1;
+    for (int i = 1; i < str.length; i++) {
+        pre = Math.min(i - map[str[i]], pre + 1);
+        map[str[i]] = i;
+        max = Math.max(max, pre);
+    }
+    return max;
+}
+```
+
+
+
+## 题目四十二
+
+一个数组中，如果两个数的最小公共因子大于1，则认为这两个数之间有通路，返回数组中最大的域
+
+```java
+public static int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}
+
+public static class UnionFind {
+    private int[] parents;
+    private int[] sizes;
+    private int[] help;
+
+    public UnionFind(int N) {
+        parents = new int[N];
+        sizes = new int[N];
+        help = new int[N];
+        for (int i = 0; i < N; i++) {
+            parents[i] = i;
+            sizes[i] = 1;
+        }
+    }
+
+    public int maxSize() {
+        int ans = 0;
+        for (int size : sizes) {
+            ans = Math.max(ans, size);
+        }
+        return ans;
+    }
+
+    public int find(int i) {
+        int hi = 0;
+        while (i != parents[i]) {
+            help[hi++] = i;
+            i = parents[i];
+        }
+        for (hi--; hi >= 0; hi--) {
+            parents[help[hi]] = i;
+        }
+        return i;
+    }
+
+    public void union(int i, int j) {
+        int f1 = find(i);
+        int f2 = find(j);
+        if (f1 != f2) {
+            int big = sizes[f1] >= sizes[f2] ? f1 : f2;
+            int small = big == f1 ? f2 : f1;
+            parents[small] = big;
+            sizes[big] = sizes[f1] + sizes[f2];
+        }
+    }
+}
+
+
+public static int largestComponentSize1(int[] arr) {
+    int N = arr.length;
+    UnionFind uf = new UnionFind(N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (gcd(arr[i], arr[j]) != 1) {
+                uf.union(i, j);
+            }
+        }
+    }
+    return uf.maxSize();
+}
+
+public static int largestComponentSize2(int[] arr) {
+    int N = arr.length;
+    UnionFind uf = new UnionFind(N);
+    HashMap<Integer, Integer> fatorsMap = new HashMap<>();
+    for (int i = 0; i < N; i++) {
+        int num = arr[i];
+        int limit = (int)Math.sqrt(num);
+        for (int j = 1; j <= limit; j++) {
+            if (num % j == 0) {
+                if (j != 1) {
+                    if (!fatorsMap.containsKey(j)) {
+                        fatorsMap.put(j, i);
+                    } else {
+                        uf.union(fatorsMap.get(j), i);
+                    }
+                }
+                int other = num / j;
+                if (other != 1) {
+                    if (!fatorsMap.containsKey(other)) {
+                        fatorsMap.put(other, i);
+                    } else {
+                        uf.union(fatorsMap.get(other), i);
+                    }
+                }
+            }
+
+        }
+    }
+    return uf.maxSize();
+}
+```
+
+
+
+## 题目四十三
+
+给定一个全是小写字母的字符串s，删除多余字符，使得每种字符只保留一个，并让最终结果字符串的字典序最小【举例】
+str="acbc",删掉第一个'c',得到"abc",是所有结果字符串中字典序最小的。
+str="dbcacbca", 删掉第一个b'、第一个'c'、第二个'c'、第二个'a',得到"dabc",是所有结果字符串中字典序最小的。
+
+```java
+public static String remove(String str) {
+    if (str == null || str.length() < 2) {
+        return str;
+    }
+    int[] map = new int[256];
+    for (int i = 0; i < str.length(); i++) {
+        map[str.charAt(i)]++;
+    }
+    int minACSIndex = 0;
+    for (int i = 0; i < str.length(); i++) {
+        minACSIndex = str.charAt(minACSIndex) > str.charAt(i) ? i : minACSIndex;
+        if (--map[str.charAt(i)] == 0) {
+            break;
+        }
+    }
+    return str.charAt(minACSIndex) + remove(str.substring(minACSIndex + 1).replaceAll(String.valueOf(str.charAt(minACSIndex)), ""));
+}
+```
+
+优化
+
+```java
+public String removeDuplicateLetters(String s) {
+        if (s == null || s.length() < 2) {
+            return s;
+        }
+        int[] map = new int[26];
+        char[] str = s.toCharArray();
+        for (char c : str) {
+            map[c - 'a']++;
+        }
+        char[] res = new char[26];
+        int L = 0;
+        int index = 0;
+        while (L < str.length) {
+            if (map[str[L] - 'a'] == -1) {
+                L++;
+                continue;
+            }
+            int minACSIndex = L;
+            int i = L;
+            for (; i < str.length; i++) {
+                if (map[str[i] - 'a'] != -1) {
+                    minACSIndex = str[minACSIndex] > str[i] ? i : minACSIndex;
+                    if (--map[str[i] - 'a'] == 0) break;
+                }
+            }
+            for (int j = minACSIndex + 1; j <= i; j++) {
+                if (map[str[j] - 'a'] != -1) {
+                    map[str[j] - 'a']++;
+                }
+            }
+            res[index++] = str[minACSIndex];
+            map[str[minACSIndex] - 'a'] = -1;
+            L = minACSIndex + 1;
+        }
+        return String.valueOf(res, 0, index);
+    }
+```
+
+
+
+## 题目四十四
+
+给定两个数组arrx和arry,长度都为N。代表二维平面上有N个点，第i个点的x坐标和y坐标分别为arr[x]和arr[y],返回求一条直线最多能穿过多少个点？
+
+```java
+public static class Point{
+    public int x;
+    public int y;
+
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+
+public static int maxPoints(Point[] points) {
+    if (points == null) {
+        return 0;
+    }
+    if (points.length <= 2) {
+        return points.length;
+    }
+    Map<Integer, Map<Integer, Integer>> map = new HashMap<>();
+    int result = 0;
+    for (int i = 0; i < points.length; i++) {
+        map.clear();
+        int samePosition = 1;
+        int sameX = 0;
+        int sameY = 0;
+        int line = 0;
+        for (int j = i; j < points.length; j++) {
+            int x = points[j].x - points[i].x;
+            int y = points[j].y - points[i].y;
+            if (x == 0 && y == 0) {
+                samePosition++;
+            } else if (x == 0) {
+                sameX++;
+            } else if (y == 0) {
+                sameY++;
+            } else {
+                int gcd = gcd(x, y);
+                x /= gcd;
+                y /= gcd;
+                if (!map.containsKey(x)) {
+                    map.put(x, new HashMap<>());
+                }
+                if (!map.get(x).containsKey(y)) {
+                    map.get(x).put(y, 0);
+                }
+                map.get(x).put(y, map.get(x).get(y) + 1);
+                line = Math.max(line, map.get(x).get(y));
+            }
+        }
+        result = Math.max(result, Math.max(line, Math.max(sameX, sameY)) + samePosition);
+    }
+    return result;
+}
+```
+
+
+
+## 题目四十五
+
+int[] d,d[i]:i号怪兽的能力
+int[] p,p[i]：i号怪兽要求的钱
+开始时你的能力是0，你的目标是从0号怪兽开始，通过所有的怪兽。如果你当前的能力，小于号怪兽的能力，你必须付出p的钱，贿赂这个怪兽，然后怪兽就会加入你，他的能力直接累加到你的能力上；如果你当前的能力，大于等于号怪兽的能力，你可以选择直接通过，你的能力并不会下降，你也可以选择贿赂这个怪兽，然后怪兽就会加入你，他的能力直接累加到你的能力上。返回通过所有的怪兽，需要花的最小钱数。
+
+基于能力进行暴力递归
+
+```java
+public static long process(int[] d, int[] p, int ability, int index) {
+    if (index == d.length) {
+        return 0;
+    }
+    if (ability < d[index]) {
+        return p[index] + process(d, p, ability + d[index], index + 1);
+    }
+    return Math.min(p[index] + process(d, p, ability + d[index], index + 1),
+            process(d, p, ability, index + 1));
+}
+
+public static long func1(int[] d, int[] p) {
+    return process(d, p, 0, 0);
+}
+```
+
+基于钱进行暴力递归
+
+```java
+public static long process1(int[] d, int[] p, int index, int money) {
+    if (index == -1) {
+        return money == 0 ? 0 : -1;
+    }
+    long preMaxAbility = process1(d, p, index - 1, money);
+    long p1 = -1;
+    if (preMaxAbility != -1 && preMaxAbility >= d[index]) {
+        p1 = preMaxAbility;
+    }
+    long preMaxAbility2 = process1(d, p, index - 1, money - p[index]);
+    long p2 = -1;
+    if (preMaxAbility2 != -1) {
+        p2 = d[index] + preMaxAbility2;
+    }
+    return Math.max(p1, p2);
+}
+
+public static long fun2(int[] d, int[] p) {
+    int allMoney = 0;
+    for (int i = 0; i < p.length; i++) {
+        allMoney += p[i];
+    }
+    for (int money = 0; money < allMoney; money++) {
+        if (process1(d, p, d.length - 1, money) != -1) {
+            return money;
+        }
+    }
+    return allMoney;
+}
+```
+
+基于能力做动态规划
+
+```java
+public static long dp1(int[] d, int[] p) {
+    int sum = 0;
+    for (int num : d) {
+        sum += num;
+    }
+    long[][] dp = new long[d.length + 1][sum + 1];
+    for (int cur = d.length - 1; cur >= 0; cur--) {
+        for (int hp = 0; hp <= sum; hp++) {
+            if (hp + d[cur] > sum) {
+                continue;
+            }
+            if (hp < d[cur]) {
+                dp[cur][hp] = p[cur] + dp[cur + 1][hp + d[cur]];
+            } else {
+                dp[cur][hp] = Math.min(dp[cur + 1][hp], p[cur] + dp[cur + 1][hp + d[cur]]);
+            }
+        }
+    }
+    return dp[0][0];
+}
+```
+
+基于钱做动态规划
+
+```java
+public static long dp2(int[] d, int[] p) {
+    int allMoney = 0;
+    for (int m : p) {
+        allMoney += m;
+    }
+    int[][] dp = new int[d.length][allMoney + 1];
+    for (int i = 0; i < dp.length; i++) {
+        for (int j = 0; j <= allMoney; j++) {
+            dp[i][j] = -1;
+        }
+    }
+    dp[0][p[0]] = d[0];
+    for (int i = 1; i < d.length; i++) {
+        for (int j = 0; j <= allMoney; j++) {
+            if (j >= p[i] && dp[i - 1][j - p[i]] != -1) {
+                dp[i][j] = dp[i - 1][j - p[i]];
+            }
+            if (dp[i - 1][j] >= d[i]) {
+                dp[i][j] = Math.max(dp[i][j], dp[i - 1][j]);
+            }
+        }
+    }
+    int ans = 0;
+    for (int j = 0; j <= allMoney; j++) {
+        if (dp[d.length - 1][j] != -1) {
+            ans = j;
+            break;
+        }
+    }
+    return ans;
+}
+```
+
+
+
+## 题目四十六
+
+给定一个字符串，如果可以在字符串任意位置添加字符，最少添加几个能让字符串整体都是回文串。
+
+```java
+public static int fun(String s) {
+    if (s == null || s.length() == 1) {
+        return 0;
+    }
+    char[] str = s.toCharArray();
+    int N = str.length;
+    int[][] dp = new int[N][N];
+    for (int i = 0; i < N - 1; i++) {
+        dp[i][i + 1] = str[i] == str[i + 1] ? 0 : 1;
+    }
+    for (int i = N - 3; i >= 0; i--) {
+        for (int j = i + 2; j < N; j++) {
+            dp[i][j] = Integer.MAX_VALUE;
+            if (str[i] == str[j]) {
+                dp[i][j] = dp[i + 1][j - 1];
+            }
+            dp[i][j] = Math.min(dp[i][j], dp[i + 1][j] + 1);
+            dp[i][j] = Math.min(dp[i][j], dp[i][j - 1] + 1);
+        }
+    }
+    return dp[0][N - 1];
+}
+```
+
+
+
+## 题目四十七
+
+一种消息接收并打印的结构设计
+已知一个消息流会不断地吐出整数1~N,但不一定按照顺序吐出。如果上次打印的数为i，那么当i+1出现时，请打印i+1及其之后接收过的并且连续的所有数，直到1~N全部接收并打印完，请设计这种接收并打印的结构。初始时默认i==0
+
+```java
+public static class Node {
+    public String info;
+    public Node next;
+
+    public Node(String info) {
+        this.info = info;
+    }
+}
+
+public static class MessageBox {
+    private HashMap<Integer, Node> headMap;
+    private HashMap<Integer, Node> tailMap;
+    private int waitPoint;
+
+    public MessageBox() {
+        headMap = new HashMap<>();
+        tailMap = new HashMap<>();
+        waitPoint = 1;
+    }
+
+    public void receive(int num, String info) {
+        if (num < 1) {
+            return;
+        }
+        Node cur = new Node(info);
+        headMap.put(num, cur);
+        tailMap.put(num, cur);
+
+        if (tailMap.containsKey(num - 1)) {
+            tailMap.get(num - 1).next = cur;
+            tailMap.remove(num - 1);
+            headMap.remove(num);
+        }
+        if (headMap.containsKey(num + 1)) {
+            cur.next = headMap.get(num + 1);
+            tailMap.remove(num);
+            headMap.remove(num + 1);
+        }
+        if (num == waitPoint) {
+            print();
+        }
+    }
+
+    public void print() {
+        Node cur = headMap.get(waitPoint);
+        headMap.remove(waitPoint);
+        while (cur != null) {
+            System.out.print(cur.info + " ");
+            cur = cur.next;
+            waitPoint++;
+        }
+        tailMap.remove(waitPoint - 1);
+        System.out.println();
+    }
+}
+
+public static void main(String[] args) {
+    MessageBox messageBox = new MessageBox();
+    int[] arr = {2,3,5,4,7,8,1,6,9};
+    for (int i = 0; i < arr.length; i++) {
+        messageBox.receive(arr[i], String.valueOf(arr[i]));
+    }
+```
+
+
+
+## 题目四十八
+
+现有n1+n2种面值的硬币，其中前n1种为普通币，可以取任意枚，后n2种为纪念币，每种最多只能取一枚，每种硬币有一个面值，问能用多少种方法拼出m的面值？
+
+```java
+public static int[][] getDpArb(int[] arr, int money) {
+    if (arr == null || arr.length == 0) {
+        return null;
+    }
+    int[][] dp = new int[arr.length][money + 1];
+    for (int i = 0; i < arr.length; i++) {
+        dp[i][0] = 1;
+    }
+    for (int j = 1; arr[0] * j <= money; j++) {
+        dp[0][arr[0] * j] = 1;
+    }
+    for (int i = 1; i < arr.length; i++) {
+        for (int j = 1; j <= money; j++) {
+            dp[i][j] = dp[i - 1][j];
+            dp[i][j] += j - arr[i] >= 0 ? dp[i][j - arr[i]] : 0;
+        }
+    }
+    return dp;
+}
+
+
+public static int[][] getDpOne(int[] arr, int money) {
+    if (arr == null || arr.length == 0) {
+        return null;
+    }
+    int[][] dp = new int[arr.length][money + 1];
+    for (int i = 0; i < arr.length; i++) {
+        dp[i][0] = 1;
+    }
+    if (arr[0] <= money) {
+        dp[0][arr[0]] = 1;
+    }
+    for (int i = 1; i < arr.length; i++) {
+        for (int j = 1; j <= money; j++) {
+            dp[i][j] = dp[i - 1][j];
+            dp[i][j] += j - arr[i] >= 0 ? dp[i - 1][j - arr[i]] : 0;
+        }
+    }
+    return dp;
+}
+
+public static int moneyWays(int[] arbitrary, int[] onlyone, int money) {
+    if (money < 0) {
+        return 0;
+    }
+    if ((arbitrary == null || arbitrary.length == 0) && (onlyone == null || onlyone.length == 0)) {
+        return money == 0 ? 1 : 0;
+    }
+    int[][] dpArb = getDpArb(arbitrary, money);
+    int[][] dpOne = getDpOne(onlyone, money);
+    if (dpArb == null) {
+        return dpOne[dpOne.length - 1][money];
+    }
+    if (dpOne == null) {
+        return dpArb[dpArb.length - 1][money];
+    }
+    int res = 0;
+    for (int i = 0; i <= money; i++) {
+        res += dpArb[dpArb.length - 1][i] * dpOne[dpOne.length - 1][money - i];
+    }
+    return res;
+}
+```
