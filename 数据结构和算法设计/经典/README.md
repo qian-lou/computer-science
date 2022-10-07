@@ -2987,3 +2987,76 @@ public static int fun(String s) {
     return dp[0][N - 1];
 }
 ```
+
+
+
+## 题目四十七
+
+一种消息接收并打印的结构设计
+已知一个消息流会不断地吐出整数1~N,但不一定按照顺序吐出。如果上次打印的数为i，那么当i+1出现时，请打印i+1及其之后接收过的并且连续的所有数，直到1~N全部接收并打印完，请设计这种接收并打印的结构。初始时默认i==0
+
+```java
+public static class Node {
+    public String info;
+    public Node next;
+
+    public Node(String info) {
+        this.info = info;
+    }
+}
+
+public static class MessageBox {
+    private HashMap<Integer, Node> headMap;
+    private HashMap<Integer, Node> tailMap;
+    private int waitPoint;
+
+    public MessageBox() {
+        headMap = new HashMap<>();
+        tailMap = new HashMap<>();
+        waitPoint = 1;
+    }
+
+    public void receive(int num, String info) {
+        if (num < 1) {
+            return;
+        }
+        Node cur = new Node(info);
+        headMap.put(num, cur);
+        tailMap.put(num, cur);
+
+        if (tailMap.containsKey(num - 1)) {
+            tailMap.get(num - 1).next = cur;
+            tailMap.remove(num - 1);
+            headMap.remove(num);
+        }
+        if (headMap.containsKey(num + 1)) {
+            cur.next = headMap.get(num + 1);
+            tailMap.remove(num);
+            headMap.remove(num + 1);
+        }
+        if (num == waitPoint) {
+            print();
+        }
+    }
+
+    public void print() {
+        Node cur = headMap.get(waitPoint);
+        headMap.remove(waitPoint);
+        while (cur != null) {
+            System.out.print(cur.info + " ");
+            cur = cur.next;
+            waitPoint++;
+        }
+        tailMap.remove(waitPoint - 1);
+        System.out.println();
+    }
+}
+
+public static void main(String[] args) {
+    MessageBox messageBox = new MessageBox();
+    int[] arr = {2,3,5,4,7,8,1,6,9};
+    for (int i = 0; i < arr.length; i++) {
+        messageBox.receive(arr[i], String.valueOf(arr[i]));
+    }
+```
+
