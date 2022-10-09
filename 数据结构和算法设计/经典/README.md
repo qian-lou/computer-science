@@ -3768,3 +3768,26 @@ public static int moneyWays(int[] arbitrary, int[] onlyone, int money) {
     return res;
 }
 ```
+
+
+
+## 题目四十九
+
+给定一个正数N,表示你在纸上写下1~N所有的数字，返回在书写的过程中，一共写下了多少个1
+
+```java
+public static int f(int num) {
+    if (num < 1) {
+        return 0;
+    }
+    int len = getLenOfNum(num);
+    if (len == 1) {
+        return 1;
+    }
+    int base = powerBaseOf10(len - 1);
+    int first = num / base;
+    int firstOneNum = first == 1 ? num % base + 1: base;
+    int otherOneNum = first * (base / 10) * (len - 1);
+    return firstOneNum + otherOneNum + f(num % base);
+}
+```
