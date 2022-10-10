@@ -3835,3 +3835,68 @@ public static int longestIntegerSubArr(int[] arr) {
     return len;
 }
 ```
+
+
+
+## 题目五十一
+
+给定一个数组arr,从左到右表示昨天从早到晚股票的价格。作为一个事后诸葛亮，你想知道如果只做一次交易，且每次交易只买卖一股，返回能挣到的最大钱数
+
+```java
+public static int maxProfit(int[] prices) {
+    if (prices == null || prices.length == 0) {
+        return 0;
+    }
+    int min = prices[0];
+    int ans = 0;
+    for (int price : prices) {
+        min = Math.min(min, price);
+        ans = Math.max(ans, price - min);
+    }
+    return ans;
+}
+```
+
+
+
+## 题目五十二
+
+给定一个数组arr,从左到右表示昨天从早到晚股票的价格，作为一个事后诸葛亮，你想知道如果随便交易且每次交易只买卖一股，返回能挣到的最大钱数
+
+```java
+public static int maxProfit1(int[] prices) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int ans = 0;
+        for (int i = 1; i < prices.length; i++) {
+            ans += Math.max(0, prices[i] - prices[i - 1]);
+        }
+        return ans;
+    }
+```
+
+
+
+## 题目五十三
+
+给定一个数组arr,从左到右表示昨天从早到晚股票的价格，作为一个事后诸葛亮，你想知道如果交易次数不超过K次，且每次交易只买卖一股，返回能挣到的最大钱数
+
+```java
+public static int maxProfit2(int[] prices, int k) {
+    if (prices == null || prices.length == 0) {
+        return 0;
+    }
+    int N = prices.length;
+    k = Math.min(k, N / 2);
+    int[][] dp = new int[prices.length][k + 1];
+    for (int j = 1; j <= k; j++) {
+        int t = dp[0][j - 1] - prices[0];
+        for (int i = 1; i < N; i++) {
+            t = Math.max(t, dp[i][j - 1] - prices[i]);
+            dp[i][j] = Math.max(dp[i - 1][j], t + prices[i]);
+        }
+    }
+    return dp[N - 1][k];
+}
+```
