@@ -3900,3 +3900,96 @@ public static int maxProfit2(int[] prices, int k) {
     return dp[N - 1][k];
 }
 ```
+
+
+
+## 题目五十四
+
+给定一个数组arr, 再给定一个k值，返回累加和小于等于k, 但是离k最近的子数组累加和。
+
+```java
+public static int getMaxLessOrEqualK(int[] arr, int k) {
+    TreeSet<Integer> set = new TreeSet<>();
+    set.add(0);
+    int max = Integer.MIN_VALUE;
+    int sum = 0;
+    Integer more = null;
+    for (int num : arr) {
+        sum += num;
+        more = set.ceiling(sum - k);
+        if (more != null) {
+            max = Math.max(max, sum - more);
+        }
+        set.add(sum);
+    }
+    return max;
+}
+```
+
+
+
+## 题目五十五
+
+给定一个二维数组matrix,可以从任何位置出发，每一步可以走向上、下、左、右四个方向。返回最大递增链的长度。
+例子：
+matrix
+
+```
+543
+312
+213
+```
+
+从最中心的1出发，是可以走出12345的链的，而且这是最长的递增链。所以返回长度5
+
+```java
+public static int maxPath(int[][] matrix) {
+    int ans = Integer.MIN_VALUE;
+    for (int i = 0; i < matrix.length; i++) {
+        for (int j = 0; j < matrix[0].length; j++) {
+            ans = Math.max(ans, process(matrix, i, j, Integer.MIN_VALUE));
+        }
+    }
+    return ans;
+}
+
+public static int process(int[][] m, int i, int j, int pre) {
+    if (i < 0 || i == m.length || j < 0 || j == m[0].length || pre >= m[i][j]) {
+        return 0;
+    }
+    return Math.max(
+            Math.max(process(m, i - 1, j, m[i][j]), process(m, i + 1, j, m[i][j])),
+            Math.max(process(m, i, j - 1, m[i][j]), process(m, i, j + 1, m[i][j]))
+    ) + 1;
+}
+```
+
+记忆化搜索
+
+```java
+public static int maxPath1(int[][] matrix) {
+    int ans = Integer.MIN_VALUE;
+    int[][] dp = new int[matrix.length][matrix[0].length];
+    for (int i = 0; i < matrix.length; i++) {
+        for (int j = 0; j < matrix[0].length; j++) {
+            ans = Math.max(ans, process(matrix, i, j, Integer.MIN_VALUE, dp));
+        }
+    }
+    return ans;
+}
+
+
+public static int process(int[][] m, int i, int j, int pre, int[][] dp) {
+    if (i < 0 || i == m.length || j < 0 || j == m[0].length || pre >= m[i][j]) {
+        return 0;
+    }
+    if (dp[i][j] != 0) {
+        return dp[i][j];
+    }
+    dp[i][j] = Math.max(
+            Math.max(process(m, i - 1, j, m[i][j], dp), process(m, i + 1, j, m[i][j], dp)),
+            Math.max(process(m, i, j - 1, m[i][j], dp), process(m, i, j + 1, m[i][j], dp))
+    ) + 1;
+    return dp[i][j];
+}
+```
