@@ -3993,3 +3993,126 @@ public static int process(int[][] m, int i, int j, int pre, int[][] dp) {
     return dp[i][j];
 }
 ```
+
+
+
+## 题目五十六
+
+给定一个字符类型的二维数组board,和一个字符串组成的列表words。可以从board任何位置出发，每一步可以走向上、下、左、右，四个方向，但是一条路径已经走过的位置，不能重复走。返回words哪些单词可以被走出来。
+例子
+board =
+
+```
+[o, a, a, n],
+[e, t, a, e]
+[i, h, k, r]
+[i, f, l, v]
+```
+
+words ["oath","pea","eat","rain"]I
+输出：["eat""oath]
+
+```java
+public class Code51 {
+
+    static class TrieNode {
+        public TrieNode[] next;
+        public int pass;
+        public int end;
+
+        public TrieNode() {
+            next = new TrieNode[26];
+        }
+    }
+		//主函数
+    public static List<String> findWords(char[][] board, String[] words) {
+        TrieNode head = new TrieNode();
+        HashSet<String> set = new HashSet<>();
+        for (String word : words) {
+            if (!set.contains(word)) {
+                set.add(word);
+                fillWord(head, word);
+            }
+        }
+        List<String> ans = new ArrayList<>();
+        LinkedList<Character> path = new LinkedList<>();
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                process(board, i, j, path, head, ans);
+            }
+        }
+        return ans;
+    }
+		//DFS
+    private static int process(char[][] board, int i, int j, LinkedList<Character> path, TrieNode cur, List<String> ans) {
+        char cha = board[i][j];
+        if (cha == 0) {
+            return 0;
+        }
+        int index = cha - 'a';
+        if (cur.next[index] == null || cur.next[index].pass == 0) {
+            return 0;
+        }
+        cur = cur.next[index];
+        path.addLast(cha);
+        int fix = 0;
+        if (cur.end > 0) {
+            ans.add(generatePath(path));
+            cur.end--;
+            fix++;
+        }
+        board[i][j] = 0;
+        if (i > 0) {
+            fix += process(board, i - 1, j, path, cur, ans);
+        }
+        if (i < board.length - 1) {
+            fix += process(board, i + 1, j, path, cur, ans);
+        }
+        if (j > 0) {
+            fix += process(board, i, j - 1, path, cur, ans);
+        }
+        if (j < board[0].length - 1) {
+            fix += process(board, i, j + 1, path, cur, ans);
+        }
+        board[i][j] = cha;
+        path.pollLast();
+        cur.pass -= fix;
+        return fix;
+    }
+
+    private static String generatePath(LinkedList<Character> path) {
+        char[] chs = new char[path.size()];
+        for (int i = 0; i < chs.length; i++) {
+            chs[i] = path.get(i);
+        }
+        return String.valueOf(chs);
+    }
+		//填充前缀树
+    public static void fillWord(TrieNode head, String words) {
+        head.pass++;
+        char[] chs = words.toCharArray();
+        int index = 0;
+        TrieNode cur = head;
+        for (int i = 0; i < chs.length; i++) {
+            index = chs[i] - 'a';
+            if (cur.next[index] == null) {
+                cur.next[index] = new TrieNode();
+            }
+            cur = cur.next[index];
+            cur.pass++;
+        }
+        cur.end++;
+    }
+
+
+    public static void main(String[] args) {
+        char[][] b = {
+                {'o', 'a', 'a', 'n'},
+                {'e', 't', 'a', 'e'},
+                {'i', 'h', 'k', 'r'},
+                {'i', 'f', 'l', 'v'},
+        };
+        System.out.println(findWords(b, new String[]{"oath", "pea", "eat", "rain"}));
+    }
+}
+```
