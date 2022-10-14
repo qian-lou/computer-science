@@ -4116,3 +4116,34 @@ public class Code51 {
     }
 }
 ```
+
+
+
+## 题目五十七
+
+给定两个字符串S和T,返回S子序列等于T的不同子序列个数有多少个？如果得到子序列A删除的位置与得到子序列B删除的位置不同，那么认为A和B就是不同的。
+【例子】S="rabbbit",T="rabbit" 返回：3
+
+```java
+public static int f(String s, String t) {
+    char[] str = s.toCharArray();
+    char[] ttr = t.toCharArray();
+    int N = str.length;
+    int M = ttr.length;
+    int[][] dp = new int[N][M];
+    dp[0][0] = str[0] == ttr[0] ? 1 : 0;
+    for (int i = 1; i < N; i++) {
+        dp[i][0] = dp[i - 1][0] + str[i] == ttr[0] ? 1 : 0;
+    }
+    for (int i = 1; i < N; i++) {
+        for (int j = 1; j < M; j++) {
+            dp[i][j] = dp[i - 1][j];
+            if (str[i] == ttr[j]) {
+                dp[i][j] += dp[i - 1][j - 1];
+            }
+        }
+    }
+    return dp[N - 1][M - 1];
+}
+```
+
