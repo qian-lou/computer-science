@@ -4147,3 +4147,119 @@ public static int f(String s, String t) {
 }
 ```
 
+
+
+## 题目五十八
+
+给定一个二维数组map,含义是一张地图，例如，如下矩阵：
+
+```
+-2  -3   3
+-5  -10  1
+0   30  -5
+```
+
+游戏的规则如下：
+骑士从左上角出发，每次只能向右或向下走，最后到达右下角见到公主。地图中每个位置的值代表骑士要遭遇的事
+，如果是负数，说明此处有怪兽，要让骑士损失血量。如果是非负数，代表此处有血瓶，能让骑士回血。骑士从左上角到右下角的过程中，走到任何一个位置时，血量都不能少于1。为了保证骑士能见到公主，初始血量至少是多少？根据map,返回至少的初始血量。
+
+```java
+public static int needMin(int[][] matrix) {
+    if (matrix == null || matrix.length == 0) {
+        return 0;
+    }
+    return process(matrix, 0, 0, matrix.length, matrix[0].length);
+}
+
+
+public static int process(int[][] matrix, int row, int col, int N, int M) {
+    if (row == N - 1 && col == M - 1) {
+        return matrix[N - 1][M - 1] < 0 ? Math.abs(matrix[N - 1][M - 1]) + 1 : 1;
+    }
+
+    if (row == N - 1) {
+        int rightNeed = process(matrix, row, col + 1, N, M);
+        if (matrix[row][col] < 0) {
+            return Math.abs(matrix[row][col]) + rightNeed;
+        }
+        if (matrix[row][col] >= rightNeed) {
+            return 1;
+        }
+        return rightNeed - matrix[row][col];
+    }
+    if (col == M - 1) {
+        int downNeed = process(matrix, row + 1, col, N, M);
+        if (matrix[row][col] < 0) {
+            return Math.abs(matrix[row][col]) + downNeed;
+        }
+        if (matrix[row][col] >= downNeed) {
+            return 1;
+        }
+        return downNeed - matrix[row][col];
+    }
+    int minNextNeed = Math.min(process(matrix, row + 1, col, N, M), process(matrix, row, col + 1, N, M));
+    if (matrix[row][col] < 0) {
+        return Math.abs(matrix[row][col]) + minNextNeed;
+    }
+    if (matrix[row][col] >= minNextNeed) {
+        return 1;
+    }
+    return minNextNeed - matrix[row][col];
+}
+```
+
+改动态规划
+
+```java
+public static int dp(int[][] matrix) {
+    if (matrix == null || matrix.length == 0) {
+        return 0;
+    }
+    int N = matrix.length;
+    int M = matrix[0].length;
+    int[][] dp = new int[N][M];
+    for (int i = N - 1; i >= 0; i--) {
+        for (int j = M - 1; j >= 0; j--) {
+            if (i == N - 1 && j == M - 1) {
+                dp[i][j] = 1 - Math.min(0, matrix[i][j]);
+                continue;
+            }
+            if (i == N - 1) {
+                if (matrix[i][j] < 0) {
+                    dp[i][j] = Math.abs(matrix[i][j]) + dp[i][j + 1];
+                    continue;
+                }
+                if (matrix[i][j] >= dp[i][j + 1]) {
+                    dp[i][j] = 1;
+                    continue;
+                }
+                dp[i][j] = dp[i][j + 1] - matrix[i][j];
+                continue;
+            }
+            if (j == M - 1) {
+                if (matrix[i][j] < 0) {
+                    dp[i][j] = Math.abs(matrix[i][j]) + dp[i + 1][j];
+                    continue;
+                }
+                if (matrix[i][j] >= dp[i + 1][j]) {
+                    dp[i][j] = 1;
+                    continue;
+                }
+                dp[i][j] = dp[i + 1][j] - matrix[i][j];
+                continue;
+            }
+            int min = Math.min(dp[i + 1][j], dp[i][j + 1]);
+            if (matrix[i][j] < 0) {
+                dp[i][j] =  Math.abs(matrix[i][j]) + min;
+                continue;
+            }
+            if (matrix[i][j] >= dp[i][j]) {
+                dp[i][j] = 1;
+                continue;
+            }
+            dp[i][j] = min - matrix[i][j];
+        }
+    }
+    return dp[0][0];
+}
+```
