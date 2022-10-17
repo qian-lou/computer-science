@@ -4263,3 +4263,75 @@ public static int dp(int[][] matrix) {
     return dp[0][0];
 }
 ```
+
+
+
+## 题目五十九
+
+给定一个矩阵matriⅸ，先从左上角开始，每一步只能往右或者往下走，走到右下角。然后从右下角出发，每一步只能往上或者往左走，再回到左上角。任何一个位置的数字，只能获得一遍。返回最大路径和。
+
+```java
+public class Code54 {
+
+
+    public static int comeGoMaxPathSum(int[][] matrix) {
+        return process(matrix, 0, 0, 0);
+    }
+
+    public static int process(int[][] matrix, int ar, int ac, int br) {
+        int N = matrix.length;
+        int M = matrix[0].length;
+        if (ar == N - 1 && ac == M - 1) {
+            return matrix[ar][ac];
+        }
+        int bc = ar + ac - br;
+
+        int ADownBDown = 0;
+        if (ar + 1 < N && br + 1 < N) {
+            ADownBDown = process(matrix, ar + 1, ac, br + 1);
+        }
+        int ADownBRight = 0;
+        if (ar + 1 < N && bc + 1 < M) {
+            ADownBRight = process(matrix, ar + 1, ac, br);
+        }
+        int ARightBDown = 0;
+        if (ac + 1 < M && br + 1 < N) {
+            ARightBDown = process(matrix, ar, ac + 1, br + 1);
+        }
+        int ARightBRight = 0;
+        if (ac + 1 < M && bc + 1 < M) {
+            ARightBRight = process(matrix, ar , ac + 1, br);
+        }
+
+        int nextBest = Math.max(Math.max(ADownBDown, ADownBRight), Math.max(ARightBDown, ARightBRight));
+        if (ar == br) {
+            return matrix[ar][ac] + nextBest;
+        }
+        return matrix[ar][ac] + matrix[br][bc] + nextBest;
+
+    }
+
+
+    public static void main(String[] args) {
+        int[][] m = {
+                {1,1,1,1,1,0,0,0,0,0},
+                {0,0,0,0,1,0,0,0,0,1},
+                {1,0,0,0,1,0,0,0,0,0},
+                {0,0,0,0,1,0,0,0,0,0},
+                {0,0,0,0,1,0,0,0,0,0},
+        };
+        System.out.println(comeGoMaxPathSum(m));
+    }
+}
+```
+
+优化
+
+
+
+
+
+## 题目六十
+
+给定一个无序数组arr,返回如果排序之后，相邻数之间的最大差值 {3,1,7,9},如果排序后{1,3,7,9}，相邻数之间的最大差值来自3和7，返回6
+要求：不能真的进行排序，并且要求在时间复杂度O(N)内解决
