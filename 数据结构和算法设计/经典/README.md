@@ -4366,7 +4366,7 @@ public class Code55 {
         int res = 0;
         int lastMax = maxs[0];
 
-        for (int i = 1; i < len; i++) {
+        for (int i = 1; i <= len; i++) {
             if (hasNum[i]) {
                 res = Math.max(res, mins[i] - lastMax);
                 lastMax = maxs[i];
@@ -4385,3 +4385,9 @@ public class Code55 {
 
 }
 ```
+
+
+
+## 题目六十一
+
+假设所有字符都是小写字母.大字符串是str， arr是去重的单词表，每个单词都不是空字符串且可以使用任意次使用arr中的单词有多少种拼接str的方式，返回方法数
