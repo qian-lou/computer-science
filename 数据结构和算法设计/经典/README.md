@@ -4528,3 +4528,18 @@ private static void process(Node X, int level, int preSum, int k, HashMap<Intege
 ## 题目六十三
 
 给定一个数组arr,已知除了一种数只出现1次之外，剩下所有的数都出现了k次，如何使用O(1)的额外空间，找到这个数。
+
+```java
+public static int findOnceK(int[] arr, int k) {
+    int res = 0;
+    for (int i = 0; i < 32; ++i) {
+        int bit = 0;
+        //求二进制中i位所有的和
+        for (int value : arr) {
+            bit += (value >> i) & 1;
+        }
+        res |= (bit % k) << i;
+    }
+    return res;
+}
+```
