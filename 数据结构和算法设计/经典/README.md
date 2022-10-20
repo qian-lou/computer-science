@@ -4392,6 +4392,89 @@ public class Code55 {
 
 假设所有字符都是小写字母.大字符串是str， arr是去重的单词表，每个单词都不是空字符串且可以使用任意次使用arr中的单词有多少种拼接str的方式，返回方法数
 
+递归实现
+
+```java
+//arr较多 str较短
+public static int ways(String str, String[] arr) {
+    HashSet<String> set = new HashSet<>();
+    for (String candidate : arr) {
+        set.add(candidate);
+    }
+    return process(str, 0, set);
+}
+
+public static int process(String str, int i, HashSet<String> set) {
+    if (i == str.length()) {
+        return 1;
+    }
+    int ways = 0;
+    for (int end = i + 1; end < str.length(); end++) {
+        String pre = str.substring(i, end);
+        if (set.contains(pre)) {
+            ways += process(str, end, set);
+        }
+    }
+    return ways;
+}
+
+public static class Node {
+    public boolean end;
+    public Node[] nexts;
+
+    public Node() {
+        this.end = false;
+        this.nexts = new Node[26];
+    }
+}
+
+//arr较少，str较长
+public static int ways2(String str, String[] arr) {
+    if (str == null || str.length() == 0 || arr == null || arr.length == 0) {
+        return 0;
+    }
+  	//构造前缀树
+    Node root = new Node();
+    for (String s : arr) {
+        char[] chs = s.toCharArray();
+        Node node = root;
+        int index = 0;
+        for (int i = 0; i < chs.length; i++) {
+            index = chs[i] - 'a';
+            if (node.nexts[index] == null) {
+                node.nexts[index] = new Node();
+            }
+            node = node.nexts[index];
+        }
+        node.end = true;
+    }
+    return g(str.toCharArray(), root, 0);
+}
+
+public static int g(char[] str, Node root, int i) {
+    if (i == str.length) {
+        return 1;
+    }
+    int ways = 0;
+    Node cur = root;
+    for (int end = i; end < str.length; end++) {
+        int path = str[end] - 'a';
+        if (cur.nexts[path] == null) {
+            break;
+        }
+        cur = cur.nexts[path];
+        if (cur.end) {
+            ways += g(str, root, end + 1);
+        }
+    }
+    return ways;
+}
+```
+
+动态规划
+
+。。。
+
 
 
 ## 题目六十二
@@ -4439,3 +4522,9 @@ private static void process(Node X, int level, int preSum, int k, HashMap<Intege
     }
 }
 ```
+
+
+
+## 题目六十三
+
+给定一个数组arr,已知除了一种数只出现1次之外，剩下所有的数都出现了k次，如何使用O(1)的额外空间，找到这个数。
