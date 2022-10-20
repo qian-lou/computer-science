@@ -4391,3 +4391,51 @@ public class Code55 {
 ## 题目六十一
 
 假设所有字符都是小写字母.大字符串是str， arr是去重的单词表，每个单词都不是空字符串且可以使用任意次使用arr中的单词有多少种拼接str的方式，返回方法数
+
+
+
+## 题目六十二
+
+给定一棵二叉树的头节点head,和一个数K
+路径的定义：可以从任何一个点开始，但是只能往下走，往下可以走到任何节点停止，返回路径累加和为K的所有路径中，最长的路径最多有几个节点？
+
+```java
+public static class Node {
+    public int value;
+    public Node left;
+    public Node right;
+
+    public Node(int value) {
+        this.value = value;
+    }
+}
+
+public static int ans = 0;
+
+public static int longest(Node head, int K) {
+    ans = 0;
+    HashMap<Integer, Integer> sumMap = new HashMap<>();
+    sumMap.put(0, -1);
+    process(head, 0, 0, K, sumMap);
+    return ans;
+}
+
+private static void process(Node X, int level, int preSum, int k, HashMap<Integer, Integer> sumMap) {
+    if (X != null) {
+        int allSum = preSum + X.value;
+        if (sumMap.containsKey(allSum - k)) {
+            ans = Math.max(ans, level - sumMap.get(allSum - k));
+        }
+      	//记录最早出现的
+        if (!sumMap.containsKey(allSum)) {
+            sumMap.put(allSum, level + 1);
+        }
+        process(X.left, level + 1, allSum, k, sumMap);
+        process(X.right, level + 1, allSum, k, sumMap);
+      	//擦除当前的影响
+        if (sumMap.get(allSum) == level) {
+            sumMap.remove(allSum);
+        }
+    }
+}
+```
