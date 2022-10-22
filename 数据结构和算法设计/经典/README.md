@@ -4543,3 +4543,98 @@ public static int findOnceK(int[] arr, int k) {
     return res;
 }
 ```
+
+
+
+## 题目六十四
+
+给定一个数组r,如果有某个数出现次数超过了数组长度的一半，打印这个数，如果没有不打印
+
+```java
+public class Code59 {
+    
+    public static void printHalfMajor(int[] arr) {
+        int cand = 0;
+        int hp = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (hp == 0) {
+                cand = arr[i];
+                hp++;
+            } else if (arr[i] == cand) {
+                hp++;
+            } else {
+                hp--;
+            }
+        }
+
+        if (hp == 0) {
+            System.out.println("no such number.");
+            return;
+        }
+        hp = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == cand) {
+                hp++;
+            }
+        }
+        if (hp > arr.length / 2) {
+            System.out.println(cand);
+        } else {
+            System.out.println("no such number.");
+        }
+    }
+
+
+    public static void main(String[] args) {
+        int[] arr = {2,3,4,1,1,1,1,5,1,1};
+        printHalfMajor(arr);
+    }
+}
+```
+
+给定一个数组arr和整数k,arr长度为N,如果有某些数出现次数超过了N/K, 打印这些数，如果没有不打印
+
+```java
+public static void printKMajor(int[] arr, int k) {
+    if (k < 2) {
+        System.out.println("The value of k is invalid.");
+    }
+    HashMap<Integer, Integer> map = new HashMap<>();
+    for (int i = 0; i < arr.length; i++) {
+        if (!map.containsKey(arr[i])) {
+            if (map.size() < k - 1) {
+                map.put(arr[i], 1);
+            } else {
+                Iterator<Integer> iterator = map.keySet().iterator();
+                while (iterator.hasNext()) {
+                    Integer key = iterator.next();
+                    if (map.get(key) - 1 == 0) {
+                        iterator.remove();
+                    } else {
+                        map.put(key, map.get(key) - 1);
+                    }
+                }
+
+            }
+        } else {
+            map.put(arr[i], map.get(arr[i]) + 1);
+        }
+    }
+
+    HashMap<Integer, Integer> realMap = new HashMap<>();
+    for (int i = 0; i < arr.length; i++) {
+        if (map.containsKey(arr[i])) {
+            if (realMap.containsKey(arr[i])) {
+                realMap.put(arr[i], realMap.get(arr[i]) + 1);
+            } else {
+                realMap.put(arr[i], 1);
+            }
+        }
+    }
+    for (Map.Entry<Integer, Integer> entry : realMap.entrySet()) {
+        if (entry.getValue() > arr.length / k) {
+            System.out.println(entry.getKey());
+        }
+    }
+}
+```
