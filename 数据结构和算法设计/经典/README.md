@@ -4638,3 +4638,136 @@ public static void printKMajor(int[] arr, int k) {
     }
 }
 ```
+
+
+
+## 题目六十五
+
+(最优解超难log(min(N, M)))给定两个整数数组A和B,  A是长度为m、元素从小到大排好序了, B是长度为n、元素从小到大排好序了, 希望从A和B数组中，找出最大的k个数字
+
+
+
+## 题目六十六
+
+约瑟夫环
+
+```java
+public static int getLive(int i, int m) {
+    if (i == 1) {
+        return 1;
+    }
+    return (getLive(i - 1, m) + m - 1) % i + 1;
+}
+
+public static void main(String[] args) {
+    System.out.println(getLive(5, 7));
+}
+```
+
+
+
+## 题目六十七
+
+(Lintcode 131大楼轮廓)给定一个Nx3的矩阵matriⅸ，对于每一个长度为3的小数组arr, 都表示一个大楼的三个数据。arr[0]表示大楼的左边界，arr[1]表示大楼的右边界，arr[2]表示大楼的高度（一定大于0）。每座大楼的地基都在X轴上，大楼之间可能会有重叠，请返回整体的轮廓线数组。
+【举例】matrix={{2,5,6}，{1,7,4}，{4,6,7}，{3,6,5}，{10,13,2}，{9,11,3}，{12,14,4}，{10,12,5}}
+返回：{1,2,4}，{2,4,6}，{4,6,7}，{6,7,4}，{9,10,3}，{10,12,5}，{12,14,4}
+
+```java
+public static class Op {
+    public int x;
+    public boolean isAdd;
+    public int h;
+
+    public Op(int x, boolean isAdd, int h) {
+        this.x = x;
+        this.isAdd = isAdd;
+        this.h = h;
+    }
+}
+
+public static class NodeComparator implements Comparator<Op> {
+
+    @Override
+    public int compare(Op o1, Op o2) {
+        if (o1.x != o2.x) {
+            return o1.x - o2.x;
+        }
+        if (o1.isAdd != o2.isAdd) {
+            return o1.isAdd ? 1 : -1;
+        }
+        return 0;
+    }
+}
+
+public static List<List<Integer>> buildingOutline(int[][] matrix) {
+    int N = matrix.length;
+    Op[] ops = new Op[N << 1];
+    for (int i = 0; i < matrix.length; i++) {
+        ops[i * 2] = new Op(matrix[i][0], true, matrix[i][2]);
+        ops[i * 2 + 1] = new Op(matrix[i][1], false, matrix[i][2]);
+    }
+    Arrays.sort(ops, new NodeComparator());
+
+    TreeMap<Integer, Integer> mapHeightTimes = new TreeMap<>();
+    TreeMap<Integer, Integer> mapXHeight = new TreeMap<>();
+
+    for (int i = 0; i < ops.length; i++) {
+        if (ops[i].isAdd) {
+            if (!mapHeightTimes.containsKey(ops[i].h)) {
+                mapHeightTimes.put(ops[i].h, 1);
+            } else {
+                mapHeightTimes.put(ops[i].h, mapHeightTimes.get(ops[i].h) + 1);
+            }
+        } else {
+            if (mapHeightTimes.get(ops[i].h) == 1) {
+                mapHeightTimes.remove(ops[i].h);
+            } else {
+                mapHeightTimes.put(ops[i].h, mapHeightTimes.get(ops[i].h) - 1);
+            }
+        }
+        if (mapHeightTimes.isEmpty()) {
+            mapXHeight.put(ops[i].x, 0);
+        } else {
+            mapXHeight.put(ops[i].x, mapHeightTimes.lastKey());
+        }
+    }
+    List<List<Integer>> res = new ArrayList<>();
+    int start = 0;
+    int preHeight = 0;
+    for (Map.Entry<Integer, Integer> entry : mapXHeight.entrySet()) {
+        int curX = entry.getKey();
+        int curMaxHeight = entry.getValue();
+        if (preHeight != curMaxHeight) {
+            if (preHeight != 0) {
+                res.add(new ArrayList<>(Arrays.asList(start, curX, preHeight)));
+            }
+            start = curX;
+            preHeight = curMaxHeight;
+        }
+    }
+    return res;
+}
+```
+
+
+
+## 题目六十八
+
+Nim博弈问题
+给定一个非负数组，每一个值代表该位置上有几个铜板。a和b玩游戏，a先手, b后手，轮到某个人的时候，只能在一个位置上拿任意数量的铜板，但是不能不拿。谁最先把铜板拿完谁赢。假设a和b都极度聪明，请返回获胜者的名字
+
+```java
+		// 保证arr是正数数组
+    public static void printWinner(int[] arr) {
+        int eor = 0;
+        for (int num : arr) {
+            eor ^= num;
+        }
+        if (eor == 0) {
+            System.out.println("后手赢");
+        } else {
+            System.out.println("先手赢");
+        }
+    }
+```
+
