@@ -4771,3 +4771,58 @@ Nim博弈问题
     }
 ```
 
+
+
+## 题目六十九
+
+给定一个数组arr,长度为N且每个值都是正数，代表N个人的体重。再给定一个正数limit,代表一艘船的载重。
+以下是坐船规则：
+1)每艘船最多只能坐两人；
+2)乘客的体重和不能超过limit
+返回如果同时让这N个人过河最少需要几条船。
+
+```java
+public static int minBoat(int[] arr, int limit) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        Arrays.sort(arr);
+        int N = arr.length;
+        //最大的体重 比limit大，肯定无法全部过去
+        if (arr[N - 1] > limit) {
+            return -1;
+        }
+        int lessR = -1;
+        for (int i = N - 1; i >= 0; i--) {
+            if (arr[i] <= limit / 2) {
+                lessR = i;
+                break;
+            }
+        }
+        //只能一个人坐
+        if (lessR == -1) {
+            return N;
+        }
+        int L = lessR;
+        int R = lessR + 1;
+        int noUsed = 0;
+        while (L >= 0) {
+            int solved = 0;
+            while (R < N && arr[L] + arr[R] <= limit) {
+                R++;
+                solved++;
+            }
+            if (solved == 0) {
+                //L没有让R向右动
+                L--;
+                noUsed++;
+            } else {
+                L = Math.max(-1, L - solved);
+            }
+        }
+        int all = lessR + 1;
+        int used = all - noUsed;
+        int moreUnSolved = N - all - used;
+        return used + ((noUsed + 1) >> 1) + moreUnSolved;
+    }
+```
