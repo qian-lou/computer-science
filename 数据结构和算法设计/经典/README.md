@@ -4857,3 +4857,132 @@ class Solution {
 }
 ```
 
+
+
+## 题目七十一
+
+给定一个二维数组matrix，每个单元都是一个整数，有正有负，最开始的时候小Q操纵一条长度为0的蛇蛇丛短阵最左侧任选个单元格进入地图蛇,每次只能够到达当前位置的上相邻有厕相邻和右下相邻的单元格，蛇蛇到达一个单元格后，自身的长度会瞬间加上该单元格的数值，任何情况下长度为负则游戏结束。小Q是个天才，他拥有一个超能方，可以在游戏开始的时候把地图中任何一个节点的值变为其相反数注最多只能改变一个节点)。问在小Q游戏过程中，他的蛇蛇长度可以到多少？
+比如
+
+```shell
+1 -4 10
+3 -2 -1
+2 -1 0
+0 5 -2
+```
+
+最优路径为从最左侧的3开始，3 -> -4（利用能力变成4）->10。所以返回17。
+
+暴力递归
+
+```java
+public static int walk1(int[][] matrix) {
+    if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+        return 0;
+    }
+    int res = Integer.MIN_VALUE;
+    for (int i = 0; i < matrix.length; i++) {
+        for (int j = 0; j < matrix[0].length; j++) {
+            int[] ans = process(matrix, i, j);
+            res = Math.max(res, Math.max(ans[0], ans[1]));
+        }
+    }
+    return res;
+}
+
+public static int[] process(int[][] m, int i, int j) {
+    if (j == 0) {
+        return new int[]{m[i][j], -m[i][j]};
+    }
+    int[] preAns = process(m, i, j - 1);
+    int preUnUse = preAns[0];
+    int preUse = preAns[1];
+    if (i - 1 >= 0) {
+        preAns = process(m, i - 1, j - 1);
+        preUnUse = Math.max(preUnUse, preAns[0]);
+        preUse = Math.max(preUse, preAns[1]);
+    }
+    if (i + 1 < m.length) {
+        preAns = process(m, i + 1, j - 1);
+        preUnUse = Math.max(preUnUse, preAns[0]);
+        preUse = Math.max(preUse, preAns[1]);
+    }
+    int no = -1;
+    int yes = -1;
+    if (preUnUse >= 0) {
+        no = m[i][j] + preUnUse;
+        yes = -m[i][j] + preUnUse;
+    }
+    if (preUse >= 0) {
+        yes = Math.max(yes, m[i][j] + preUse);
+    }
+    return new int[]{no, yes};
+
+}
+```
+
+动态规划
+
+```java
+public static int walk2(int[][] matrix) {
+    if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+        return 0;
+    }
+    int N = matrix.length;
+    int M = matrix[0].length;
+    int[][] dpNo = new int[N][M];
+    int[][] dpYes = new int[N][M];
+    int res = Integer.MIN_VALUE;
+    //init first col
+    for (int i = 0; i < N; i++) {
+        dpNo[i][0] = matrix[i][0];
+        dpYes[i][0] = -matrix[i][0];
+        res = Math.max(res, Math.max(dpNo[i][0], dpYes[i][0]));
+    }
+    for (int j = 1; j < M; j++) {
+        for (int i = 0; i < N; i++) {
+            int preUnUse = dpNo[i][j - 1];
+            int preUse = dpYes[i][j - 1];
+            if (i > 0) {
+                preUnUse = Math.max(preUnUse, dpNo[i - 1][j - 1]);
+                preUse = Math.max(preUse, dpYes[i - 1][j - 1]);
+            }
+            if (i < N - 1) {
+                preUnUse = Math.max(preUnUse, dpNo[i + 1][j - 1]);
+                preUse = Math.max(preUse, dpYes[i + 1][j - 1]);
+            }
+            int no = -1;
+            int yes = -1;
+            if (preUnUse >= 0) {
+                no = matrix[i][j] + preUnUse;
+                yes = -matrix[i][j] + preUnUse;
+            }
+            if (preUse >= 0) {
+                yes = Math.max(yes, preUse + matrix[i][j]);
+            }
+            dpNo[i][j] = no;
+            dpYes[i][j] = yes;
+            res = Math.max(res, Math.max(no, yes));
+        }
+    }
+    return res;
+}
+```
+
+
+
+## 题目七十二
+
+髫定返回箕部
+str表示一个公式，公式里可能有整数、加减乘除符号和左右括号，返回公式的计算结果。
+【举例】
+str="48* (70-65) - 43) + 8 * 1",返回 -1816。
+str="3+1 * 4",返回7。
+str="3+(1 * 4)",返回7。
+【说明】
+
+1. 可以认为给定的字符串一定是正确的公式，即不需要对str做公式有效性检查。
+
+2. 如果是负数，就需要用括号括起来，比如“4*(-3)"。但如果负数作为公式的头或括号部分的开头，则可以没有括号，比如"-3 * 4"和"(-3 * 4)"都是合法的。
+
+3. 不用考虑计算过程中会发生溢出的情况。
