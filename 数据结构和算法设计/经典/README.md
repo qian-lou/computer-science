@@ -4973,11 +4973,11 @@ public static int walk2(int[][] matrix) {
 
 ## 题目七十二
 
-髫定返回箕部
+计算表达式的值
 str表示一个公式，公式里可能有整数、加减乘除符号和左右括号，返回公式的计算结果。
 【举例】
-str="48* (70-65) - 43) + 8 * 1",返回 -1816。
-str="3+1 * 4",返回7。
+str="48* ((70-65) - 43) + 8 * 1",返回 -1816。
+str="3+1*4",返回7。
 str="3+(1 * 4)",返回7。
 【说明】
 
@@ -4986,3 +4986,77 @@ str="3+(1 * 4)",返回7。
 2. 如果是负数，就需要用括号括起来，比如“4*(-3)"。但如果负数作为公式的头或括号部分的开头，则可以没有括号，比如"-3 * 4"和"(-3 * 4)"都是合法的。
 
 3. 不用考虑计算过程中会发生溢出的情况。
+
+```java
+public static int expressCompute(String s) {
+    return f(s.toCharArray(), 0)[0];
+}
+
+public static int[] f(char[] str, int i) {
+    LinkedList<String> queue = new LinkedList<>();
+    int num = 0;
+    int[] next = null;
+    while (i < str.length && str[i] != ')') {
+        if (isNum(str[i])) {
+            //收集数字
+            num = num * 10 + str[i++] - '0';
+        } else if (str[i] != '(') {
+            //遇到 + - * / 将前一个数字 和当前符号入栈 数字不能直接入栈
+            addNum(queue, num);
+            queue.addLast(String.valueOf(str[i++]));
+            num = 0;
+        } else {
+            //遇到 (
+            next = f(str, i + 1);
+            num = next[0];
+            i = next[1] + 1;
+        }
+    }
+    addNum(queue, num);
+    return new int[] {getNum(queue), i};
+}
+public static boolean isNum(char c) {
+    return c >= '0' && c <= '9';
+}
+
+public static void addNum(LinkedList<String> queue, int num) {
+    if (!queue.isEmpty()) {
+        String top = queue.pollLast();
+        //当前栈顶是+- 直接放回去
+        if (top.equals("+") || top.equals("-")) {
+            queue.addLast(top);
+        } else {
+            //如果是* / 需要再拿一个数出来和num计算 然后再将结果放回栈
+            int cur = Integer.valueOf(queue.pollLast());
+            num = top.equals("*") ? (cur * num) : (cur / num);
+        }
+    }
+    queue.addLast(String.valueOf(num));
+}
+
+public static int getNum(LinkedList<String> queue) {
+    int res = 0;
+    int num = 0;
+    String cur = null;
+    boolean isAdd = true;
+    while (!queue.isEmpty()) {
+        cur = queue.pollFirst();
+        if (cur.equals("+")) {
+            isAdd = true;
+        } else if (cur.equals("-")) {
+            isAdd = false;
+        } else {
+            //数字
+            num = Integer.parseInt(cur);
+            res += isAdd ? num : (-num);
+        }
+    }
+    return res;
+}
+
+
+public static void main(String[] args) {
+    String str = "48*((70-65)-43)+8*1";
+    System.out.println(expressCompute(str));
+}
+```
