@@ -5060,3 +5060,194 @@ public static void main(String[] args) {
     System.out.println(expressCompute(str));
 }
 ```
+
+
+
+## 题目七十三
+
+对于一个字符串，从前开始读和从后开始读是，一样的，我们就称这个字符串是回文串。例如"ABCBA""AA","A"是回文串，而"ABCD”,“AAB“不是回文串。牛牛特别喜欢回文串，他手中有一个字符串s，牛牛在思考能否从字符串中移除部分(0个或多个字符)使其变为回文串，并且牛牛认为空串不是回文串。牛牛发现移除的方案可能有很多种，希望你来帮他计算一下一共有多少种移除方案可以使s变为回文串。对于两种移除方案，如果移除的字符依次构成的序列不一样就是不同的方案。
+例如，XXY4种ABA5种
+【说明】这是今年的原题，提供的说明和例子都很让人费解。现在根据当时题目的所有测试用例，重新解释当时的题目
+含义：
+1)"1AB23CD21”,你可以选择删除A、B、C、D,然后剩下子序列{1,2,3,2,1}，只要剩下的子序列是同一个，那么就只算1种方法，和A、B、C、D选择什么样的删除顺序没有关系。
+2)"121A1"其中有两个121的子序列，第一个{1,2,1}是由位置0，位置1，位置2构成，第二个{1,2,1}是由{位置0，位置1，位置4构成。这两
+个子序列被认为是不同的子序列。
+3)其实这道题是想求，str中有多少个不同的子序列，每一种子序列只对应一种删除方法，那就是把多余的东西去掉，而和去掉的顺序无关。
+4)也许你觉得我的解释很荒谬，但真的是这样，不然解释不了为什么，XXY4种ABA5种，而且其他的测试用例都印证了这一点。
+
+```java
+public static int ways(String str) {
+    char[] s = str.toCharArray();
+    int N = s.length;
+    int[][] dp = new int[N][N];
+    for (int i = 0; i < N; i++) {
+        dp[i][i] = 1;
+    }
+    for (int i = 0; i < N - 1; i++) {
+        dp[i][i + 1] = s[i] == s[i + 1] ? 3 : 2;
+    }
+    for (int i = N - 3; i >= 0 ; i--) {
+        for (int j = i + 2; j < N; j++) {
+            dp[i][j] =dp[i + 1][j] + dp[i][j - 1] -  dp[i + 1][j - 1];
+            if (s[i] == s[j]) {
+                dp[i][j] += dp[i + 1][j - 1] + 1;
+            }
+        }
+    }
+    return dp[0][N - 1];
+}
+
+public static void main(String[] args) {
+    System.out.println(ways("aba"));
+}
+```
+
+
+
+## 题目七十四
+
+给定一个正数1，裂开的方法有一种，(1)；给定一个正数2，裂开的方法有两种(1和1)、(2) ；给定一个正数3，裂开的方法有三种，(1、1、1)、(1、2)、(3)；给定一个正数4，裂开的方法有五种，(1、1、1、1)、(1、1、2)、(1、3)、(2、2)、(4)；  给定一个正数，求裂开的方法数。动态规划优化状态依赖的技巧
+
+递归
+
+```java
+public static int ways(int n) {
+        if (n < 1) {
+            return 0;
+        }
+        return process(1, n);
+    }
+
+    public static int process(int pre, int rest) {
+        if (rest == 0) {
+            return 1;
+        }
+        if (pre > rest) {
+            return 0;
+        }
+        int ways = 0;
+        for (int i = pre; i <= rest; i++) {
+            ways += process(i, rest - i);
+        }
+        return ways;
+    }
+```
+
+动态规划
+
+```java
+public static int dp(int n) {
+    if (n < 1) {
+        return 0;
+    }
+    int[][] dp = new int[n + 1][n + 1];
+    for (int i = 1; i <= n; i++) {
+        dp[i][0] = 1;
+    }
+    for (int pre = n; pre >= 1; pre--) {
+        for (int rest = pre; rest <= n; rest++) {
+            int ways = 0;
+            for (int i = pre; i <= rest; i++) {
+                ways += dp[i][rest - i];
+            }
+            dp[pre][rest] = ways;
+        }
+    }
+    return dp[1][n];
+}
+```
+
+斜率优化后不需要枚举
+
+```java
+public static int dp1(int n) {
+    if (n < 1) {
+        return 0;
+    }
+    int[][] dp = new int[n + 1][n + 1];
+    for (int i = 1; i <= n; i++) {
+        dp[i][0] = 1;
+    }
+    dp[n][n] = 1;
+    for (int pre = n - 1; pre >= 1; pre--) {
+        for (int rest = pre; rest <= n; rest++) {
+            dp[pre][rest] = dp[pre + 1][rest] + dp[pre][rest - pre];
+        }
+    }
+    return dp[1][n];
+}
+```
+
+
+
+## 题目七十五
+
+给定一个正数N,代表你有1~N这些数字。在给定一个整数K。
+你可以随意排列这些数字，但是每一种排列都有若干个逆序对。返回有多少种排列，正好有K个逆序对
+例子1：Input:n = 3,k =0   Output:1
+解释 只有[1,2,3]这一个排列有0个逆序对。
+例子2：Input:n = 3,k=1  Output:2
+解释 [3,2,1]有(3,2)、(3,1)、(2,1)三个逆序对，所以不达标。达标的只有：[1,3,2] [2,1,3]
+
+动态规划
+
+```java
+public static int dp(int N, int K) {
+    if (N < 1 || K < 0 || N * (N - 1) / 2 < K) {
+        return 0;
+    }
+    if (K == 0) {
+        return 1;
+    }
+    int[][] dp = new int[N + 1][K + 1];
+    for (int i = 1; i <= N; i++) {
+        dp[i][0] = 1;
+    }
+    for (int i = 2; i <= N; i++) {
+        for (int j = 1; j <= K; j++) {
+            for (int k = j; k >= Math.max(0, j - i + 1); k--) {
+                dp[i][j] += dp[i - 1][k];
+            }
+        }
+    }
+    return dp[N][K];
+}
+```
+
+斜率优化 去掉枚举行为
+
+```java
+public static int dp2(int N, int K) {
+    if (N < 1 || K < 0 || N * (N - 1) / 2 < K) {
+        return 0;
+    }
+    if (K == 0) {
+        return 1;
+    }
+    int[][] dp = new int[N + 1][K + 1];
+    for (int i = 1; i <= N; i++) {
+        dp[i][0] = 1;
+    }
+    for (int i = 2; i <= N; i++) {
+        for (int j = 1; j <= K; j++) {
+            dp[i][j] = dp[i][j - 1] + dp[i - 1][j] - (i <= j ? dp[i - 1][j - i] : 0);
+        }
+    }
+    return dp[N][K];
+}
+```
+
+for test
+
+```java
+public static void main(String[] args) {
+    int N = 10000;
+    int K = 2000;
+    long start = System.currentTimeMillis();
+    System.out.println(dp(N, K));
+    long end = System.currentTimeMillis();
+    System.out.println("耗时: " + (end - start) + " ms");
+    System.out.println(dp2(N, K));
+    System.out.println("耗时: " + (System.currentTimeMillis() - end) + " ms");
+}
+```
