@@ -5251,3 +5251,167 @@ public static void main(String[] args) {
     System.out.println("耗时: " + (System.currentTimeMillis() - end) + " ms");
 }
 ```
+
+
+
+## 题目七十六
+
+给定一棵二叉树的头节点head,已知所有节点的值都不一样，返回其中最大的且符合搜索二叉树条件的最大拓扑结构的大小。
+拓扑结构：不是子树，只要能连起来的结构都算。
+
+```java
+public static class Node {
+    public int value;
+    public Node left;
+    public Node right;
+
+    public Node(int value) {
+        this.value = value;
+    }
+}
+
+
+public static class Record {
+    public int l;
+    public int r;
+
+    public Record(int l, int r) {
+        this.l = l;
+        this.r = r;
+    }
+}
+
+
+public static int bstTopsSize(Node head) {
+    Map<Node, Record> map = new HashMap<>();
+    return postOrder(head, map);
+}
+private static int postOrder(Node root, Map<Node, Record> map) {
+    if (root == null) {
+        return 0;
+    }
+    int ls = postOrder(root.left, map);
+    int rs = postOrder(root.right, map);
+    //生成其左孩子节点的记录
+    modifyMap(root.left, root.value, map, true);
+    //生成其右孩子节点的记录
+    modifyMap(root.right, root.value, map, false);
+    //拿到左孩子的记录
+    Record lr = map.get(root.left);
+    //拿到右孩子的记录
+    Record rr = map.get(root.right);
+    //计算左孩子为头的拓扑贡献记录
+    int lbst = lr == null ? 0 : lr.l + lr.r + 1;
+    //计算右孩子为头的拓扑贡献记录
+    int rbst = rr == null ? 0 : rr.l + rr.r + 1;
+    //生成当前节点为头的拓扑贡献记录
+    map.put(root, new Record(lbst, rbst));
+    //判断以当前节点为头、以左/右孩子为头，二者哪个更大，找出所有节点的最大拓扑结构中最大的那个
+    return Math.max(lbst + rbst + 1, Math.max(ls, rs));
+}
+
+public static int modifyMap(Node root, int v, Map<Node, Record> map, boolean isLNode) {
+    if (root == null || !map.containsKey(root)) {
+        return 0;
+    }
+    Record r = map.get(root);
+    //root是左孩子且比头结点的值大，或root是右孩子且比头结点的值小，说明不满足BST，故删除
+    if ((isLNode && root.value > v) || (!isLNode && root.value < v)) {
+        map.remove(root);
+        //返回总共删掉的节点
+        return r.l + r.r + 1;
+    } else {
+        //root满足bst
+        // 如果是左子树，则递归其右边界；如果是右子树，则递归其左边界
+        int minus = modifyMap(isLNode ? root.right : root.left, v, map, isLNode);
+        if (isLNode) {
+            //左子树，则其右子树的贡献记录被更新
+            r.r = r.r - minus;
+        } else {
+            //右子树，则其左子树的贡献记录被更新
+            r.l = r.l - minus;
+        }
+        //更新后的记录同步到map中
+        map.put(root, r);
+        return minus;
+    }
+}
+```
+
+
+
+## 题目七十七
+
+给定一个长度为偶数的数组arr,长度记为2N。前N个为左部分，后N个为右部分。arr就可以表示为[L1,L2,Ln,R1,R2,,Rn]请将数组调整成
+[R1,L1,R2,L2,Rn,Ln]的样子。要求：时间复杂度O(N) 空间复杂度O(1) (完美洗牌问题)
+
+```java
+public static int modifyIndex1(int i, int len) {
+    if (i <= len / 2) {
+        return i * 2;
+    }
+    return 2 * (i - len / 2) - 1;
+}
+
+public static int modifyIndex2(int i, int len) {
+    return (2 * i) % (len + 1);
+}
+
+
+public static void shuffle(int[] arr) {
+    if (arr != null && arr.length != 0 && (arr.length & 1) == 0) {
+        shuffle(arr, 0, arr.length - 1);
+    }
+}
+
+public static void shuffle(int[] arr, int L, int R) {
+    while (R - L + 1 > 0) {
+        int len = R - L + 1;
+        int base = 3;
+        int k = 1;
+        while (base <= (len + 1) / 3) {
+            base *= 3;
+            k++;
+        }
+        int half = (base - 1) / 2;
+        int mid = (L + R) / 2;
+        rotate(arr, L + half, mid, mid + half);
+        cycles(arr, L, base - 1, k);
+        L = L + base - 1;
+    }
+}
+
+public static void cycles(int[] arr, int start, int len, int k) {
+    for (int i = 0, trigger = 1; i < k; i++, trigger *= 3) {
+        int preValue = arr[trigger + start - 1];
+        int cur = modifyIndex2(trigger, len);
+        while (cur != trigger) {
+            int temp = arr[cur + start - 1];
+            arr[cur + start - 1] = preValue;
+            preValue = temp;
+            cur = modifyIndex2(cur, len);
+        }
+        arr[cur + start - 1] = preValue;
+    }
+}
+
+public static void rotate(int[] arr, int L, int M, int R) {
+    reverse(arr, L, M);
+    reverse(arr, M + 1, R);
+    reverse(arr, L, R);
+}
+
+public static void reverse(int[] arr, int L, int R) {
+    while (L < R) {
+        int temp = arr[L];
+        arr[L++] = arr[R];
+        arr[R--] = temp;
+    }
+}
+
+public static void main(String[] args) {
+    int[] arr = {1,2,3,4,5,6,7,8};
+    shuffle(arr);
+    System.out.println(Arrays.toString(arr));
+}
+```
