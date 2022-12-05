@@ -5502,3 +5502,404 @@ private static int getInternalSum(int k) {
     return k == 1 ? 0 : (k * (k - 1) / 2);
 }
 ```
+
+
+
+## 题目七十九
+
+一棵二叉树原本是搜索二叉树，但是其中有两个节点调换了位置，使得这棵二叉树不再是搜索二叉树，请找到这两个错误节点并返回。已知二叉树中所有节点的值都不一样，给定二叉树的头节点head,返回一个长度为2的二叉树节点类型的数组errs,errs[0]表示一个错误节点，errs[1]表示另一个错误节点。
+进阶：如果在原问题中得到了这两个错误节点，我们当然可以通过交换两个节点的节点值的方式让整棵二叉树重新成为搜索二叉树。但现在要求你不能这么做，而是在结构上完全交换两个节点的位置，请实现调整的函数
+
+```java
+private TreeNode firstElement = null;
+    private TreeNode secondElement = null;
+    private TreeNode lastElement = new TreeNode(Integer.MIN_VALUE); 
+    
+    private void traverse(TreeNode root) {
+        if (root == null) {
+            return;
+        }
+        traverse(root.left);
+        if (firstElement == null && root.val < lastElement.val) {
+            firstElement = lastElement;
+        }
+        if (firstElement != null && root.val < lastElement.val) {
+            secondElement = root;
+        }
+        lastElement = root;
+        traverse(root.right);
+    }
+    
+    public void recoverTree(TreeNode root) {
+        // traverse and get two elements
+        traverse(root);
+        // swap
+        int temp = firstElement.val;
+        firstElement.val = secondElement.val;
+        secondElement.val = temp;
+    }
+```
+
+
+
+## 题目八十
+
+给定一个非负数组arr,和一个正数m，返回arr的所有子序列中累加和%m之后的最大值。
+
+```java
+//暴力解
+    public static int max0(int[] arr, int m) {
+        HashSet<Integer> set = new HashSet<>();
+        process(arr, 0, 0, set);
+        int max = 0;
+        for (Integer sum : set) {
+            max = Math.max(max, sum % m);
+        }
+        return max;
+    }
+    public static void process(int[] arr, int index, int sum, HashSet<Integer> set) {
+        if (index == arr.length) {
+            set.add(sum);
+            return;
+        }
+        process(arr, index + 1, sum, set);
+        process(arr, index + 1, sum + arr[index], set);
+    }
+    
+    //m比较小 sum比较大
+    public static int max1(int[] arr, int m) {
+        int N = arr.length;
+        boolean[][] dp = new boolean[N][m];
+        for (int i = 0; i < N; i++) {
+            dp[i][0] = true;
+        }
+        dp[0][arr[0] % m] = true;
+        for (int i = 1; i < N; i++) {
+            for (int j = 1; j < m; j++) {
+                dp[i][j] = dp[i - 1][j];
+                int cur = arr[i] % m;
+                if (j - cur >= 0) {
+                    dp[i][j] = dp[i][j] | dp[i - 1][j - cur];
+                }
+                if (j - cur < 0) {
+                    dp[i][j] = dp[i][j] | dp[i - 1][m + j - cur];
+                }
+            }
+        }
+        for (int j = m - 1; j >= 0; j--) {
+            if (dp[N - 1][j]) {
+                return j;
+            }
+        }
+        return 0;
+    }
+    //sum比较小，m比较大
+    public static int max2(int[] arr, int m) {
+        int sum = 0;
+        int N = arr.length;
+        for (int i = 0; i < N; i++) {
+            sum += arr[i];
+        }
+        boolean[][] dp = new boolean[N][sum + 1];
+        for (int i = 0; i < N; i++) {
+            dp[i][0] = true;
+        }
+        dp[0][arr[0]] = true;
+        for (int i = 1; i < N; i++) {
+            for (int j = 1; j <= sum; j++) {
+                dp[i][j] = dp[i - 1][j];
+                if (j - arr[i] >= 0) {
+                    dp[i][j] = dp[i][j] | dp[i - 1][j - arr[i]];
+                }
+            }
+        }
+        int ans = 0;
+        for (int i = 0; i <= sum; i++) {
+            if (dp[N - 1][i]) {
+                ans = Math.max(ans, i % m);
+            }
+        }
+        return ans;
+    }
+
+    //sum和m都比较大 数组的长度比较小
+    //分治
+    public static int max3(int[] arr, int m) {
+        if (arr.length == 1) {
+            return arr[0] % m;
+        }
+        int mid = (arr.length - 1) / 2;
+        TreeSet<Integer> set1 = new TreeSet<>();
+        process3(arr, 0, mid, 0, m, set1);
+        TreeSet<Integer> set2 = new TreeSet<>();
+        process3(arr, mid + 1, arr.length - 1, 0, m, set2);
+        int ans = 0;
+        for (Integer left : set1) {
+            ans = Math.max(ans, left + set2.floor(m - 1 - left));
+        }
+        return ans;
+    }
+    public static void process3(int[] arr, int index, int end, int sum, int m, TreeSet<Integer> sortSet) {
+        if (index == end + 1) {
+            sortSet.add(sum % m);
+            return;
+        }
+        process3(arr, index + 1, end, sum, m, sortSet);
+        process3(arr, index + 1, end, sum + arr[index], m, sortSet);
+    }
+
+
+		//测试数据
+    public static int[] generateRandomArray(int len, int value) {
+        int[] ans = new int[(int) (Math.random() * len) + 1];
+        for (int i = 0; i < ans.length; i++) {
+            ans[i] = (int) (Math.random() * value);
+        }
+        return ans;
+    }
+
+    public static void main(String[] args) {
+        int len = 10;
+        int value = 100;
+        int m = 76;
+        int testTime = 500000;
+        System.out.println("test begin");
+        for (int i = 0; i < testTime; i++) {
+            int[] arr = generateRandomArray(len, value);
+            int ans1 = max1(arr, m);
+            int ans2 = max2(arr, m);
+            int ans3 = max3(arr, m);
+            int ans4 = max0(arr, m);
+            if (ans1 != ans2 || ans2 != ans3 || ans3 != ans4) {
+                System.out.println("Oops!");
+            }
+        }
+        System.out.println("test finish!");
+
+    }
+```
+
+
+
+## 题目八十一
+
+项目有四个信息
+1)哪个项目经理提的
+2)被项目经理润色出来的时间点
+
+3)项目优先级
+4)项目花费的时间
+项目经理们可以提交项目给程序员们，程序员可以做这些项目
+比如长度为4的数组[1,3,2,2]，表示1号项目经理提的，被项目经理润色出来的时间点是3，优先级2，花费程序员2个时间。
+所以给二个N*4的矩阵，就可以代表N个项目
+给定一个正数pm,表示项目经理的数量，每个项目经理只负责自己的那些项目，并且一次只能提交一个项目给程序员们，这个提交的项目做完了才能更次提交。经理对项目越喜欢，就会越早提交。一个项自优先级越高越被喜欢；如果优先级一样，花费时间越少越喜欢：如果还一样，被项目经理润色出来的时间点越早越喜欢。给定一个正数sde, 表示程序员的数量，所有经理提交了的项目，程序员会选择自己喜欢的项目做，每个人做完了一个项目，然后才会再来挑选。当程序员在挑选项目时，有自己的喜欢标准，有自己的喜欢标准。一个项目花费时间越少越被喜欢；如果花费时间一样，该项目的负责人编号越小越被喜欢。返回一个长度为N的数组，表示N个项目的结束时间。
+比如：
+int pms 2:
+int sde =2:
+int programs={{1,1,1,2}, {1,2,1,1}, {1,3,2,2},  {2,1,1,2},  {2,3,5,5}}
+返回{3,4,5,3,9}
+
+```java
+public class Code6 {
+
+    public static class Program {
+        public int index;
+        public int pm;
+        public int start;
+        public int rank;
+        public int cost;
+
+        public Program(int index, int pmNum, int start, int rank, int cost) {
+            this.index = index;
+            this.start = start;
+            this.rank = rank;
+            this.cost = cost;
+            this.pm = pmNum;
+        }
+    }
+
+    public static class PmLoveRule implements Comparator<Program> {
+
+        @Override
+        public int compare(Program o1, Program o2) {
+            if (o1.rank != o2.rank) {
+                return o1.rank - o2.rank;
+            }
+            if (o1.cost != o2.cost) {
+                return o1.cost - o2.cost;
+            }
+            return o1.start - o2.start;
+        }
+    }
+
+    public static class BigQueues {
+        private List<PriorityQueue<Program>> pmQueues;
+
+        private Program[] sdeHeap;
+        //indexes[i] -> i号pm的堆项目，在sde堆中的位置
+        private int[] indexes;
+        private int heapSize;
+
+        public BigQueues(int pmNum) {
+            this.heapSize = 0;
+            this.sdeHeap = new Program[pmNum];
+            this.indexes = new int[pmNum + 1];
+            for (int i = 0; i <= pmNum; i++) {
+                indexes[i] = -1;
+            }
+            this.pmQueues = new ArrayList<>();
+            for (int i = 0; i <= pmNum; i++) {
+                this.pmQueues.add(new PriorityQueue<>(new PmLoveRule()));
+            }
+        }
+
+
+        public boolean isEmpty() {
+            return heapSize == 0;
+        }
+
+        public void add(Program program) {
+            PriorityQueue<Program> pmHeap = pmQueues.get(program.pm);
+            pmHeap.add(program);
+            Program head = pmHeap.peek();
+            int heapIndex = indexes[head.pm];
+            if (heapIndex == -1) {
+                sdeHeap[heapSize] = head;
+                indexes[head.pm] = heapSize;
+                heapInsert(heapSize++);
+            } else {
+                sdeHeap[heapIndex] = head;
+                heapInsert(heapIndex);
+                heapify(heapIndex);
+            }
+        }
+
+
+
+
+        public Program pop() {
+            Program heap = sdeHeap[0];
+            PriorityQueue<Program> queue = pmQueues.get(heap.pm);
+            queue.poll();
+            if (queue.isEmpty()) {
+                swap(0, heapSize - 1);
+                sdeHeap[--heapSize] = null;
+                indexes[heap.pm] = -1;
+            } else {
+                sdeHeap[0] = queue.peek();
+            }
+            heapify(0);
+            return heap;
+        }
+
+        private void heapInsert(int index) {
+            while (index != 0) {
+                int parent = (index - 1) / 2;
+                if (sdeLoveRule(sdeHeap[parent], sdeHeap[index]) > 0) {
+                    swap(parent, index);
+                    index = parent;
+                } else {
+                    break;
+                }
+            }
+        }
+        private void heapify(int index) {
+            int left = index * 2 + 1;
+            int right = index * 2 + 2;
+            int best = index;
+            while (left < heapSize) {
+                if (sdeLoveRule(sdeHeap[left], sdeHeap[index])< 0) {
+                    best = left;
+                }
+                if (right < heapSize && sdeLoveRule(sdeHeap[right], sdeHeap[best]) < 0) {
+                    best = right;
+                }
+                if (best == index) {
+                    break;
+                }
+                swap(best, index);
+                index = best;
+                left = index * 2 + 1;
+                right = index * 2 + 2;
+            }
+        }
+
+        private void swap(int index1, int index2) {
+            Program t = sdeHeap[index1];
+            sdeHeap[index1] = sdeHeap[index2];
+            sdeHeap[index2] = t;
+        }
+
+        private int sdeLoveRule(Program p1, Program p2) {
+            if (p1.cost != p2.cost) {
+                return p1.cost - p2.cost;
+            } else {
+                return p1.pm - p2.pm;
+            }
+        }
+
+    }
+
+
+    public static class StartRule implements Comparator<Program> {
+
+        @Override
+        public int compare(Program o1, Program o2) {
+            return o1.start - o2.start;
+        }
+
+    }
+
+
+
+    public static int[] workFinish(int pms, int sdes, int[][] programs) {
+        PriorityQueue<Program> startQueue = new PriorityQueue<>(new StartRule());
+        for (int i = 0; i < programs.length; i++) {
+            Program program = new Program(i, programs[i][0], programs[i][1], programs[i][2], programs[i][3]);
+            startQueue.add(program);
+        }
+
+        PriorityQueue<Integer> sdeWakeQueue = new PriorityQueue<>();
+        for (int i = 0; i < sdes; i++) {
+            sdeWakeQueue.add(1);
+        }
+
+        BigQueues bigQueues = new BigQueues(pms);
+        int finish = 0;
+        int[] ans = new int[programs.length];
+        while (finish != ans.length) {
+            int sdeWakeTime = sdeWakeQueue.poll();
+            while (!startQueue.isEmpty()) {
+                if (startQueue.peek().start > sdeWakeTime) {
+                    break;
+                }
+                bigQueues.add(startQueue.poll());
+            }
+            if (bigQueues.isEmpty()) {
+                sdeWakeQueue.add(startQueue.peek().start);
+            } else {
+                Program program = bigQueues.pop();
+                ans[program.index] = sdeWakeTime + program.cost;
+                sdeWakeQueue.add(ans[program.index]);
+                finish++;
+            }
+        }
+        return ans;
+    }
+
+
+    public static void main(String[] args) {
+        int pms = 2;
+        int sde = 2;
+        int[][] programs = { { 1, 1, 1, 2 }, { 1, 2, 1, 1 }, { 1, 3, 2, 2 }, { 2, 1, 1, 2 }, { 2, 3, 5, 5 } };
+        int[] ans = workFinish(pms, sde, programs);
+        printArray(ans);
+    }
+
+    public static void printArray(int[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            System.out.println(arr[i]);
+        }
+    }
+}
+```
