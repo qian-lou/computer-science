@@ -5903,3 +5903,255 @@ public class Code6 {
     }
 }
 ```
+
+
+
+## 题目八十二
+
+自由之路https://leetcode.cn/problems/freedom-trail/
+
+暴力递归(dfs)
+
+```java
+class Solution {
+    public int findRotateSteps(String r, String key) {
+        char[] ring = r.toCharArray();
+        int size = ring.length;
+        HashMap<Character, ArrayList<Integer>> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            if (!map.containsKey(ring[i])) {
+                map.put(ring[i], new ArrayList<>());
+            }
+            map.get(ring[i]).add(i);
+        }
+        return minSteps1(0, 0, key.toCharArray(), map, size);
+    }
+
+    public int minSteps1(int preStrIndex, int keyIndex, char[] key, HashMap<Character, ArrayList<Integer>> map, int size) {
+        if (keyIndex == key.length) {
+            return 0;
+        }
+        int ans = Integer.MAX_VALUE;
+        for (int curStrIndex : map.get(key[keyIndex])) {
+            int step = dial(preStrIndex, curStrIndex, size) + 1 + minSteps1(curStrIndex, keyIndex + 1, key, map, size);
+            ans = Math.min(ans, step);
+        }
+        return ans;
+    }
+
+    
+    public int dial(int index1, int index2, int size) {
+        return Math.min(Math.abs(index1 - index2), Math.min(index1, index2) + size - Math.max(index1, index2));
+    }
+}
+```
+
+记忆化搜索
+
+```java
+class Solution {
+    public int findRotateSteps(String r, String key) {
+        char[] ring = r.toCharArray();
+        int size = ring.length;
+        HashMap<Character, ArrayList<Integer>> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            if (!map.containsKey(ring[i])) {
+                map.put(ring[i], new ArrayList<>());
+            }
+            map.get(ring[i]).add(i);
+        }
+        return minSteps2(0, 0, key.toCharArray(), map, size, new int[size][key.length()]);
+    }
+
+    public int minSteps2(int preStrIndex, int keyIndex, char[] key, HashMap<Character, ArrayList<Integer>> map, int size, int[][] cache) {
+        if (keyIndex == key.length) {
+            return 0;
+        }
+        if (cache[preStrIndex][keyIndex] != 0) {
+            return cache[preStrIndex][keyIndex];
+        }
+        int ans = Integer.MAX_VALUE;
+        for (int curStrIndex : map.get(key[keyIndex])) {
+            int step = dial(preStrIndex, curStrIndex, size) + 1 + minSteps2(curStrIndex, keyIndex + 1, key, map, size, cache);
+            ans = Math.min(ans, step);
+        }
+        cache[preStrIndex][keyIndex] = ans;
+        return ans;
+    }
+
+
+    public int dial(int index1, int index2, int size) {
+        return Math.min(Math.abs(index1 - index2), Math.min(index1, index2) + size - Math.max(index1, index2));
+    }
+}
+```
+
+动态规划
+
+```java
+class Solution {
+    public int findRotateSteps(String r, String key) {
+        char[] ring = r.toCharArray();
+        int size = ring.length;
+        HashMap<Character, ArrayList<Integer>> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            if (!map.containsKey(ring[i])) {
+                map.put(ring[i], new ArrayList<>());
+            }
+            map.get(ring[i]).add(i);
+        }
+        return dp(size, key.length(), key.toCharArray(), map);
+    }
+
+    
+    public int dp(int size, int len, char[] key, HashMap<Character, ArrayList<Integer>> map) {
+        int[][] dp = new int[size][len + 1];
+        for (int j = len - 1; j >= 0; j--) {
+            for (int i = size - 1; i >= 0; i--) {
+                int ans = Integer.MAX_VALUE;
+                for (int curStrIndex : map.get(key[j])) {
+                    int step = dial(i, curStrIndex, size) + 1 + dp[curStrIndex][j + 1];
+                    ans = Math.min(ans, step);
+                }
+                dp[i][j] = ans;
+            }
+        }
+        return dp[0][0];
+    }
+
+
+    public int dial(int index1, int index2, int size) {
+        return Math.min(Math.abs(index1 - index2), Math.min(index1, index2) + size - Math.max(index1, index2));
+    }
+}
+```
+
+
+
+## 题目八十三
+
+有 `n` 个气球，编号为`0` 到 `n - 1`，每个气球上都标有一个数字，这些数字存在数组 `nums` 中。
+
+现在要求你戳破所有的气球。戳破第 `i` 个气球，你可以获得 `nums[i - 1] * nums[i] * nums[i + 1]` 枚硬币。 这里的 `i - 1` 和 `i + 1` 代表和 `i` 相邻的两个气球的序号。如果 `i - 1`或 `i + 1` 超出了数组的边界，那么就当它是一个数字为 `1` 的气球。
+
+求所能获得硬币的最大数量。
+
+**示例 1：**
+
+```
+输入：nums = [3,1,5,8]
+输出：167
+解释：
+nums = [3,1,5,8] --> [3,5,8] --> [3,8] --> [8] --> []
+coins =  3*1*5    +   3*5*8   +  1*3*8  + 1*8*1 = 167
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,5]
+输出：10
+```
+
+**提示：**
+
+- `n == nums.length`
+- `1 <= n <= 300`
+- `0 <= nums[i] <= 100`
+
+
+
+暴力递归
+
+```java
+public static int process(int[] arr, int L, int R) {
+    if (L == R) {
+        return arr[L - 1] * arr[L] * arr[R + 1];
+    }
+    int max = Math.max(
+            arr[L - 1] * arr[L] * arr[R + 1] + process(arr, L + 1, R),
+            arr[L - 1] * arr[R] * arr[R + 1] + process(arr, L, R - 1));
+    for (int i = L + 1; i < R; i++) {
+        max = Math.max(max, arr[L - 1] * arr[i] * arr[R + 1] + process(arr, L, i - 1) + process(arr, i + 1, R));
+    }
+    return max;
+}
+
+public static int maxCoins1(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    if (arr.length == 1) {
+        return arr[0];
+    }
+    int N = arr.length;
+    int[] help = new int[N + 2];
+    help[0] = 1;
+    help[N + 1] = 1;
+    for (int i = 0; i < N; i++) {
+        help[i + 1] = arr[i];
+    }
+    return process(help, 1, N);
+}
+```
+
+记忆化搜索
+
+```java
+public static int maxCoins2(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    if (arr.length == 1) {
+        return arr[0];
+    }
+    int N = arr.length;
+    int[] help = new int[N + 2];
+    help[0] = 1;
+    help[N + 1] = 1;
+    for (int i = 0; i < N; i++) {
+        help[i + 1] = arr[i];
+    }
+    return process2(help, 1, N, new int[help.length][help.length]);
+}
+
+public static int process2(int[] arr, int L, int R, int[][] cache) {
+    if (L == R) {
+        return arr[L - 1] * arr[L] * arr[R + 1];
+    }
+    if (cache[L][R] != 0) {
+        return cache[L][R];
+    }
+    int max = Math.max(
+            arr[L - 1] * arr[L] * arr[R + 1] + process2(arr, L + 1, R, cache),
+            arr[L - 1] * arr[R] * arr[R + 1] + process2(arr, L, R - 1, cache));
+    for (int i = L + 1; i < R; i++) {
+        max = Math.max(max, arr[L - 1] * arr[i] * arr[R + 1] + process2(arr, L, i - 1, cache) + process2(arr, i + 1, R, cache));
+    }
+    cache[L][R] = max;
+    return max;
+}
+```
+
+动态规划
+
+```java
+public int maxCoins(int[] nums) {
+        int N = nums.length;
+        int[][] dp = new int[N + 2][N + 2];
+        int[] help = new int[N + 2];
+        help[0] = help[N + 1] = 1;
+        for (int i = 0; i < N; i++) {
+            help[i + 1] = nums[i];
+        }
+        for (int L = N - 1; L >= 0; L--) {
+            for (int R = L + 2; R <= N + 1; R++) {
+                for (int i = L + 1; i < R; i++) {
+                    dp[L][R] = Math.max(dp[L][R], help[L] * help[i] * help[R] + dp[L][i] + dp[i][R]);
+                }
+            }
+        }
+        return dp[0][N + 1];
+    }
+```
+
