@@ -6155,3 +6155,189 @@ public int maxCoins(int[] nums) {
     }
 ```
 
+
+
+## 题目八十四
+
+正则表达式匹配
+
+给你一个字符串 `s` 和一个字符规律 `p`，请你来实现一个支持 `'.'` 和 `'*'` 的正则表达式匹配。
+
+- `'.'` 匹配任意单个字符
+- `'*'` 匹配零个或多个前面的那一个元素
+
+所谓匹配，是要涵盖 **整个** 字符串 `s`的，而不是部分字符串。
+
+**示例 1：**
+
+```
+输入：s = "aa", p = "a"
+输出：false
+解释："a" 无法匹配 "aa" 整个字符串。
+```
+
+**示例 2:**
+
+```
+输入：s = "aa", p = "a*"
+输出：true
+解释：因为 '*' 代表可以匹配零个或多个前面的那一个元素, 在这里前面的元素就是 'a'。因此，字符串 "aa" 可被视为 'a' 重复了一次。
+```
+
+**示例 3：**
+
+```
+输入：s = "ab", p = ".*"
+输出：true
+解释：".*" 表示可匹配零个或多个（'*'）任意字符（'.'）。
+```
+
+**提示：**
+
+- `1 <= s.length <= 20`
+- `1 <= p.length <= 30`
+- `s` 只包含从 `a-z` 的小写字母。
+- `p` 只包含从 `a-z` 的小写字母，以及字符 `.` 和 `*`。
+- 保证每次出现字符 `*` 时，前面都匹配到有效的字符
+
+
+
+暴力递归
+
+```java
+public static boolean isMatch(String s, String p) {
+        if (s == null || p == null) {
+            return false;
+        }
+        char[] str = s.toCharArray();
+        char[] exp = p.toCharArray();
+        return isValid(str, exp) && process(str, exp, 0, 0);
+    }
+public static boolean isValid(char[] str, char[] exp) {
+        for (int i = 0; i < str.length; i++) {
+            if (str[i] == '*' || str[i] == '.') {
+                return false;
+            }
+        }
+        for (int i = 0; i < exp.length; i++) {
+            if (exp[i] == '*' && (i == 0 || exp[i - 1] == '*')) {
+                return false;
+            }
+        }
+        return true;
+    }
+public static boolean process(char[] str, char[] exp, int si, int ei) {
+    if (ei == exp.length) {
+        return si == str.length;
+    }
+    //ei + 1 的位置不是*
+    if (ei + 1 == exp.length || exp[ei + 1] != '*') {
+        return si != str.length && (exp[ei] == str[si] || exp[ei] == '.') && process(str, exp, si + 1, ei + 1);
+    }
+    while (si != str.length && (exp[ei] == str[si] || exp[ei] == '.')) {
+         if (process(str, exp, si, ei + 2)) {
+             return true;
+         }
+         si++;
+    }
+    return process(str, exp, si, ei + 2);
+}
+```
+
+记忆化搜索
+
+```java
+class Solution {
+    public static boolean isMatch(String s, String p) {
+        if (s == null || p == null) {
+            return false;
+        }
+        char[] str = s.toCharArray();
+        char[] exp = p.toCharArray();
+        return isValid(str, exp) && process2(str, exp, 0, 0, new int[str.length + 1][exp.length + 1]);
+    }
+
+    public static boolean isValid(char[] str, char[] exp) {
+        for (int i = 0; i < str.length; i++) {
+            if (str[i] == '*' || str[i] == '.') {
+                return false;
+            }
+        }
+        for (int i = 0; i < exp.length; i++) {
+            if (exp[i] == '*' && (i == 0 || exp[i - 1] == '*')) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public static boolean process2(char[] str, char[] exp, int si, int ei, int[][] cache) {
+        if (cache[si][ei] != 0) {
+            return cache[si][ei] == 1;
+        }
+        boolean ans = false;
+        if (ei == exp.length) {
+            ans = si == str.length;
+            cache[si][ei] = ans ? 1 : -1;
+            return ans;
+        }
+        //ei + 1 的位置不是*
+        if (ei + 1 == exp.length || exp[ei + 1] != '*') {
+            ans = si != str.length && (exp[ei] == str[si] || exp[ei] == '.') && process2(str, exp, si + 1, ei + 1, cache);
+            cache[si][ei] = ans ? 1 : -1;
+            return ans;
+        }
+        while (si != str.length && (exp[ei] == str[si] || exp[ei] == '.')) {
+            if (process2(str, exp, si, ei + 2, cache)) {
+                cache[si][ei] = 1;
+                return true;
+            }
+            si++;
+        }
+        ans = process2(str, exp, si, ei + 2, cache);
+        cache[si][ei] = ans ? 1 : -1;
+        return ans;
+    }
+}
+```
+
+动态规划
+
+```java
+public static boolean isMatch3(String str, String pattern) {
+		if (str == null || pattern == null) {
+			return false;
+		}
+		char[] s = str.toCharArray();
+		char[] p = pattern.toCharArray();
+		if (!isValid(s, p)) {
+			return false;
+		}
+		int N = s.length;
+		int M = p.length;
+		boolean[][] dp = new boolean[N + 1][M + 1];
+		dp[N][M] = true;
+		for (int j = M - 1; j >= 0; j--) {
+			dp[N][j] = (j + 1 < M && p[j + 1] == '*') && dp[N][j + 2];
+		}
+		// dp[0..N-2][M-1]都等于false，只有dp[N-1][M-1]需要讨论
+		if (N > 0 && M > 0) {
+			dp[N - 1][M - 1] = (s[N - 1] == p[M - 1] || p[M - 1] == '.');
+		}
+		for (int i = N - 1; i >= 0; i--) {
+			for (int j = M - 2; j >= 0; j--) {
+				if (p[j + 1] != '*') {
+					dp[i][j] = ((s[i] == p[j]) || (p[j] == '.')) && dp[i + 1][j + 1];
+				} else {
+					if ((s[i] == p[j] || p[j] == '.') && dp[i + 1][j]) {
+						dp[i][j] = true;
+					} else {
+						dp[i][j] = dp[i][j + 2];
+					}
+				}
+			}
+		}
+		return dp[0][0];
+	}
+```
+
