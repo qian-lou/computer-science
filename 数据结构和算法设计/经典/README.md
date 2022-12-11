@@ -6341,3 +6341,135 @@ public static boolean isMatch3(String str, String pattern) {
 	}
 ```
 
+
+
+## 题目八十五
+
+数组arr相邻的k个合并为1个数字，最终将arr合并为1个数字的最小代价
+
+暴力递归
+
+```java
+public static int mergeStones1(int[] stones, int K) {
+    int N = stones.length;
+    if ((N - 1) % (K - 1) > 0) {
+        return -1;
+    }
+    int[] presum  = new int[N + 1];
+    for (int i = 0; i < N; i++) {
+        presum[i + 1] = presum[i] + stones[i];
+    }
+    return process1(0, N - 1, 1, presum, K, presum);
+}
+
+public static int process1(int L, int R, int part, int[] arr, int K, int[] presum) {
+    if (L == R) {
+        return part == 1 ? 0 : -1;
+    }
+    if (part == 1) {
+        int next = process1(L, R, K, arr, K, presum);
+        if (next == -1) {
+            return -1;
+        }
+        return next + presum[R + 1] - presum[L];
+    }
+    int ans = Integer.MAX_VALUE;
+    for (int mid = L; mid < R; mid += K - 1) {
+        int next1 = process1(L, mid, 1, arr, K, presum);
+        int next2 = process1(mid + 1, R, part - 1, arr, K, presum);
+        if (next1 != -1 && next2 != -1) {
+            ans = Math.min(ans, next1 + next2);
+        }
+    }
+    return ans;
+}
+```
+
+记忆化搜索
+
+```java
+public static int mergeStones2(int[] stones, int K) {
+    int N = stones.length;
+    if ((N - 1) % (K - 1) > 0) {
+        return -1;
+    }
+    int[] presum = new int[N + 1];
+    for (int i = 0; i < N; i++) {
+        presum[i + 1] = presum[i] + stones[i];
+    }
+    int[][][] dp = new int[N][N][K + 1];
+    return process2(0, N - 1, 1, stones, K, presum, dp);
+}
+
+public static int process2(int L, int R, int part, int[] arr, int K, int[] presum, int[][][] dp) {
+    if (dp[L][R][part] != 0) {
+        return dp[L][R][part];
+    }
+    if (L == R) {
+        return part == 1 ? 0 : -1;
+    }
+    if (part == 1) {
+        int next = process2(L, R, K, arr, K, presum, dp);
+        if (next == -1) {
+            dp[L][R][part] = -1;
+            return -1;
+        }
+        dp[L][R][part] = next + presum[R + 1] - presum[L];
+        return dp[L][R][part];
+    }
+    int ans = Integer.MAX_VALUE;
+    for (int mid = L; mid < R; mid += K - 1) {
+        int next1 = process2(L, mid, 1, arr, K, presum, dp);
+        int next2 = process2(mid + 1, R, part - 1, arr, K, presum, dp);
+        if (next1 != -1 && next2 != -1) {
+            ans = Math.min(ans, next1 + next2);
+        } else {
+            dp[L][R][part] = -1;
+            return -1;
+        }
+    }
+    dp[L][R][part] = ans;
+    return ans;
+}
+```
+
+测试
+
+```java
+// for test
+public static int[] generateRandomArray(int maxSize, int maxValue) {
+    int[] arr = new int[(int) (maxSize * Math.random()) + 1];
+    for (int i = 0; i < arr.length; i++) {
+        arr[i] = (int) ((maxValue + 1) * Math.random());
+    }
+    return arr;
+}
+
+// for test
+public static void printArray(int[] arr) {
+    if (arr == null) {
+        return;
+    }
+    for (int i = 0; i < arr.length; i++) {
+        System.out.print(arr[i] + " ");
+    }
+    System.out.println();
+}
+
+public static void main(String[] args) {
+    int maxSize = 12;
+    int maxValue = 100;
+    System.out.println("Test begin");
+    for (int testTime = 0; testTime < 100000; testTime++) {
+        int[] arr = generateRandomArray(maxSize, maxValue);
+        int K = (int) (Math.random() * 7) + 2;
+        int ans1 = mergeStones1(arr, K);
+        int ans2 = mergeStones2(arr, K);
+        if (ans1 != ans2) {
+            System.out.println(ans1);
+            System.out.println(ans2);
+        }
+    }
+
+}
+```
