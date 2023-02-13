@@ -17,7 +17,7 @@ class Solution {
 }
 ```
 
-## 2. 两数相加
+## 2.两数相加
 
 https://leetcode.cn/problems/add-two-numbers/
 
@@ -457,7 +457,7 @@ class Solution {
 
 
 
-## 14. 最长公共前缀
+## 14.最长公共前缀
 
 https://leetcode.cn/problems/longest-common-prefix/
 
@@ -532,7 +532,7 @@ class Solution {
 
 
 
-## 17. 电话号码的字母组合
+## 17.电话号码的字母组合
 
 https://leetcode.cn/problems/letter-combinations-of-a-phone-number/?favorite=2ckc81c
 
@@ -606,4 +606,179 @@ class Solution {
     }
 }
 ```
+
+
+
+## 20.有效的括号
+
+https://leetcode.cn/problems/valid-parentheses/?favorite=2ckc81c
+
+```java
+class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        char[] str = s.toCharArray();
+        for (char ch : str) {
+            if (ch == '(') {
+                stack.push(')');
+            } else if (ch == '[') {
+                stack.push(']');
+            } else if (ch == '{') {
+                stack.push('}');
+            } else if (stack.isEmpty() || stack.pop()!= ch) {
+                return false;
+            }
+        }
+        return stack.isEmpty();
+    }
+}
+```
+
+
+
+## 21.合并两个有序链表
+
+https://leetcode.cn/problems/merge-two-sorted-lists/
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode newHead = new ListNode();
+        ListNode cur = newHead;
+        ListNode cur1 = list1;
+        ListNode cur2 = list2;
+        while (cur1 != null && cur2 != null) {
+            if (cur1.val <= cur2.val) {
+                cur.next = cur1;
+                cur1 = cur1.next;
+            } else {
+                cur.next = cur2;
+                cur2 = cur2.next;
+            }
+            cur = cur.next;
+        }
+        cur.next = cur1 == null ? cur2 : cur1;
+        return newHead.next;
+    }
+}
+```
+
+
+
+## 22.括号生成
+
+https://leetcode.cn/problems/generate-parentheses/
+
+```java
+class Solution {
+    public List<String> generateParenthesis(int n) {
+        char[] chs = new char[n << 1];
+        List<String> res = new ArrayList<>();
+        process(chs, 0, n, 0, res);
+        return res;
+    }
+    
+    public void process(char[] chs, int index, int leftRest, int leftMinusRight, List<String> res) {
+        if (index == chs.length) {
+            res.add(String.valueOf(chs));
+            return;
+        }
+        if (leftRest > 0) {
+            chs[index] = '(';
+            process(chs, index + 1, leftRest - 1, leftMinusRight + 1, res);
+        } 
+        if (leftMinusRight > 0) {
+            chs[index] = ')';
+            process(chs, index + 1, leftRest, leftMinusRight - 1, res);
+        }
+    }
+}
+```
+
+
+
+## 23.合并K个升序链表
+
+https://leetcode.cn/problems/merge-k-sorted-lists/?favorite=2ckc81c
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) {
+            return null;
+        }
+        PriorityQueue<ListNode> heap = new PriorityQueue<>(Comparator.comparingInt(o -> o.val));
+        for (ListNode list : lists) {
+            if (list != null) {
+                heap.add(list);
+            }
+        }
+        ListNode head = new ListNode();
+        ListNode cur = head;
+        while (!heap.isEmpty()) {
+            ListNode node = heap.poll();
+            cur.next = node;
+            cur = cur.next;
+            if (node.next != null) {
+                heap.add(node.next);
+            }
+        }
+        return head.next;
+    }
+}
+```
+
+
+
+## 26.删除有序数组中的重复项
+
+https://leetcode.cn/problems/remove-duplicates-from-sorted-array/
+
+```java
+class Solution {
+    public int removeDuplicates(int[] nums) {
+        int index = 0;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] != nums[i - 1]) {
+                nums[++index] = nums[i];
+            }
+        }
+        return index + 1;
+    }
+}
+```
+
+
+
+## 28.找出字符串中第一个匹配项的下标
+
+https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/?favorite=2ckc81c
+
+Kmp
+
+
+
+## 29.两数相除
+
+https://leetcode.cn/problems/divide-two-integers/?favorite=2ckc81c
 
