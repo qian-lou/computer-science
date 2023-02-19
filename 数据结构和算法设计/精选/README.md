@@ -782,3 +782,351 @@ Kmp
 
 https://leetcode.cn/problems/divide-two-integers/?favorite=2ckc81c
 
+```java
+class Solution {
+    public int divide(int dividend, int divisor) {
+        if (divisor == Integer.MIN_VALUE) {
+            return dividend == Integer.MIN_VALUE ? 1 : 0;
+        }
+        if (dividend == Integer.MIN_VALUE) {
+            if (divisor == negNum(1)) {
+                return Integer.MAX_VALUE;
+            }
+            int res = div(add(dividend, 1), divisor);
+            return add(res, div(minus(dividend, multi(res, divisor)), divisor));
+        }
+        return div(dividend, divisor);
+    }
+
+    public static int add(int a, int b) {
+        int t = a;
+        while (b != 0) {
+            t = t ^ b;
+            b = (a & b) << 1;
+            a = t;
+        }
+        return a;
+    }
+
+    public static int minus(int a, int b) {
+        return add(a, add(~b, 1));
+    }
+
+    public static int multi(int a, int b) {
+        int res = 0;
+        while (b != 0) {
+            if ((b & 1) == 1) {
+                res = add(res, a);
+            }
+            a <<= 1;
+            b >>>= 1;
+        }
+        return res;
+    }
+
+    public static int div(int a, int b) {
+        int x = isNeg(a) ? negNum(a) : a;
+        int y = isNeg(b) ? negNum(b) : b;
+        int res = 0;
+        for (int i = 31; i >= 0; i = minus(i, 1)) {
+            if ((x >> i) >= y) {
+                res |= (1 << i);
+                x = minus(x, y << i);
+            }
+        }
+        return isNeg(a) ^ isNeg(b) ? negNum(res) : res;
+    }
+
+    public static boolean isNeg(int x) {
+        return ((x >> 31) & 1) == 1;
+    }
+    public static int negNum(int x) {
+        return add(~x, 1);
+    }
+}
+```
+
+
+
+## 33.搜索旋转排序数组
+
+https://leetcode.cn/problems/search-in-rotated-sorted-array/
+
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int L = 0;
+        int R = nums.length - 1;
+        while (L <= R) {
+            int M = (L + R) / 2;
+            if (nums[M] == target) {
+                return M;
+            }
+            if (nums[L] == nums[M] && nums[R] == nums[M]) {
+                while (L < M && nums[L] == nums[M]) {
+                    L++;
+                }
+                if (L == M) {
+                    L = M + 1;
+                    continue;
+                }
+            }
+            if (nums[L] != nums[M]) {
+                if (nums[L] < nums[M]) {
+                    if (target >= nums[L] && target < nums[M]) {
+                        R = M - 1;
+                    } else {
+                        L = M + 1;
+                    }
+                } else {
+                    if (target > nums[M] && target <= nums[R]) {
+                        L = M + 1;
+                    } else {
+                        R = M - 1;
+                    }
+                }
+            } else {
+                if (nums[M] < nums[R]) {
+                    if (target > nums[M] && target <= nums[R]) {
+                        L = M + 1;
+                    } else {
+                        R = M - 1;
+                    }
+                } else {
+                    if (target >= nums[L] && target < nums[M]) {
+                        R = M - 1;
+                    } else{
+                        L = M + 1;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+}
+```
+
+
+
+## 34.在排序数组中查找元素的第一个和最后一个位置
+
+https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/?favorite=2ckc81c
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        if (nums == null || nums.length == 0) {
+            return new int[] {-1, -1};
+        }
+        int[] ans = new int[2];
+        ans[0] = find(nums, target, true);
+        ans[1] = find(nums, target, false);
+        return ans;
+    }
+
+    public int find(int[] nums, int target, boolean left) {
+        int L = 0, R = nums.length - 1, mid = 0, ans = -1;
+        while (L <= R) {
+            mid = L + ((R - L) >> 1);
+            if (nums[mid] < target) {
+                L = mid + 1;
+            } else if (nums[mid] > target) {
+                R = mid - 1;
+            } else {
+                ans = mid;
+                if (left) {
+                    R = mid - 1;
+                } else {
+                    L = mid + 1;
+                }
+            }
+        }
+        return ans;
+    }
+}
+```
+
+
+
+## 36.有效的数独
+
+https://leetcode.cn/problems/valid-sudoku/
+
+```java
+class Solution {
+    public boolean isValidSudoku(char[][] board) {
+        boolean[][] row = new boolean[9][10];
+        boolean[][] col = new boolean[9][10];
+        boolean[][] bucket = new boolean[9][10];
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] != '.') {
+                    int bid = 3 * (i / 3) + (j / 3);
+                    int num = board[i][j] - '0';
+                    if (row[i][num] || col[j][num] || bucket[bid][num]) {
+                        return false;
+                    }
+                    row[i][num] = true;
+                    col[j][num] = true;
+                    bucket[bid][num] = true;
+                }
+            }
+        }
+        return true;
+    }
+}
+```
+
+
+
+## 37.解数独
+
+https://leetcode.cn/problems/sudoku-solver/
+
+```java
+class Solution {
+   public void solveSudoku(char[][] board) {
+        boolean[][] row = new boolean[9][10];
+        boolean[][] col = new boolean[9][10];
+        boolean[][] bucket = new boolean[9][10];
+        init(board, row, col, bucket);
+        process(board, 0, 0, row, col, bucket);
+    }
+
+    public boolean process(char[][] board, int i, int j, boolean[][] row, boolean[][] col, boolean[][] bucket) {
+        if (i == 9) {
+            return true;
+        }
+        int nexti = j != 8 ? i : i + 1;
+        int nextj = j != 8 ? j + 1 : 0;
+        if (board[i][j] != '.') {
+            return process(board, nexti, nextj, row ,col, bucket);
+        }
+        for (int num = 1; num <= 9; num++) {
+            int bid = 3 * (i / 3) + j / 3;
+            if (valid(i, j, bid, num, row, col, bucket)) {
+                setCache(i, j, bid, num, row, col, bucket, true);
+                board[i][j] = (char) (num + '0');
+                if (process(board, nexti, nextj, row ,col, bucket)) {
+                    return true;
+                }
+                setCache(i, j, bid, num, row, col, bucket, false);
+                board[i][j] = '.';
+            }
+        }
+        return false;
+    }
+    
+    public void setCache(int i, int j, int bid, int num, boolean[][] row, boolean[][] col, boolean[][] bucket, boolean value) {
+        row[i][num] = value;
+        col[j][num] = value;
+        bucket[bid][num] = value;
+    }
+
+    public boolean valid(int i, int j, int bid, int num, boolean[][] row, boolean[][] col, boolean[][] bucket) {
+        return !row[i][num] && !col[j][num] && !bucket[bid][num];
+    }
+
+    public void init(char[][] board, boolean[][] row, boolean[][] col, boolean[][] bucket) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] != '.') {
+                    int bid = 3 * (i / 3) + j / 3;
+                    int num = board[i][j] - '0';
+                    setCache(i, j, bid, num, row, col, bucket, true);
+                }
+            }
+        }
+    }
+}
+```
+
+
+
+## 38.外观数列
+
+https://leetcode.cn/problems/count-and-say/
+
+```java
+class Solution {
+    public String countAndSay(int n) {
+        String str = "1";
+        for (int i = 2; i <= n; i++) {
+            int index = 0, end = 0;
+            int len = str.length();
+            StringBuilder sb = new StringBuilder();
+            while (end < len) {
+                while (end < len && str.charAt(end) == str.charAt(index)) {
+                    end++;
+                }
+                String sub = str.substring(index, end);
+                sb.append(trans(sub));
+                index = end;
+            }
+            str = sb.toString();
+        }
+        return str;
+    }
+    
+    public String trans(String str) {
+        return str.length() + "" + str.charAt(0);
+    }
+}
+```
+
+
+
+## 41.缺失的第一个正数
+
+https://leetcode.cn/problems/first-missing-positive/
+
+```java
+class Solution {
+    public int firstMissingPositive(int[] nums) {
+        int L = 0, R = nums.length;
+        while (L < R) {
+            if (nums[L] == L + 1) {
+                L++;
+            } else if (nums[L] <= L || nums[L] > R || nums[nums[L] - 1] == nums[L]) {
+                nums[L] = nums[--R];
+            } else {
+              	//交换 nums[L] 和 nums[nums[L] - 1]的值
+                int tmp = nums[L];
+                nums[L] = nums[tmp - 1];
+                nums[tmp - 1] = tmp;
+            }
+        }
+        return L + 1;
+    }
+}
+```
+
+
+
+## 42.接雨水
+
+https://leetcode.cn/problems/trapping-rain-water/
+
+```java
+class Solution {
+    public int trap(int[] height) {
+        if (height.length < 3) {
+            return 0;
+        }
+        int L = 0, R = height.length - 1;
+        int leftMax = height[L++], rightMax = height[R--];
+        int total = 0;
+        while (L <= R) {
+            if (leftMax < rightMax) {
+                total += Math.max(0, leftMax - height[L]); 
+                leftMax = Math.max(leftMax, height[L++]);
+            } else {
+                total += Math.max(0, rightMax - height[R]);
+                rightMax = Math.max(rightMax, height[R--]);
+            }
+        }
+        return total;
+    }
+}
+```
+
