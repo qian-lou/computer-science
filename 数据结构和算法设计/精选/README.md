@@ -1130,3 +1130,116 @@ class Solution {
 }
 ```
 
+
+
+## 44. 通配符匹配
+
+https://leetcode.cn/problems/wildcard-matching/
+
+暴力递归
+
+```java
+class Solution {
+    public boolean isMatch(String s, String p) {
+        return process(s.toCharArray(), p.toCharArray(), 0, 0);
+    }
+
+    public boolean process(char[] s, char[] p, int si, int pi) {
+        if (si == s.length) {
+            return pi == p.length || p[pi] == '*' && process(s, p, si, pi + 1);
+        }
+        if (pi == p.length) {
+            return si == s.length;
+        }
+        if (p[pi] != '?' && p[pi] != '*') {
+            return p[pi] == s[si] && process(s, p, si + 1, pi + 1);
+        }
+        if (p[pi] == '?') {
+            return process(s, p, si + 1, pi + 1);
+        }
+        for (int len = 0; len <= s.length - si; len++) {
+            if (process(s, p, si + len, pi + 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+记忆化搜索
+
+```java
+class Solution {
+    public boolean isMatch(String s, String p) {
+        return f(s.toCharArray(), p.toCharArray(), 0, 0, new int[s.length() + 1][p.length() + 1]);
+    }
+
+    public boolean f(char[] s, char[] p, int si, int pi, int[][] dp) {
+        if (dp[si][pi] != 0) {
+            return dp[si][pi] == 1;
+        }
+        if (si == s.length) {
+            boolean ans = pi == p.length || p[pi] == '*' && f(s, p, si, pi + 1, dp);
+            dp[si][pi] = ans ? 1 : -1;
+            return ans;
+        }
+        if (pi == p.length) {
+            boolean ans = si == s.length;
+            dp[si][pi] = ans ? 1 : -1;
+            return ans;
+        }
+        if (p[pi] != '?' && p[pi] != '*') {
+            boolean ans = p[pi] == s[si] && f(s, p, si + 1, pi + 1, dp);
+            dp[si][pi] = ans ? 1 : -1;
+            return ans;
+        }
+        if (p[pi] == '?') {
+            boolean ans = f(s, p, si + 1, pi + 1, dp);
+            dp[si][pi] = ans ? 1 : -1;
+            return ans;
+        }
+        for (int len = 0; len <= s.length - si; len++) {
+            if (f(s, p, si + len, pi + 1, dp)) {
+                dp[si][pi] = 1;
+                return true;
+            }
+        }
+        dp[si][pi] = -1;
+        return false;
+    }
+}
+```
+
+动态规划
+
+```java
+class Solution {
+    public boolean isMatch(String s, String p) {
+        char[] str = s.toCharArray();
+        char[] pattern = p.toCharArray();
+        int N = str.length;
+        int M = pattern.length;
+        boolean[][] dp = new boolean[N + 1][M + 1];
+        dp[N][M] = true;
+        for (int j = M - 1; j >= 0; j--) {
+            dp[N][j] = pattern[j] == '*' && dp[N][j + 1];
+        }
+        for (int i = N - 1; i >= 0; i--) {
+            for (int j = M - 1; j >= 0; j--) {
+                if (pattern[j] != '?' && pattern[j] != '*') {
+                    dp[i][j] = str[i] == pattern[j] && dp[i + 1][j + 1];
+                    continue;
+                }
+                if (pattern[j] == '?') {
+                    dp[i][j] = dp[i + 1][j + 1];
+                    continue;
+                }
+                dp[i][j] = dp[i + 1][j] || dp[i][j + 1];
+            }
+        }
+        return dp[0][0];
+    }
+}
+```
+
