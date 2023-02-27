@@ -1243,3 +1243,104 @@ class Solution {
 }
 ```
 
+
+
+
+
+## 55.跳跃游戏
+
+https://leetcode.cn/problems/jump-game/
+
+```java
+class Solution {
+    public boolean canJump(int[] nums) {
+        int max = nums[0], N = nums.length;
+        for (int i = 1; i < N; i++) {
+            if (i > max) {
+                return false;
+            }
+            if (max >= N - 1) {
+                return true;
+            }
+            max = Math.max(max, i + nums[i]);
+        }
+        return true;
+    }
+}
+```
+
+```java
+class Solution {
+    public boolean canJump(int[] nums) {
+        int endReachIndex = nums.length - 1;
+        for (int i = nums.length - 1; i >= 0; i--) {
+            if (nums[i] + i >= endReachIndex) {
+                endReachIndex = i;
+            }
+        }
+        return endReachIndex == 0;
+    }
+}
+```
+
+
+
+## 45.跳跃游戏
+
+https://leetcode.cn/problems/jump-game-ii/
+
+```java
+class Solution {
+    public int jump(int[] nums) {
+        int step = 0, cur = 0, next = 0, N = nums.length;
+        for (int i = 0; i < N; i++) {
+            if (i > cur) {
+                step++;
+                cur = next;
+            }
+            next = Math.max(next, i + nums[i]);
+            if (cur >= N) break;
+        }
+        return step;
+    }
+}
+```
+
+
+
+## 46.全排列
+
+https://leetcode.cn/problems/permutations/
+
+```java
+class Solution {
+    public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<>();
+        p(nums, 0, ans);
+        return ans;
+    }
+    public void p(int[] nums, int index, List<List<Integer>> ans) {
+        if (index == nums.length) {
+            List<Integer> res = new ArrayList<>();
+            for (int num : nums) {
+                res.add(num);
+            }
+            ans.add(res);
+            return;
+        }
+        for (int i = index; i < nums.length; i++) {
+            swap(nums, i, index);
+            p(nums, index + 1, ans);
+            swap(nums, i, index);
+        }
+    }
+    public void swap(int[] nums, int i, int j) {
+        if (i != j) {
+            nums[i] = nums[i] ^ nums[j];
+            nums[j] = nums[i] ^ nums[j];
+            nums[i] = nums[i] ^ nums[j];
+        }
+    }
+}
+```
+
