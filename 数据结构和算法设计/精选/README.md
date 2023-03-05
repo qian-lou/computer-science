@@ -1344,3 +1344,243 @@ class Solution {
 }
 ```
 
+
+
+
+
+## 687. 最长同值路径
+
+https://leetcode.cn/problems/longest-univalue-path/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public int longestUnivaluePath(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        return dfs(root).max - 1;
+    }
+
+    public Info dfs(TreeNode node) {
+        if (node == null) {
+            return new Info(0, 0);
+        }
+        Info leftInfo = dfs(node.left);
+        Info rightInfo = dfs(node.right);
+        int len = 1;
+        if (node.left != null && node.left.val == node.val) {
+            len = leftInfo.len + 1;
+        }
+        if (node.right != null && node.right.val == node.val) {
+            len = Math.max(len, rightInfo.len + 1);
+        }
+        int max = Math.max(Math.max(leftInfo.max, rightInfo.max), len);
+        if (node.left != null && node.right != null && node.left.val == node.val && node.right.val == node.val) {
+            max = Math.max(max, leftInfo.len + rightInfo.len + 1);
+        }
+        return new Info(len, max);
+    }
+
+    public class Info {
+      	//包含当前节点的最大同值路径，单边的
+        public int len;
+      	//当前节点的最大同值路径
+        public int max;
+        public Info(int len, int max) {
+            this.len = len;
+            this.max = max;
+        }
+    }
+
+
+}
+```
+
+优化版本
+
+```java
+class Solution {
+    int max = 1;
+    public int longestUnivaluePath(TreeNode root) {
+        dfs(root);
+        return max - 1;
+    }
+
+    public int dfs(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+        TreeNode left = node.left;
+        TreeNode right = node.right;
+        int l = dfs(left);
+        int r = dfs(right);
+        int cur = 1;
+        if (left != null && left.val == node.val) {
+            cur = l + 1;
+        }
+        if (right != null && right.val == node.val) {
+            cur = Math.max(cur, r + 1);
+        }
+        max = Math.max(max, cur);
+        if (left != null && right != null && left.val == node.val && right.val == node.val) {
+            max = Math.max(max, l + r + 1);
+        }
+        return cur;
+    }
+}
+```
+
+
+
+## 48.旋转图像
+
+https://leetcode.cn/problems/rotate-image/
+
+题解一 旋转
+
+```java
+class Solution {
+    public void rotate(int[][] matrix) {
+        int i1 = 0, j1 = 0;
+        int i2 = matrix.length - 1, j2 = i2;
+        while (i1 < i2) {
+            rotate(matrix, i1++, j1++, i2--, j2--);
+        }
+    }
+
+
+    public void rotate(int[][] matrix, int i1, int j1, int i2, int j2) {
+        int times = j2 - j1;
+        int tmp = 0;
+        for (int i = 0; i < times; i++) {
+            tmp = matrix[i1][j1 + i];
+            matrix[i1][j1 + i] = matrix[i2 - i][j1];
+            matrix[i2 - i][j1] = matrix[i2][j2 - i];
+            matrix[i2][j2 - i] = matrix[i1 + i][j2];
+            matrix[i1 + i][j2] = tmp;
+        }
+    }
+}
+```
+
+题解二 反转
+
+```java
+class Solution {
+    public void rotate(int[][] matrix) {
+        int N = matrix.length;
+        //上下反转
+        for (int i = 0; i < N / 2; i++) {
+            for (int j = 0; j < N; j++) {
+                swap(matrix, i, j, N - 1 - i, j);
+            }
+        }
+        //对角线反转
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < i; j++) {
+                swap(matrix, i, j, j, i);
+            }
+        }
+    }
+
+    public void swap(int[][] matrix, int i1, int j1, int i2, int j2) {
+        int tmp = matrix[i1][j1];
+        matrix[i1][j1] = matrix[i2][j2];
+        matrix[i2][j2] = tmp;
+    }
+}
+```
+
+
+
+## 50. Pow(x, n)
+
+https://leetcode.cn/problems/powx-n/
+
+```java
+class Solution {
+    public double myPow(double x, int n) {
+        if (n == 0) {
+            return 1d;
+        }
+        int pow = Math.abs(n == Integer.MIN_VALUE ? n + 1 : n);
+        double ans = 1d;
+        double t = x;
+        while (pow != 0) {
+            if ((pow & 1) == 1) {
+                ans *= t;
+            }
+            t *= t;
+            pow >>= 1;
+        }
+        if (n == Integer.MIN_VALUE) {
+            ans *= x;
+        }
+        return n < 0 ? (1d / ans) : ans;
+    }
+}
+```
+
+
+
+
+
+## 54. 螺旋矩阵
+
+https://leetcode.cn/problems/spiral-matrix/
+
+```java
+class Solution {
+    public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> ans = new ArrayList<>();
+        int i1 = 0, j1 = 0, i2 = matrix.length - 1, j2 = matrix[0].length - 1;
+        while (i1 <= i2 && j1 <= j2) {
+            spiral(matrix, i1++, j1++, i2--, j2--, ans);
+        }
+        return ans;
+    }
+
+    public void spiral(int[][] matrix, int i1, int j1, int i2, int j2, List<Integer> ans) {
+        if (i1 == i2) {
+            for (int j = j1; j <= j2; j++) {
+                ans.add(matrix[i1][j]);
+            }
+            return;
+        }
+        if (j1 == j2) {
+            for (int i = i1; i <= i2; i++) {
+                ans.add(matrix[i][j1]);
+            }
+            return;
+        }
+        for (int j = j1; j < j2; j++) {
+            ans.add(matrix[i1][j]);
+        }
+        for (int i = i1; i < i2; i++) {
+            ans.add(matrix[i][j2]);
+        }
+        for (int j = j2; j > j1; j--) {
+            ans.add(matrix[i2][j]);
+        }
+        for (int i = i2; i > i1; i--) {
+            ans.add(matrix[i][j1]);
+        }
+    }
+}
+```
+
