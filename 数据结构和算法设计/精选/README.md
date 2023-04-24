@@ -1538,6 +1538,26 @@ class Solution {
 
 
 
+## 53. 最大子数组和
+
+https://leetcode.cn/problems/maximum-subarray/?favorite=2ckc81c
+
+```java
+class Solution {
+    public int maxSubArray(int[] nums) {
+        int dp = nums[0];
+        int max = dp;
+        for (int i = 1; i < nums.length; i++) {
+            dp = Math.max(nums[i], dp + nums[i]);
+            max = Math.max(max, dp);
+        }
+        return max;
+    }
+}
+```
+
+
+
 
 
 ## 54. 螺旋矩阵
@@ -1580,6 +1600,1065 @@ class Solution {
         for (int i = i2; i > i1; i--) {
             ans.add(matrix[i][j1]);
         }
+    }
+}
+```
+
+
+
+## 56. 合并区间
+
+https://leetcode.cn/problems/merge-intervals/
+
+```java
+class Solution {
+    public int[][] merge(int[][] intervals) {
+        Arrays.sort(intervals, (o1, o2) -> o1[0] - o2[0]);
+        int start = intervals[0][0];
+        int end = intervals[0][1];
+        int[][] tmp = new int[intervals.length][2];
+        int index = 0;
+        for (int i = 1; i < intervals.length; i++) {
+            int[] interval = intervals[i];
+            if (interval[0] > end) {
+                tmp[index++] = new int[] {start, end};
+                start = interval[0];
+                end = interval[1];
+            } else if (interval[1] > end){
+                end = interval[1];
+            }
+        }
+        tmp[index++] = new int[] {start, end};
+        return Arrays.copyOf(tmp, index);
+    }
+}
+```
+
+
+
+## 62.不同路径
+
+https://leetcode.cn/problems/unique-paths/
+
+动态规划
+
+```java
+class Solution {
+    public int uniquePaths(int m, int n) {
+        int[][] dp = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            dp[i][0] = 1;
+        }
+        for (int j = 0; j < n; j++) {
+            dp[0][j] = 1;
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+        return dp[m - 1][n - 1];
+    }
+}
+```
+
+数学
+
+```java
+class Solution {
+    public int uniquePaths(int m, int n) {
+       int all = m + n - 2;
+        long vi = 1, vj = 1;
+        int min = Math.min(m, n);
+        int max = Math.max(m, n);
+        for (int i = 1, j = max; i < min || j <= all;i++, j++) {
+            if (i < min) {
+                vi *= i;
+            }
+            if (j <= all) {
+                vj *= j;
+            }
+            long gcd = gcd(vi, vj);
+            vi = vi / gcd;
+            vj = vj / gcd;
+        }
+        return (int)vj;
+    }
+    public long gcd(long a, long b) {
+        return b == 0 ? a : gcd(b, a % b);
+    }
+}
+```
+
+
+
+## 66.加一
+
+https://leetcode.cn/problems/plus-one/
+
+```java
+class Solution {
+    public int[] plusOne(int[] digits) {
+        int N = digits.length;
+        for (int i = N - 1; i >= 0; i--) {
+            if (digits[i] < 9) {
+                digits[i]++;
+                return digits;
+            }
+            digits[i] = 0;
+        }
+        int[] ans = new int[N + 1];
+        ans[0] = 1;
+        return ans;
+    }
+}
+```
+
+
+
+## 69. x 的平方根
+
+https://leetcode.cn/problems/sqrtx/
+
+```java
+class Solution {
+    public int mySqrt(int x) {
+        if (x == 0) {
+            return 0;
+        }
+        long ans = 1, L = 1, R = x, M = 0;
+        while (L <= R) {
+            M = L + (R - L) / 2;
+            if (M * M <= x) {
+                ans = M;
+                L = M + 1;
+            } else {
+                R = M - 1;
+            }
+        }
+        return (int) ans;
+    }
+}
+```
+
+
+
+## 70. 爬楼梯
+
+https://leetcode.cn/problems/climbing-stairs/
+
+```java
+class Solution {
+    public int climbStairs(int n) {
+        if (n <= 2) {
+            return n;
+        }
+        int one = 2;
+        int two = 1;
+        int sum = 0;
+        for (int i = 3; i <= n; i++) {
+            sum = one + two;
+            two = one;
+            one = sum;
+        }
+        return sum;
+    }
+}
+```
+
+
+
+## 73. 矩阵置零
+
+https://leetcode.cn/problems/set-matrix-zeroes/
+
+```java
+class Solution {
+    public void setZeroes(int[][] matrix) {
+        int N = matrix.length;
+        int M = matrix[0].length;
+        boolean isRowZero = false;
+        boolean isColZero = false;
+        for (int i = 0; i < N; i++) {
+            if (matrix[i][0] == 0) {
+                isColZero = true;
+                break;
+            }
+        }
+        for (int j = 0; j < M; j++) {
+            if (matrix[0][j] == 0) {
+                isRowZero = true;
+                break;
+            }
+        }
+        for (int i = 1; i < N; i++) {
+            for (int j = 1; j < M; j++) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+
+        for (int i = 1; i < N; i++) {
+            for (int j = 1; j < M; j++) {
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+
+        if (isColZero) {
+            for (int i = 0; i < N; i++) {
+                matrix[i][0] = 0;
+            }
+        }
+        if (isRowZero) {
+            for (int j = 0; j < M; j++) {
+               matrix[0][j] = 0;
+            }
+        }
+    }
+}
+```
+
+
+
+
+
+## 75. 颜色分类
+
+https://leetcode.cn/problems/sort-colors/?favorite=2ckc81c
+
+```java
+class Solution {
+    public void sortColors(int[] nums) {
+        int p0 = 0, p2 = nums.length - 1, index = 0;
+        while (index <= p2) {
+            if (nums[index] == 0) {
+                swap(nums, index++, p0++);
+            } else if (nums[index] == 1) {
+                index++;
+            } else {
+                swap(nums, index, p2--);
+            }
+        }
+    }
+    public void swap(int[] nums, int i, int j) {
+        int tmp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = tmp;
+    }
+}
+```
+
+
+
+## 76. 最小覆盖子串
+
+https://leetcode.cn/problems/minimum-window-substring/
+
+```java
+class Solution {
+    public String minWindow(String s, String t) {
+        if (s.length() < t.length()) {
+            return "";
+        }
+        char[] str = s.toCharArray();
+        char[] target = t.toCharArray();
+        int[] map = new int[256];
+        for (char ch : target) {
+            map[ch]++;
+        }
+        int all = target.length;
+        int L = 0, R = 0;
+        int minLen = -1;
+        int i = -1, j = -1;
+        while (R < str.length) {
+            map[str[R]]--;
+            if (map[str[R]] >= 0) {
+                all--;
+            }
+            if (all == 0) {
+                while (map[str[L]] < 0) {
+                    map[str[L++]]++;
+                }
+                if (minLen == -1 || (R - L + 1 < minLen)) {
+                    i = L;
+                    j = R;
+                    minLen = j - i + 1;
+                }
+                all++;
+                map[str[L++]]++;
+            }
+            R++;
+        }
+        return minLen == -1 ? "" : s.substring(i, j + 1);
+    }
+}
+```
+
+
+
+## 78. 子集
+
+https://leetcode.cn/problems/subsets/
+
+```java
+class Solution {
+    public List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<>();
+        dfs(nums, 0, new LinkedList<>(), ans);
+        return ans;
+    }
+
+    public void dfs(int[] nums, int index, LinkedList<Integer> path, List<List<Integer>> ans) {
+        if (index == nums.length) {
+            ans.add(new ArrayList<>(path));
+            return;
+        }
+        path.addLast(nums[index]);
+        dfs(nums, index + 1, path, ans);
+        path.removeLast();
+        dfs(nums, index + 1, path, ans);
+    }
+}
+```
+
+
+
+## 79. 单词搜索
+
+https://leetcode.cn/problems/word-search/
+
+```java
+class Solution {
+    public boolean exist(char[][] board, String word) {
+        int N = board.length;
+        int M = board[0].length;
+        char[] w = word.toCharArray();
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (dfs(board, i, j, w, 0)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean dfs(char[][] board, int i, int j, char[] word, int index) {
+        if (index == word.length) {
+            return true;
+        }
+        if (i < 0 || i == board.length || j < 0 || j == board[0].length || board[i][j] != word[index]) {
+            return false;
+        }
+        char cha = board[i][j];
+        board[i][j] = 0;
+        boolean ans = dfs(board, i + 1, j, word, index + 1)
+                || dfs(board, i - 1, j, word, index + 1)
+                || dfs(board, i, j + 1, word, index + 1)
+                || dfs(board, i, j - 1, word, index + 1);
+        board[i][j] = cha;
+        return ans;
+    }
+}
+```
+
+
+
+
+
+## 88. 合并两个有序数组
+
+https://leetcode.cn/problems/merge-sorted-array/
+
+```java
+class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int index = nums1.length - 1;
+        while (m > 0 && n > 0) {
+            if (nums1[m - 1] > nums2[n - 1]) {
+                nums1[index--] = nums1[--m];
+            } else {
+                nums1[index--] = nums2[--n];
+            }
+        }
+        while (m > 0) {
+            nums1[index--] = nums1[--m];
+        }
+        while (n > 0) {
+            nums1[index--] = nums2[--n];
+        }
+    }
+}
+```
+
+## 91. 解码方法
+
+https://leetcode.cn/problems/decode-ways/
+
+```java
+class Solution {
+    public int numDecodings(String s) {
+        char[] str = s.toCharArray();
+        int N = str.length;
+        int[] dp = new int[N + 1];
+        dp[N] = 1;
+        for (int i = N - 1; i >= 0; i--) {
+            if (str[i] != '0') {
+                dp[i] = dp[i + 1];
+                if (i < str.length - 1 && ((str[i] - '0') * 10 + str[i + 1] - '0') <= 26) {
+                    dp[i] += dp[i + 2];
+                }
+            }
+        }
+        return dp[0];
+    }
+}
+```
+
+```java
+class Solution {
+    public int numDecodings(String s) {
+        char[] str = s.toCharArray();
+        int N = str.length;
+        int a = 1, b = 0, dp = 0;
+        for (int i = N - 1; i >= 0; i--) {
+            if (str[i] != '0') {
+                dp = a;
+                if (i < str.length - 1 && ((str[i] - '0') * 10 + str[i + 1] - '0') <= 26) {
+                    dp += b;
+                }
+            } else {
+                dp = 0;
+            }
+            b = a;
+            a = dp;
+        }
+        return dp;
+    }
+}
+```
+
+
+
+## 101. 对称二叉树
+
+https://leetcode.cn/problems/symmetric-tree/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeN\ode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return isMirror(root, root);
+    }
+
+
+    public boolean isMirror(TreeNode head1, TreeNode head2) {
+        if (head1 == null && head2 == null) {
+            return true;
+        }
+        if (head1 == null || head2 == null) {
+            return false;
+        }
+        return head1.val == head2.val && isMirror(head1.left, head2.right) && isMirror(head1.right, head2.left);
+    }
+}
+```
+
+
+
+## 102. 二叉树的层序遍历
+
+https://leetcode.cn/problems/binary-tree-level-order-traversal/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        if (root == null) {
+            return new ArrayList();
+        }
+        List<List<Integer>> res = new ArrayList();
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.addLast(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            List<Integer> ans = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                TreeNode cur = queue.removeFirst();
+                if (cur.left != null) {
+                    queue.addLast(cur.left);
+                }
+                if (cur.right != null) {
+                    queue.addLast(cur.right);
+                }
+                ans.add(cur.val);
+            }
+            res.add(ans);
+        }
+        return res;
+    }
+}
+```
+
+
+
+## 103. 二叉树的锯齿形层序遍历
+
+https://leetcode.cn/problems/binary-tree-zigzag-level-order-traversal/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        List<List<Integer>> ans = new ArrayList<>();
+        if (root == null) {
+            return ans;
+        }
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        boolean flag = true;
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            List<Integer> res = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                if (flag) {
+                    TreeNode cur = queue.removeFirst();
+                    res.add(cur.val);
+                    if (cur.left != null) {
+                        queue.addLast(cur.left);
+                    }
+                    if (cur.right != null) {
+                        queue.addLast(cur.right);
+                    }
+                } else {
+                    TreeNode cur = queue.removeLast();
+                    res.add(cur.val);
+                    if (cur.right != null) {
+                        queue.addFirst(cur.right);
+                    }
+                    if (cur.left != null) {
+                        queue.addFirst(cur.left);
+                    }
+                }
+            }
+            flag = !flag;
+            ans.add(res);
+        }
+        return ans;
+    }
+}
+```
+
+
+
+## 105. 从前序与中序遍历序列构造二叉树
+
+https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < inorder.length; i++) {
+            map.put(inorder[i], i);
+        }
+        return process(preorder, inorder, 0, preorder.length - 1, 0, inorder.length - 1, map);
+    }
+    public TreeNode process(int[] preorder, int[] inorder, int L1, int R1, int L2, int R2, HashMap<Integer, Integer> map) {
+       if (L1 > R1) {
+           return null;
+       }
+       TreeNode head = new TreeNode(preorder[L1]);
+       int inRootIndex = map.get(preorder[L1]);
+       head.left = process(preorder, inorder, L1 + 1, L1 + inRootIndex - L2, L2, inRootIndex - 1, map);
+       head.right = process(preorder, inorder, L1 + inRootIndex - L2 + 1, R1, inRootIndex + 1, R2, map);
+       return head;
+    }
+}
+```
+
+
+
+## 108. 将有序数组转换为二叉搜索树
+
+https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+       return process(nums, 0, nums.length - 1); 
+    }
+    
+    public TreeNode process(int[] nums, int L, int R) {
+       if (L > R) {
+           return null;
+       }
+       if (L == R) {
+           return new TreeNode(nums[L]);
+       }
+       int mid = (L + R) / 2;
+       TreeNode head = new TreeNode(nums[mid]);
+       head.left = process(nums, L, mid - 1);
+       head.right = process(nums, mid + 1, R);
+       return head;
+    }
+}
+```
+
+
+
+## 116. 填充每个节点的下一个右侧节点指针
+
+https://leetcode.cn/problems/populating-next-right-pointers-in-each-node/
+
+```java
+/*
+// Definition for a Node.
+class Node {
+    public int val;
+    public Node left;
+    public Node right;
+    public Node next;
+
+    public Node() {}
+    
+    public Node(int _val) {
+        val = _val;
+    }
+
+    public Node(int _val, Node _left, Node _right, Node _next) {
+        val = _val;
+        left = _left;
+        right = _right;
+        next = _next;
+    }
+};
+*/
+
+class Solution {
+    public Node connect(Node root) {
+        if (root == null) {
+            return root;
+        }
+        LinkedList<Node> queue = new LinkedList<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            for (int i = 0; i < size; i++) {
+                Node cur = queue.removeFirst();
+                cur.next = i == size - 1 ?  null : queue.peekFirst();
+                if (cur.left != null) {
+                    queue.addLast(cur.left);
+                }
+                if (cur.right != null) {
+                    queue.add(cur.right);
+                }
+            }
+        }
+        return root;
+    }
+}
+```
+
+优化
+
+```java
+class Solution {
+    class MyQueue {
+       private Node head;
+       private Node tail;
+       
+       public int size;
+       
+       public boolean isEmpty() {
+           return size == 0;
+       }
+       
+       public void addLast(Node node) {
+           if (head == null) {
+               head = node;
+               tail = node;
+           } else {
+               tail.next = node;
+               tail = node;
+           }
+           size++;
+       }
+       
+       public Node removeFirst() {
+           Node cur = head;
+           head = head.next;
+           cur.next = null;
+           size--;
+           return cur;
+       }
+    }
+    
+    public Node connect(Node root) {
+        if (root == null) {
+            return root;
+        }
+        MyQueue queue = new MyQueue();
+        queue.addLast(root);
+        while (!queue.isEmpty()) {
+            int size = queue.size;
+            Node pre = null;
+            for (int i = 0; i < size; i++) {
+                Node cur = queue.removeFirst();
+                if (cur.left != null) {
+                    queue.addLast(cur.left);
+                }
+                if (cur.right != null) {
+                    queue.addLast(cur.right);
+                }
+                if (pre != null) {
+                    pre.next = cur;
+                }
+                pre = cur;
+            }
+        }
+        return root;
+    }
+}
+```
+
+递归实现
+
+```java
+class Solution {
+    public Node connect(Node root) {
+        if (root == null) {
+            return root;
+        }
+        if (root.left != null) {
+            root.left.next = root.right;
+            if (root.next != null) {
+                root.right.next = root.next.left;
+            }
+        }
+        connect(root.left);
+        connect(root.right);
+        return root;
+    }
+}
+```
+
+改为非递归(迭代版本)
+
+```java
+class Solution {
+    public Node connect(Node root) {
+        if (root == null) {
+            return root;
+        }
+      	//leftMost为每一层最左的节点
+        Node leftMost = root;
+        while (leftMost.left != null) {
+            Node cur = leftMost;
+            while (cur != null) {
+              	//左子树连接右子树
+                cur.left.next = cur.right;
+              	//如果当前节点存在下一个节点，那么将当前节点的右子树连接下一个节点的左子树
+                if (cur.next != null) {
+                    cur.right.next = cur.next.left;
+                }
+                cur = cur.next;
+            }
+            leftMost = leftMost.left;
+        }
+        return root;
+    }
+}
+```
+
+
+
+
+
+## 118. 杨辉三角
+
+https://leetcode.cn/problems/pascals-triangle/
+
+```java
+class Solution {
+    public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> ans = new ArrayList<>();
+        ans.add(Arrays.asList(1));
+        if (numRows == 1) {
+            return ans;
+        }
+        ans.add(Arrays.asList(1, 1));
+        if (numRows == 2) {
+            return ans;
+        }
+        for (int i = 2; i < numRows; i++) {
+            List<Integer> res = new ArrayList<>();
+            res.add(1);
+            for (int j = 1; j < i; j++) {
+                res.add(ans.get(i - 1).get(j - 1) + ans.get(i - 1).get(j));
+            }
+            res.add(1);
+            ans.add(res);
+        }
+        return ans;
+    }
+}
+```
+
+
+
+## 121. 买卖股票的最佳时机
+
+https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int min = prices[0];
+        int max = 0;
+        for (int i = 0; i < prices.length; i++) {
+            min = Math.min(min, prices[i]);
+            max = Math.max(max, prices[i] - min);
+        }
+        return max;
+    }
+}
+```
+
+
+
+## 122. 买卖股票的最佳时机 II
+
+https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        int ans = 0;
+        for (int i = 1; i < prices.length; i++) {
+            ans += Math.max(0, prices[i] - prices[i - 1]);
+        }
+        return ans;
+    }
+}
+```
+
+## 123. 买卖股票的最佳时机 III
+
+https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length < 2) {
+            return 0;
+        }
+        int onceBuy = 0;
+        int onceBuyMinus = -prices[0];
+        int ans = 0;
+        int min = prices[0];
+        for (int i = 1; i < prices.length; i++) {
+            ans = Math.max(ans, onceBuyMinus + prices[i]);
+            min = Math.min(min, prices[i]);
+            onceBuy = Math.max(onceBuy, prices[i] - min);
+            onceBuyMinus = Math.max(onceBuyMinus, onceBuy - prices[i]);
+        }
+        return ans;
+    }
+}
+```
+
+## 188. 买卖股票的最佳时机 IV
+
+https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/
+
+```java
+class Solution {
+    public int maxProfit(int k, int[] prices) {
+        if (prices == null || prices.length == 0) {
+            return 0;
+        }
+        int N = prices.length;
+        k = Math.min(k, N / 2);  
+        int[][] dp = new int[N][k + 1];
+        for (int j = 1; j <= k; j++) {
+            int pre = dp[0][j - 1] - prices[0];
+            for (int i = 1; i < N; i++) {
+                pre = Math.max(pre, dp[i][j - 1] - prices[i]);
+                dp[i][j] = Math.max(dp[i - 1][j], prices[i] + pre);
+            }
+        }
+        return dp[N - 1][k];
+    }
+}
+```
+
+
+
+## 309. 最佳买卖股票时机含冷冻期
+
+https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-cooldown/
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length < 2) {
+            return 0;
+        }
+        int N = prices.length;
+        int[] buy = new int[N];
+        int[] sell = new int[N];
+        buy[1] = Math.max(-prices[0], -prices[1]);
+        sell[1] = Math.max(0, prices[1] - prices[0]);
+        for (int i = 2; i < N; i++) {
+            buy[i] = Math.max(buy[i - 1], sell[i - 2] - prices[i]);
+            sell[i] = Math.max(sell[i - 1], buy[i - 1] + prices[i]);
+        }
+        return sell[N - 1];
+    }
+}
+```
+
+优化
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length < 2) {
+            return 0;
+        }
+        int N = prices.length;
+        int buy = Math.max(-prices[0], -prices[1]);
+        int sell1 = Math.max(0, prices[1] - prices[0]);
+        int sell2 = 0;
+        int tmp = 0;
+        for (int i = 2; i < N; i++) {
+            tmp = buy;
+            buy = Math.max(buy, sell2 - prices[i]);
+            sell2 = sell1;
+            sell1 = Math.max(sell1, tmp + prices[i]);
+        }
+        return sell1;
+    }
+}
+```
+
+
+
+## 130. 被围绕的区域
+
+https://leetcode.cn/problems/surrounded-regions/?favorite=2ckc81c
+
+```java
+class Solution {
+    public void solve(char[][] board) {
+        int N = board.length;
+        int M = board[0].length;
+        for (int i = 0; i < N; i++) {
+            dfs(board, i, 0);
+            dfs(board, i, M - 1);
+        }
+        for (int j = 0; j < M; j++) {
+            dfs(board, 0, j);
+            dfs(board, N - 1, j);
+        }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (board[i][j] == 'O') {
+                    board[i][j] = 'X';
+                }
+                if (board[i][j] == '.') {
+                    board[i][j] = 'O';
+                }
+            }
+        }
+    }
+
+    public void dfs(char[][] board, int i, int j) {
+       if (i < 0 || i == board.length || j < 0 || j == board[0].length || board[i][j] == 'X' || board[i][j] == '.') {
+           return;
+       }
+       board[i][j] = '.';
+       dfs(board, i + 1, j);
+       dfs(board, i - 1, j);
+       dfs(board, i, j + 1);
+       dfs(board, i, j - 1);
     }
 }
 ```
