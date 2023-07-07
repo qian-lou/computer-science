@@ -2663,3 +2663,290 @@ class Solution {
 }
 ```
 
+
+
+## 131. 分割回文串
+
+https://leetcode.cn/problems/palindrome-partitioning/
+
+```java
+class Solution {
+    public List<List<String>> partition(String s) {
+        boolean[][] dp = getDp(s.toCharArray());
+        List<List<String>> ans = new ArrayList<>();
+        process(s.toCharArray(), 0, new LinkedList<>(), ans, dp);
+        return ans;
+    }
+
+    public void process(char[] str, int index, LinkedList<String> path, List<List<String>> ans, boolean[][] dp) {
+       if (index == str.length) {
+           ans.add(copy(path));
+           return;
+       }
+        for (int end = index; end < str.length ; end++) {
+            if (dp[index][end]) {
+                path.addLast(new String(str, index, end - index + 1));
+                process(str, end + 1, path, ans, dp);
+                path.pollLast();
+            }
+        }
+    }
+
+    public List<String> copy(List<String> path) {
+       List<String> copy = new ArrayList<>();
+       for (String str : path) {
+           copy.add(str);
+       }
+       return copy;
+    }
+
+    public boolean[][] getDp(char[]  str) {
+        int N = str.length;
+        boolean[][] dp = new boolean[N][N];
+        for (int i = 0; i < N; i++) {
+            dp[i][i] = true;
+        }
+        for (int i = 0; i < N - 1; i++) {
+            dp[i][i + 1] = str[i] == str[i + 1];
+        }
+        for (int i = N - 2; i >= 0; i--) {
+            for (int j = i + 2; j < N; j++) {
+                dp[i][j] = str[i] == str[j] && dp[i + 1][j - 1];
+            }
+        }
+        return dp;
+    }
+}
+```
+
+
+
+## 134. 加油站
+
+https://leetcode.cn/problems/gas-station/
+
+
+
+## 136. 只出现一次的数字
+
+https://leetcode.cn/problems/single-number/
+
+```java
+class Solution {
+    public int singleNumber(int[] nums) {
+        int eor = 0;
+        for (int i = 0; i < nums.length; i++) {
+            eor ^= nums[i];
+        }
+        return eor;
+    }
+}
+```
+
+
+
+## 138. 复制带随机指针的链表
+
+https://leetcode.cn/problems/copy-list-with-random-pointer/
+
+使用辅助空间
+
+```java
+/*
+// Definition for a Node.
+class Node {
+    int val;
+    Node next;
+    Node random;
+
+    public Node(int val) {
+        this.val = val;
+        this.next = null;
+        this.random = null;
+    }
+}
+*/
+
+class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) {
+            return head;
+        }
+        Map<Node, Node> map = new HashMap<>();
+        Node cur = head;
+        while (cur != null) {
+            map.put(cur, new Node(cur.val));
+            cur = cur.next;
+        }
+        Node newHead = map.get(head);
+        Node newCur = newHead;
+        cur = head;
+        while (cur != null) {
+            newCur.next = map.get(cur.next);
+            newCur.random = map.get(cur.random);
+            newCur = newCur.next;
+            cur = cur.next;
+        }
+        return newHead;
+    }
+}
+```
+
+
+
+## 141. 环形链表
+
+https://leetcode.cn/problems/linked-list-cycle/
+
+```java
+/**
+ * Definition for singly-linked list.
+ * class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode fast = head;
+        ListNode slow = head;
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            if (slow == fast) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+
+
+
+## 146. LRU 缓存
+
+https://leetcode.cn/problems/lru-cache/
+
+```java
+class LRUCache {
+
+    class Node {
+        int key;
+        int value;
+
+        Node next;
+        Node pre;
+
+        public Node(int key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    class NodeDoubleLinkList {
+        //最旧的节点
+        Node head;
+        //最新的节点
+        Node tail;
+
+        public void add(Node node) {
+            if (node == null) {
+                return;
+            }
+            if (this.head == null) {
+                this.head = node;
+                this.tail = node;
+                return;
+            }
+            tail.next = node;
+            node.pre = tail;
+            tail = node;
+        }
+
+        public void moveNodeToTail(Node node) {
+            if (tail == node) {
+                return;
+            }
+            if (head == node) {
+                head = head.next;
+                head.pre = null;
+            } else {
+                node.pre.next = node.next;
+                node.next.pre = node.pre;
+            }
+            node.pre = tail;
+            node.next = null;
+            tail.next = node;
+            tail = node;
+        }
+
+        public Node removeHead() {
+            if (head == null) {
+                return null;
+            }
+            Node node = head;
+            if (head == tail) {
+                head = null;
+                tail = null;
+            } else {
+                head = node.next;
+                node.next = null;
+                head.pre = null;
+            }
+            return node;
+        }
+
+    }
+
+    private HashMap<Integer, Node> cache;
+
+    private NodeDoubleLinkList nodeList;
+
+    private final int capacity;
+
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.nodeList = new NodeDoubleLinkList();
+        this.cache = new HashMap<>();
+    }
+    
+    public int get(int key) {
+        if (cache.containsKey(key)) {
+            Node node = cache.get(key);
+            nodeList.moveNodeToTail(node);
+            return node.value;
+        }
+        return -1;
+    }
+    
+    public void put(int key, int value) {
+        if (cache.containsKey(key)) {
+            Node node = cache.get(key);
+            node.value = value;
+            nodeList.moveNodeToTail(node);
+            return;
+        }
+        Node node = new Node(key, value);
+        cache.put(key, node);
+        nodeList.add(node);
+        if (cache.size() == capacity + 1) {
+            Node removeHead = nodeList.removeHead();
+            cache.remove(removeHead.key);
+        }
+    }
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
+```
+

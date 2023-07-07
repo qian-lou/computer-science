@@ -6473,3 +6473,957 @@ public static void main(String[] args) {
 
 }
 ```
+
+
+
+## 题目八十六
+
+给定字符串str1和str2,求str1的子串中含有str2所有字符的最小子串长度
+【举例】str1="abcde",str2="ac"，因为"abc"包含str2所有的字符，并且在满足这一条件的str1的所有子串中，"abc“是最短的，返回3；str1="12345",str2="344"最小包含子串不存在，返回0。
+
+滑动窗口
+
+```java
+public static int minLength(String s1, String s2) {
+    if (s1 == null || s2 == null || s1.length() < s2.length()) {
+        return -1;
+    }
+    char[] str1 = s1.toCharArray();
+    char[] str2 = s2.toCharArray();
+    int[] map = new int[256];
+    for (int i = 0; i < str2.length; i++) {
+        map[str2[i]]++;
+    }
+    int left = 0;
+    int right = 0;
+    int all = str2.length;
+    int ans = Integer.MAX_VALUE;
+    while (right < str1.length) {
+        map[str1[right]]--;
+        if (map[str1[right]] >= 0) {
+            all--;
+        }
+        if (all == 0) {
+            while (map[str1[left]] < 0) {
+                map[str1[left++]]++;
+            }
+            ans = Math.min(ans, right - left + 1);
+            all++;
+            map[str1[left++]]++;
+        }
+        right++;
+    }
+    return ans == Integer.MAX_VALUE ? 0 : ans;
+}
+```
+
+
+
+## 题目八十七
+
+互为旋变串
+
+## 题目八十八
+
+N个加油站组成一个环形，给定两个长度都是N的非负数组oil和dis(N>1), oil[代表第i个加油站存的油可以跑多少千米，dis代表第i个加油站到环中下一个加油站相隔多少千米。假设你有一辆油箱足够大的车，初始时车里没有油。如果车从第i个加油站出发，最终可以回到这个加油站，那么第i个加油站就算良好出发点，否则就不算。请返回长度为N的boolean型数组res,res[i]代表第ⅰ个加油站是不是良好出发点。
+
+
+
+## 题目八十九
+
+LFU  O(1)的解
+
+
+
+## 题目九十
+
+给定一个数组arr,给定一个正数k。选出3个不重叠的子数组，每个子数组长度都是k,返回最大的三子数组的最大和。
+
+
+
+## 题目九十一
+
+一群孩子做游戏，现在请你根据游戏得分来发糖果，
+要求如下：1.每个孩子不管得分多少，起
+码分到1个糖果。2任意两个相邻的孩子之间，得分较多的孩子必须拿多一些的糖果。给定
+一个数组arr代表得分数组，请返回最少需要多少糖果。例如：arr=[1,2,2],
+糖果分配为[1,2,1]
+即可满足要求且数量最少，所以返回4。
+【进阶】
+原题目中的两个规则不变，再加一条规则：3.任意两个相邻的孩子之间如果得分一样，糖果数
+必须相同。
+给定
+一个数组，arr代表得分数组，返回最少需要多少糖果。例如arr=[1,2,2],
+糖果分配为
+「1,2,21，即可满足要求且数量最少，所以返回5。
+【要求】
+r长度为N,原题与进阶题都要求时间复杂度为O(N),额外空间复杂度为O(1)。
+
+
+
+## 题目九十二
+
+给定一棵二叉树的头节点head,如果在某一个节点x上放置相机，那么x的父节点、x的所有子节点以及x都可以被覆盖。返回如果要把所有数都覆盖，至少需要多少个相机。
+
+暴力解
+
+```java
+public static class Node {
+    public Node left;
+    public Node right;
+}
+
+public static class Info {
+    //没被覆盖
+    public long uncovered;
+    //覆盖了但是没相机
+    public long coveredNoCamera;
+    //覆盖了但是有相机
+    public long coveredHasCamera;
+
+    public Info(long uncovered, long coveredNoCamera, long coveredHasCamera) {
+        this.uncovered = uncovered;
+        this.coveredNoCamera = coveredNoCamera;
+        this.coveredHasCamera = coveredHasCamera;
+    }
+}
+
+public static Info process1(Node x) {
+    if (x == null) {
+        return new Info(Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
+    }
+    Info left = process1(x.left);
+    Info right = process1(x.right);
+
+    long uncovered = left.coveredNoCamera + right.coveredNoCamera;
+
+    long coveredNoCamera = Math.min(
+            left.coveredHasCamera + right.coveredHasCamera,
+            Math.min(
+                        left.coveredHasCamera + right.coveredNoCamera,
+                        left.coveredNoCamera + right.coveredHasCamera
+            )
+    );
+    long coveredHasCamera = Math.min(left.uncovered, Math.min(left.coveredHasCamera, left.coveredNoCamera))
+            +
+            Math.min(right.uncovered, Math.min(right.coveredNoCamera, right.coveredHasCamera))
+            + 1;
+    return new Info(uncovered, coveredNoCamera, coveredHasCamera);
+}
+```
+
+
+
+贪心
+
+```java
+public static enum Status {
+    UNCOVERED, COVERED_HAS_CAMERA, COVERED_NO_CAMERA;
+}
+public static class Data {
+    public Status status;
+    public long cameras;
+
+    public Data(Status status, long cameras) {
+        this.status = status;
+        this.cameras = cameras;
+    }
+}
+
+public static Data process(Node x) {
+    if (x == null) {
+        return new Data(Status.COVERED_NO_CAMERA, 0);
+    }
+    Data left = process(x.left);
+    Data right = process(x.right);
+    long cameras = left.cameras + right.cameras;
+    //左右还子存在未覆盖
+    if (left.status == Status.UNCOVERED || right.status == Status.UNCOVERED) {
+        return new Data(Status.COVERED_HAS_CAMERA, cameras + 1);
+    }
+    //左右孩子都已经覆盖
+    //左右孩子只要有其中一个放了相机
+    if (left.status == Status.COVERED_HAS_CAMERA || right.status == Status.COVERED_HAS_CAMERA) {
+        return new Data(Status.COVERED_NO_CAMERA, cameras);
+    }
+    //左右孩子都没放相机
+    return new Data(Status.UNCOVERED, cameras);
+}
+```
+
+
+
+优化
+
+```java
+//0: 未覆盖
+//1: 已经被覆盖 但是没放相机
+//2: 已经被覆盖 但是放相机
+public int[] process2(Node x) {
+    if (x == null) {
+        return new int[] {1, 0};
+    }
+    int[] left = process2(x.left);
+    int[] right = process2(x.right);
+    int cameras = left[1] + right[1];
+    //左右孩子存在未覆盖的，当前x必须放相机
+    if (left[0] == 0 || right[0] == 0) {
+        return new int[] {2, cameras + 1};
+    }
+    //左右孩子都已经覆盖 左右孩子至少有一个放了相机，那么当前x不用放相机
+    if (left[0] == 2 || right[0] == 2) {
+        return new int[] {1, cameras};
+    }
+    //左右孩子都已经覆盖，左右孩子都没放相机，那么当前x不放相机，由其父亲决定
+    return new int[] {0, cameras};
+}
+```
+
+
+
+## 题目九十三
+
+牛牛和15个朋友来玩打士豪分田地的游戏，牛牛决定让你来分田地，地主的田地可以看成是一个矩形，每个位置有一个价值分割田地的方法是横竖各切三刀，分成16份，作为领导干部，牛牛总是会选择其中总价值最小的一份田地，作为牛牛最好的朋友，你希望牛牛取得的田地的价值和尽可能大，你知道这个值最大可以是多少吗？
+输入描述：
+每个输入包贪1个测试用例。，每个测试用例的第一行包含两个整数n和m(1<=n,m<=75),表示田地的大小，接下来的n行包含个0-9之间的数字，表示每块位置的价值。
+输出描述：输出一行表示年牛所能取得的最大的价值。
+输入例子：44
+
+```
+3 3 3 2
+3 2 3 3
+3 3 3 2
+2 3 2 3
+```
+
+输出例子：2
+
+
+
+
+
+## 题目九十四
+
+给定一个只含0和1二维数组matrixⅸ，第0行表示天花板。每个位置认为与上、下、左、右四个方向有粘性，比如：
+matrix
+
+```
+10010
+10011
+11011
+10000
+00110
+```
+
+注意到0行0列是 1，然后能延伸出5个1的一片。同理0行3列也是1，也能延伸出5个1的一片。注意到4行2列是1，然后能延伸出2个1的一片。其中有两片1是粘在天花板上的，而4行2列延伸出来的这片，认为粘不住就掉下来了。在给定一个二维数组bomb,表示炸弹的位置，比如：
+bomb
+
+```
+20
+13
+14
+03
+```
+
+第一枚炮弹在2行0列，该处的1直接被打碎，然后会有2个1掉下来
+第二枚炮弹在1行3列，该处的1直接被打碎，不会有1掉下来，因为这一片1还能粘在一起。
+第三枚炮弹在1行4列，该处的1直接被打碎，然后会有2个1掉下来。
+第四枚炮弹在0行3列，该处的1直接被打碎，不会有1掉下来，因为这一片1只剩这一个了。
+根据matrix和bomb,返回结果[2，3，0，0]。
+
+```java
+public class Code18 {
+
+    public static class Dot {
+
+    }
+    public static class UnionFind {
+        private int[][] grid;
+        private int N;
+        private int M;
+        private int cellingAll;
+        private Dot[][] dots;
+        private HashSet<Dot> cellingSet;
+        private HashMap<Dot, Dot> fatherMap;
+        private HashMap<Dot, Integer> sizeMap;
+
+        public UnionFind(int[][] matrix) {
+            initSpace(matrix);
+            initConnect();
+        }
+
+        private void initSpace(int[][] matrix) {
+            grid = matrix;
+            N = grid.length;
+            M = grid[0].length;
+            int all = N * M;
+            cellingAll = 0;
+            cellingSet = new HashSet<>();
+            fatherMap = new HashMap<>();
+            sizeMap = new HashMap<>();
+            dots = new Dot[N][M];
+            for (int row = 0; row < N; row++) {
+                for (int col = 0; col < M; col++) {
+                    if (grid[row][col] == 1) {
+                        Dot cur = new Dot();
+                        dots[row][col] = cur;
+                        fatherMap.put(cur, cur);
+                        sizeMap.put(cur, 1);
+                        if (row == 0) {
+                            cellingSet.add(cur);
+                            cellingAll++;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void initConnect() {
+            for (int row = 0; row < N; row++) {
+                for (int col = 0; col < M; col++) {
+                    union(row, col, row - 1, col);
+                    union(row, col, row + 1, col);
+                    union(row, col, row, col - 1);
+                    union(row, col, row, col + 1);
+                }
+            }
+        }
+
+        public void union(int r1, int c1, int r2, int c2) {
+            if (valid(r1, c1) && valid(r2, c2)) {
+                Dot father1 = findParent(r1, c1);
+                Dot father2 = findParent(r2, c2);
+                if (father1 != father2) {
+                    Integer size1 = sizeMap.get(father1);
+                    Integer size2 = sizeMap.get(father2);
+                    Dot big = size1 >= size2 ? father1 : father2;
+                    Dot small = big == father1 ? father2 : father1;
+
+                    fatherMap.put(small, big);
+                    sizeMap.put(big, size1 + size2);
+
+                    boolean status1 = cellingSet.contains(father1);
+                    boolean status2 = cellingSet.contains(father2);
+                    if (status1 ^ status2) {
+                        cellingSet.add(big);
+                        cellingAll += status1 ? size2 : size1;
+                    }
+
+                }
+            }
+        }
+
+        private boolean valid(int row, int col) {
+            return row >= 0 && row < N && col >= 0 && col < M && grid[row][col] == 1;
+        }
+
+        public Dot findParent(int row, int col) {
+            Dot cur = dots[row][col];
+            Stack<Dot> stack = new Stack<>();
+            while (cur != fatherMap.get(cur)) {
+                stack.add(cur);
+                cur = fatherMap.get(cur);
+            }
+            while (!stack.isEmpty()) {
+                fatherMap.put(stack.pop(), cur);
+            }
+            return cur;
+        }
+
+        public int finger(int row, int col) {
+            int pre = cellingAll;
+            grid[row][col] = 1;
+            Dot cur = new Dot();
+            dots[row][col] = cur;
+            if (row == 0) {
+                cellingSet.add(cur);
+                cellingAll++;
+            }
+            fatherMap.put(cur, cur);
+            sizeMap.put(cur, 1);
+            union(row, col, row - 1, col);
+            union(row, col, row + 1, col);
+            union(row, col, row, col - 1);
+            union(row, col, row, col + 1);
+            int now = cellingAll;
+            return now == pre ? 0 : now - pre - 1;
+        }
+    }
+
+    public static int[] hitBricks(int[][] grid, int[][] hits) {
+        for (int[] hit : hits) {
+            if (grid[hit[0]][hit[1]] == 1) {
+                grid[hit[0]][hit[1]] = 2;
+            }
+        }
+        UnionFind unionFind = new UnionFind(grid);
+        int[] ans = new int[hits.length];
+        for (int i = hits.length - 1; i >= 0; i--) {
+            if (grid[hits[i][0]][hits[i][1]] == 2) {
+                ans[i] = unionFind.finger(hits[i][0], hits[i][1]);
+            }
+        }
+        return ans;
+    }
+
+    public static void main(String[] args) {
+        int[][] grid = {
+                {1, 0, 0, 1, 0},
+                {1, 0, 0, 1, 1},
+                {1, 1, 0, 1, 1},
+                {1, 0, 0, 0, 0},
+                {0, 0, 1, 1, 0}
+        };
+        int[][] hits = {
+                {2, 0},
+                {1, 3},
+                {1, 4},
+                {0, 3}};
+        System.out.println(Arrays.toString(hitBricks(grid, hits)));
+    }
+
+}
+```
+
+
+
+## 题目九十五
+
+给定一个数组arr,如果其中有两个集合的累加和相等，并且两个集合使用的数没有相容的部分（也就是arr中某数不能同时进这个两个集合），那么这两个集合叫作等累加和集合对。返回等累加和集合对中，最大的累加和。
+举例：arr={1,2,3,6} {1,2}和{3}，是等累加和集合对, {1,2,3}和{6}，也是等累加和集合对,返回6
+
+```Java
+class Solution {
+    public int tallestBillboard(int[] rods) {
+        //k:差值 v:累加和对中较小的值
+        HashMap<Integer, Integer> dp = new HashMap<>();
+        HashMap<Integer, Integer> cur = new HashMap<>();
+        dp.put(0, 0);
+        for (int num : rods) {
+            if (num != 0) {
+                cur.clear();
+                cur.putAll(dp);
+                for (int d : cur.keySet()) {
+                    //num 放到较大的集合
+                    int diffMore = cur.get(d);
+                    dp.put(d + num, Math.max(diffMore, dp.getOrDefault(d + num, 0)));
+                    //num 放到较小的集合 
+                    // d, 较小的 diffMore, 较大的 diffMore + d
+                    // num 放到 较小的 diffMore + num, 那么新的较小就是 Math.min(diffMore + num, diffMore + d)
+                    dp.put(Math.abs(d - num), Math.max(diffMore + Math.min(num, d), dp.getOrDefault(Math.abs(num - d), 0)));
+                }
+            }
+        }
+        return dp.get(0);
+    }
+}
+```
+
+测试https://leetcode.cn/problems/tallest-billboard/
+
+
+
+## 题目九十六
+
+给定一个字符串S，求S中有多少个字面值不相同的子序列。
+
+```java
+public static int ketang(String s) {
+    if (s == null || s.length() == 0) {
+        return 0;
+    }
+    char[] str = s.toCharArray();
+    int[] count = new int[26];
+    int all = 1;
+    for (char ch : str) {
+        int add = all - count[ch - 'a'];
+        all += add;
+        count[ch - 'a'] += add;
+    }
+    return all;
+}
+```
+
+## 题目九十七
+
+```java
+/*
+	 * 腾讯原题
+	 * 
+	 * 给定整数power，给定一个数组arr，给定一个数组reverse。含义如下：
+	 * arr的长度一定是2的power次方，reverse中的每个值一定都在0~power范围。
+	 * 例如power = 2, arr = {3, 1, 4, 2}，reverse = {0, 1, 0, 2}
+	 * 任何一个在前的数字可以和任何一个在后的数组，构成一对数。可能是升序关系、相等关系或者降序关系。
+	 * 比如arr开始时有如下的降序对：(3,1)、(3,2)、(4,2)，一共3个。
+	 * 接下来根据reverse对arr进行调整：
+	 * reverse[0] = 0, 表示在arr中，划分每1(2的0次方)个数一组，然后每个小组内部逆序，那么arr变成
+	 * [3,1,4,2]，此时有3个逆序对。
+	 * reverse[1] = 1, 表示在arr中，划分每2(2的1次方)个数一组，然后每个小组内部逆序，那么arr变成
+	 * [1,3,2,4]，此时有1个逆序对
+	 * reverse[2] = 0, 表示在arr中，划分每1(2的0次方)个数一组，然后每个小组内部逆序，那么arr变成
+	 * [1,3,2,4]，此时有1个逆序对。
+	 * reverse[3] = 2, 表示在arr中，划分每4(2的2次方)个数一组，然后每个小组内部逆序，那么arr变成
+	 * [4,2,3,1]，此时有5个逆序对。
+	 * 所以返回[3,1,1,5]，表示每次调整之后的逆序对数量。
+	 * 
+	 * 输入数据状况：
+	 * power的范围[0,20]
+	 * arr长度范围[1,10的7次方]
+	 * reverse长度范围[1,10的6次方]
+	 * 
+	 * */
+
+public static int[] reversePair2(int[] originArr, int[] reverseArr, int power) {
+    int[] reverse = copyArray(originArr);
+    reversePart(reverse, 0, reverse.length - 1);
+    int[] recordDown = new int[reverseArr.length + 1];
+    int[] recordUp = new int[reverseArr.length + 1];
+    process(originArr, 0, originArr.length - 1, power, recordDown);
+    process(reverse, 0, reverse.length - 1, power, recordUp);
+    int[] ans = new int[reverseArr.length];
+    for (int i = 0; i < reverseArr.length; i++) {
+        int curPower = reverseArr[i];
+        for (int p = 1; p <= curPower; p++) {
+            int tmp = recordDown[p];
+            recordDown[p] = recordUp[p];
+            recordUp[p] = tmp;
+        }
+        for (int p = 1; p <= power; p++) {
+            ans[i] += recordDown[p];
+        }
+    }
+    return ans;
+}
+
+public static void process(int[] arr, int L, int R, int power, int[] record) {
+    if (L == R) {
+        return;
+    }
+    int mid = L + ((R - L) >> 1);
+    process(arr, L, mid, power - 1, record);
+    process(arr, mid + 1, R, power - 1, record);
+    record[power] += merge(arr, L, mid, R);
+}
+
+public static int merge(int[] arr, int L, int m, int R) {
+    int[] help = new int[R - L + 1];
+    int index = 0;
+    int p1 = L;
+    int p2 = m + 1;
+    int ans = 0;
+    while (p1 <= m && p2 <= R) {
+        ans += arr[p1] > arr[p2] ? (m - p1 + 1) : 0;
+        help[index++] = arr[p1] <= arr[p2] ? arr[p1++] : arr[p2++];
+    }
+    while (p1 <= m) {
+        help[index++] = arr[p1++];
+    }
+    while (p2 <= R) {
+        help[index++] = arr[p2++];
+    }
+    for (int i = 0; i < help.length; i++) {
+        arr[L + i] = help[i];
+    }
+    return ans;
+}
+
+public static int[] copyArray(int[] arr) {
+    if (arr == null) {
+        return null;
+    }
+    int[] res = new int[arr.length];
+    for (int i = 0; i < arr.length; i++) {
+        res[i] = arr[i];
+    }
+    return res;
+}
+public static void reversePart(int[] arr, int L, int R) {
+    while (L < R) {
+        int tmp = arr[L];
+        arr[L++] = arr[R];
+        arr[R--] = tmp;
+    }
+}
+```
+
+## 题目九十八
+
+给定字符串数组words,其中所有字符串都不同，如果words门+wordsI]是回文串就记录(i，j)，找到所有记录并返回
+例子一：
+输入：["abcd","dcba","lls","s","sssll"]
+输出：[ [ 0,1],[1,0],[3,2],[2,4]]
+解释：输出的每一组数组，两个下标代表字符串拼接在一起，都是回文串abcddcba、dcbaabcd、slls、llssssll
+
+```java
+public static List<List<Integer>> palindromePairs(String[]  words) {
+    HashMap<String, Integer> wordset = new HashMap<>();
+    for (int i = 0; i < words.length; i++) {
+        wordset.put(words[i], i);
+    }
+    List<List<Integer>> res = new ArrayList<>();
+    for (int i = 0; i < words.length; i++) {
+        res.addAll(findAll(words[i], i, wordset));
+    }
+    return res;
+}
+
+public static List<List<Integer>> findAll(String word, int index, HashMap<String, Integer> words) {
+    List<List<Integer>> res = new ArrayList<>();
+    String reverse = reverse(word);
+    StringBuilder sb = new StringBuilder();
+    Integer rest = words.get("");
+    if (rest != null && rest != index && word.equals(reverse)) {
+        addRecord(res, rest, index);
+        addRecord(res, index, rest);
+    }
+    rest = words.get(reverse);
+    if (rest != null && rest != index) {
+        addRecord(res, index, rest);
+    }
+    char[] str = word.toCharArray();
+    int Len = str.length;
+    for (int i = 0; i < Len - 1; i++) {
+        sb.append(str[i]);
+        if (isPalindrome(sb.toString())) {
+            String suffix = new String(str, i + 1, Len - i - 1);
+            rest = words.get(reverse(suffix));
+            if (rest != null && rest != index) {
+                addRecord(res, rest, index);
+            }
+        }
+    }
+    sb = new StringBuilder();
+    for (int i = Len - 1; i > 0; i--) {
+        sb.insert(0, str[i]);
+        if (isPalindrome(sb.toString())) {
+            String prefix = new String(str, 0, i);
+            rest = words.get(reverse(prefix));
+            if (rest != null && rest != index) {
+                addRecord(res, index, rest);
+            }
+        }
+    }
+    return res;
+}
+
+public static boolean isPalindrome(String word) {
+    int L = 0, R = word.length() - 1;
+    char[] str = word.toCharArray();
+    while (L <= R) {
+        if (str[L] != str[R]) return false;
+        L++;
+        R--;
+    }
+    return true;
+}
+
+public static void addRecord(List<List<Integer>> res, int left, int right) {
+    List<Integer> rec = new ArrayList<>();
+    rec.add(left);
+    rec.add(right);
+    res.add(rec);
+}
+
+public static String reverse(String word) {
+    char[] chs = word.toCharArray();
+    int L = 0, R = chs.length - 1;
+    while (L < R) {
+        char tmp = chs[L];
+        chs[L++] = chs[R];
+        chs[R--] = tmp;
+    }
+    return String.valueOf(chs);
+}
+```
+
+manacher算法优化，生成回文半径数组
+
+```java
+class Solution {
+    public List<List<Integer>> palindromePairs(String[]  words) {
+        HashMap<String, Integer> wordset = new HashMap<>();
+        for (int i = 0; i < words.length; i++) {
+            wordset.put(words[i], i);
+        }
+        List<List<Integer>> res = new ArrayList<>();
+        for (int i = 0; i < words.length; i++) {
+            res.addAll(findAll(words[i], i, wordset));
+        }
+        return res;
+    }
+
+    public static List<List<Integer>> findAll(String word, int index, HashMap<String, Integer> words) {
+        List<List<Integer>> res = new ArrayList<>();
+		String reverse = reverse(word);
+		Integer rest = words.get("");
+		if (rest != null && rest != index && word.equals(reverse)) {
+			addRecord(res, rest, index);
+			addRecord(res, index, rest);
+		}
+		int[] rs = manacherss(word);
+		int mid = rs.length >> 1;
+		for (int i = 1; i < mid; i++) {
+			if (i - rs[i] == -1) {
+				rest = words.get(reverse.substring(0, mid - i));
+				if (rest != null && rest != index) {
+					addRecord(res, rest, index);
+				}
+			}
+		}
+		for (int i = mid + 1; i < rs.length; i++) {
+			if (i + rs[i] == rs.length) {
+				rest = words.get(reverse.substring((mid << 1) - i));
+				if (rest != null && rest != index) {
+					addRecord(res, index, rest);
+				}
+			}
+		}
+		return res;
+    }
+public static int[] manacherss(String word) {
+		char[] mchs = manachercs(word);
+		int[] rs = new int[mchs.length];
+		int center = -1;
+		int pr = -1;
+		for (int i = 0; i != mchs.length; i++) {
+			rs[i] = pr > i ? Math.min(rs[(center << 1) - i], pr - i) : 1;
+			while (i + rs[i] < mchs.length && i - rs[i] > -1) {
+				if (mchs[i + rs[i]] != mchs[i - rs[i]]) {
+					break;
+				}
+				rs[i]++;
+			}
+			if (i + rs[i] > pr) {
+				pr = i + rs[i];
+				center = i;
+			}
+		}
+		return rs;
+	}
+    public static char[] manachercs(String word) {
+		char[] chs = word.toCharArray();
+		char[] mchs = new char[chs.length * 2 + 1];
+		int index = 0;
+		for (int i = 0; i != mchs.length; i++) {
+			mchs[i] = (i & 1) == 0 ? '#' : chs[index++];
+		}
+		return mchs;
+	}
+    public static boolean isPalindrome(String word) {
+        int L = 0, R = word.length() - 1;
+        char[] str = word.toCharArray();
+        while (L <= R) {
+            if (str[L] != str[R]) return false;
+            L++;
+            R--;
+        }
+        return true;
+    }
+
+    public static void addRecord(List<List<Integer>> res, int left, int right) {
+        List<Integer> rec = new ArrayList<>();
+        rec.add(left);
+        rec.add(right);
+        res.add(rec);
+    }
+
+    public static String reverse(String word) {
+        char[] chs = word.toCharArray();
+        int L = 0, R = chs.length - 1;
+        while (L < R) {
+            char tmp = chs[L];
+            chs[L++] = chs[R];
+            chs[R--] = tmp;
+        }
+        return String.valueOf(chs);
+    }
+}
+```
+
+
+
+## 题目九十九
+
+给定无序数组arr,返回其中最长的连续序列的长度
+【举例】arr=[100,4,200,1,3,2],最长的连续序列为[1,2,3,4]，所以返回4。
+
+```java
+public static int longestConsecutive(int[] arr) {
+    if (arr == null || arr.length == 0) {
+        return 0;
+    }
+    int max = 1;
+    HashMap<Integer, Integer> map = new HashMap<>();
+    for (int num : arr) {
+        if (!map.containsKey(num)) {
+            map.put(num, 1);
+            if (map.containsKey(num - 1)) {
+                max = Math.max(max, merge(map, num - 1, num));
+            }
+            if (map.containsKey(num + 1)) {
+                max = Math.max(max, merge(map, num, num + 1));
+            }
+        }
+    }
+    return max;
+}
+
+public static int merge(HashMap<Integer, Integer> map, int preRangeEnd, int curRangeStart) {
+    int preRangeStart = preRangeEnd - map.get(preRangeEnd) + 1;
+    int curRangeEnd = curRangeStart + map.get(curRangeStart) - 1;
+    int len = curRangeEnd - preRangeStart + 1;
+    map.put(preRangeStart, len);
+    map.put(curRangeEnd, len);
+    return len;
+}
+```
+
+
+
+## 题目一百
+
+给定一个二维数组matrⅸ，其中的值不是0就是1，其中内部全是1的所有子矩阵中，含有最多1的子矩阵中，含有几个1？
+
+单调栈
+
+```java
+public static int maxRecSize(int[][] map) {
+    if (map == null || map.length == 0 || map[0].length == 0) {
+        return 0;
+    }
+    int maxArea = 0;
+    int[] height = new int[map[0].length];
+    for (int i = 0; i < map.length; i++) {
+        for (int j = 0; j < map[0].length; j++) {
+            height[j] = map[i][j] == 0 ? 0 : height[j] + 1;
+        }
+        maxArea = Math.max(maxArea, maxRecFromBottom(height));
+    }
+    return maxArea;
+}
+
+public static int maxRecFromBottom(int[] height) {
+    if (height == null || height.length == 0) {
+        return 0;
+    }
+    int maxArea = 0;
+    Stack<Integer> stack = new Stack<>();
+    for (int i = 0; i < height.length; i++) {
+        while (!stack.isEmpty() && height[i] <= height[stack.peek()]) {
+            int j = stack.pop();
+            int k = stack.isEmpty() ? -1 : stack.peek();
+            int curArea = (i - k - 1) * height[j];
+            maxArea = Math.max(maxArea, curArea);
+        }
+        stack.push(i);
+    }
+    while (!stack.isEmpty()) {
+        int j = stack.pop();
+        int k = stack.isEmpty() ? -1 : stack.peek();
+        int curArea = (height.length - k - 1) * height[j];
+        maxArea = Math.max(maxArea, curArea);
+    }
+    return maxArea;
+}
+
+public static void main(String[] args) {
+    int[][] arr = {
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 0, 1},
+            {1, 1, 0, 1, 1},
+            {1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1}};
+    System.out.println(maxRecSize(arr));
+}
+```
+
+
+
+## 题目一百01
+
+public class Query
+public Node o1:
+public Node o2:
+public Query(Node o1,Node o2){
+this.o1 o1;
+this.o2 02;
+一个
+Quey类的实例表示一条查询语句，表示想要查询o1节点和o2节点的最近公共祖先节点。
+给定二棵二叉树的头节点head,并给定所有的查询语句，即一个Quey类型的数组Quey几ques,
+请返回
+Noae类型的数组Node[]ans,ans0代表ques[i]这条查询的答案，即ques可.o1和ques.o2的最近公共祖先
+【要求
+如果二叉树的节点数为N,查询语句的条数为M,整个处理过程的时间复杂度要求达到ON+M)。
+
+
+
+## 题目一百02
+
+TSP问题 有N个城市，任何两个城市之间的都有距离，任何一座城市到自己的距离都为0。所有点到点的距离都存在一个N*N的二维数组matrix里，也就是整张图由邻接矩阵表示。现要求一旅行商从k城市出发必须经过每一个城市且只在一个城市逗留一次，最后回到出发的k城，返回总距离最短的路的距离。参数给定一个matrⅸ，给定k。
+
+```java
+public static int g1(int[][] matrix) {
+    return dp(matrix, (1 << matrix.length) - 1, 0);
+}
+
+public static int dp(int[][] matrix, int cityStatus, int start) {
+    if (cityStatus == (cityStatus & (~cityStatus + 1))) {
+        return matrix[start][0];
+    }
+    cityStatus &= (~(1 << start));
+    int min = Integer.MAX_VALUE;
+    for (int i = 0; i < matrix.length; i++) {
+        if (i != start && (cityStatus & (1 << i)) != 0) {
+            int cur = matrix[start][i] + dp(matrix, cityStatus, i);
+            min = Math.min(min, cur);
+        }
+    }
+    return min;
+}
+```
+
+```java
+public static int g2(int[][] matrix) {
+    int N = matrix.length;
+    int statusNums = 1 << N;
+    int[][] dp = new int[statusNums][N];
+    for (int status = 0; status < statusNums; status++) {
+        for (int start = 0; start < N; start++) {
+            if ((status & (1 << start)) != 0) {
+                if (status == (status & (~status + 1))) {
+                    dp[status][start] = matrix[start][0];
+                } else {
+                  	//例如 status=110101 start=5
+                  	//  preStatus=010101
+                    int preStatus = status & (~(1 << start));
+                    dp[status][start] = Integer.MAX_VALUE;
+                    //从start -> i  i作为变成起点
+                    for (int i = 0; i < N; i++) {
+                        if ((preStatus & (1 << i)) != 0) {
+                           //枚举起点 比如 preStatus=010101 枚举这3个1为起点
+                           dp[status][start] = Math.min(dp[status][start], matrix[start][i] + dp[preStatus][i]);
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+    return dp[statusNums - 1][0];
+}
+```
+
+
+
+## 题目一百03
+
+贴瓷砖问题你有无限的1 * 2的砖块，要铺满2*N的区域，不同的铺法有多少种？
+你有无限的1 * 2的砖块，要铺满M*N的区域，不同的铺法有多少种？
+
+
+
+
+
+## 题目一百04
+
+移除盒子https://leetcode.cn/problems/remove-boxes/
